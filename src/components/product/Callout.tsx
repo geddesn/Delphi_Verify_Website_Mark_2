@@ -317,7 +317,11 @@ function CalloutBody({ callout }: { callout: CalloutSpec }) {
       <span
         role="img"
         aria-label="Delphi Verify"
-        className="mb-3 block h-4 w-[57px]"
+        /* 1.6x the original h-4 (16px) / w-[57px]. Both axes move together —
+           maskSize:contain preserves the logo's ratio inside the box, so the
+           box has to keep roughly the same proportion or it just leaves dead
+           space. 2x was too heavy against the panel's body text. */
+        className="mb-3 block h-[26px] w-[91px]"
         style={{
           backgroundColor: "var(--callout-ink)",
           maskImage: "url(/assets/logo.svg)",

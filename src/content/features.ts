@@ -75,3 +75,70 @@ export const yachtHandover = {
   ] satisfies CalloutSpec[],
   note: "Illustrative certificate data. Values shown are examples.",
 } as const;
+
+export const villaListing = {
+  eyebrow: "Worked example",
+  headline: "A listing, evidenced.",
+  /* No comparison against the listing photographs. Delphi records what was
+     observed at a known moment; it does not evaluate anybody else's brochure,
+     and implying otherwise would be a capability claim we cannot support. */
+  standfirst:
+    "A buyer is committing to a property they may have seen once, or not at all. A verified capture records its condition at a known moment — in a form the buyer, their solicitor and their lender can each open, without an account.",
+  image: {
+    base: "/assets/features/villa-listing",
+    width: 2720,
+    height: 1530,
+    alt: "A contemporary limestone villa in the UAE seen from the garden in morning light, a still reflecting pool across the foreground and nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "elevation",
+      title: "Entrance & elevation",
+      subtitle: "Condition captured at listing",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 09:12 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 40, y: 72 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "glazing",
+      title: "Glazing & upper terrace",
+      subtitle: "Recorded in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 09:19 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 69, y: 60 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "terrace",
+      title: "Terrace & pool",
+      subtitle: "Grounds captured to the boundary",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 09:26 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 62, y: 92 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
+/* Keyed by industry id, so adding a worked example to another sector is a
+   content change rather than a page change. Industries.tsx looks the figure up
+   here; it does not name sectors. */
+export const featureFigures = {
+  "yachts-marine": yachtHandover,
+  "property-sales": villaListing,
+} as const;

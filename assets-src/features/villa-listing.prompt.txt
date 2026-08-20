@@ -1,0 +1,70 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  fab74389-2de6-450e-9357-01b53c2db388
+
+Photorealistic medium-format architectural photograph: a contemporary luxury
+villa in Abu Dhabi seen from the garden in clear morning light, with nobody
+anywhere in the frame.
+
+SCENE
+A modern private villa on a quiet residential plot in the UAE. Confident
+contemporary Gulf architecture: crisp horizontal slabs and deep cantilevered
+overhangs in pale limestone and fair-faced concrete, full-height glazing set
+back into shade, a screened upper terrace, a low boundary wall. A still
+reflecting pool runs across the foreground. Mature date palms and low desert
+planting — gravel, agave, olive — around a stone terrace.
+
+Seen from the garden at eye level, at a three-quarter angle, so the entrance
+elevation leads and the pool terrace falls away to one side. The whole building
+sits clear of its background.
+
+THE MOMENT
+Empty and immaculately kept, between viewings. Nobody is present to vouch for
+its condition. Quiet, still, waiting to be checked over. The emptiness is
+deliberate.
+
+STRICTLY NOT
+No people anywhere — not on the terrace, not at the glazing, not inside, no
+figures, no silhouettes, no reflections of people. No gold, no gilding, no
+ornate arches, no domes, no carved screens, no marble excess, no chandeliers,
+no fountains with statuary. No supercars, no helicopter. No sun loungers, no
+parasols, no towels, no cocktails, no fire pit, no torches. No skyline of glass
+towers, no Dubai-style spectacle. Not a rendering, not CGI, not an estate
+agent's brochure shot. No sunset, no lens flare, no orange sky.
+
+COMPOSITION — LEAVE ROOM FOR THE OVERLAY
+16:9 landscape. The villa occupies the lower two thirds of the frame and runs
+across the middle of the picture, the entrance elevation toward the
+left-of-centre.
+
+The upper third must stay QUIET: open pale sky, smooth and even in tone, free
+of clutter, birds, cloud drama or bright hotspots. Navy information panels will
+be composited over this band, so it needs to read as calm negative space rather
+than as sky doing something interesting.
+
+The building must present several visually distinct, uncluttered areas that a
+small marker dot can sit on cleanly: the entrance elevation, the full-height
+glazing, the upper terrace, and the pool edge. Keep those areas free of busy
+detail.
+
+Verticals true and corrected, horizon dead level, no converging distortion. One
+obvious subject, generous negative space, so the picture stays legible when
+displayed large across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette — pale limestone, bone, sand, stone grey, muted green
+planting. Clear directional morning light with real shadow structure across the
+slabs and under the overhangs. Sky restrained and slightly desaturated, never
+postcard blue. Water calm, holding a believable reflection of the building.
+Neutral filmic grade, no saturation push, no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial architectural photography for a brand campaign — calm,
+still and precise, the visual language of an architecture title. High
+resolution, believable reflections, accurate architectural proportion.
+
+AVOID
+Text, lettering, numbers or logos of any kind anywhere, including house numbers
+and signage. People of any kind. Vehicles. Holograms, glowing overlays,
+futuristic effects, data visualisations. Visible third-party brands.
+Watermarks. Distorted or impossible geometry.

@@ -9,7 +9,7 @@ import { ButtonLink, ArrowRight } from "@/components/ui/Button";
 import { EvidenceChip } from "@/components/evidence/Evidence";
 import { IndustryShot } from "@/components/product/IndustryShot";
 import { ExpandableFigure } from "@/components/product/ExpandableFigure";
-import { yachtHandover } from "@/content/features";
+import { featureFigures } from "@/content/features";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
 import {
   industries,
@@ -305,7 +305,10 @@ function IndustryCard({
 }) {
   /* Only the yacht composite exists so far. Keyed by industry id, so adding
      another is one line here plus an entry in features.ts. */
-  const figure = industry.id === "yachts-marine" ? yachtHandover : null;
+  /* Looked up by id rather than named here, so adding a worked example to
+     another sector is a content change only. See featureFigures. */
+  const figure =
+    featureFigures[industry.id as keyof typeof featureFigures] ?? null;
 
   return (
     <article

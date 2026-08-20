@@ -166,6 +166,10 @@ export const compliance: {
   framework: string;
   status: ComplianceStatus;
   statement: string;
+  /* Badge filename in public/assets/certifications. Add one ONLY alongside a
+     status of "certified" — the Trust page will not render it otherwise, and
+     that gate is deliberate. See the note above `infrastructure`. */
+  mark?: string;
 }[] = [
   {
     framework: "ISO/IEC 27001",
@@ -186,6 +190,63 @@ export const compliance: {
       "A SOC 2 assessment has not been started, and no report is available. If SOC 2 is a requirement of your procurement process, tell us — knowing which standards our customers actually need is genuinely useful to us.",
   },
 ];
+
+/* ============================================================================
+   INFRASTRUCTURE ATTRIBUTIONS
+   ============================================================================
+   Technology logos, NOT certification marks. Every entry states something the
+   product verifiably does, each traceable to PRODUCT_TECHNICAL_DESCRIPTION.md.
+
+   ⚠️  WHY THERE ARE NO ISO 27001 OR SOC 2 BADGES HERE.
+
+   The previous site showed both, beside copy describing "ISO 27001 and SOC 2
+   Type II readiness". A badge is scanned; a caveat is read. Together they
+   assert a certification that is not held.
+
+   SOC 2 is the harder line. That artwork is the AICPA SOC service-organization
+   mark, which AICPA licenses only to organisations that have completed a SOC
+   examination and hold a report. SOC 2 has not been started here, so using it
+   would be a licensing violation on top of a false claim — and procurement
+   teams verify certification claims as a matter of routine.
+
+   ISO 27001 certification is expected within weeks. When the certificate is
+   ISSUED — not before — set that entry's status to "certified" in `compliance`
+   above and give it a `mark`. The Trust page renders a badge only for a
+   "certified" row, so nothing else needs changing and nothing can leak early.
+
+   Stripe appeared on the old page and is omitted: there is no payment
+   processing anywhere in the product description, so it would have attributed
+   something that does not happen.
+   ========================================================================= */
+export const infrastructure = {
+  eyebrow: "Built on",
+  headline: "The systems underneath, named.",
+  standfirst:
+    "Delphi runs on established infrastructure rather than self-managed hardware, and the guarantees on this page depend on specific, checkable technology. Naming it lets a reviewer verify our claims against somebody else's documentation instead of ours.",
+  items: [
+    {
+      logo: "apple",
+      name: "Apple App Attest",
+      body: "Hardware-backed attestation that a capture came from the genuine Delphi app on an uncompromised device. This is what makes the in-app capture rule enforceable rather than merely stated.",
+    },
+    {
+      logo: "google-cloud",
+      name: "Google Cloud",
+      body: "Managed Postgres and asynchronous task processing. Evidence sits on operated infrastructure with managed redundancy, not on hardware we maintain ourselves.",
+    },
+    {
+      logo: "firebase",
+      name: "Firebase",
+      body: "Identity, media storage and the API surface. Every private request carries a verified identity token before any evidence is touched.",
+    },
+    {
+      logo: "base-network",
+      name: "Base · Ethereum Attestation Service",
+      body: "Certificate proofs are anchored as EAS attestations on Base mainnet, chain ID 8453 — a record Delphi does not control and cannot quietly revise.",
+    },
+  ],
+  note: "These are technology attributions, not endorsements, partnerships or certifications. Each names a system Delphi depends on, so that our claims can be checked against its documentation rather than ours.",
+} as const;
 
 export const complianceNote = {
   headline: "On the precision of these statements",

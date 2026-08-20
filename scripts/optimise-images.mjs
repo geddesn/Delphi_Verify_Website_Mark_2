@@ -40,7 +40,10 @@ const GROUPS = [
        stacked card, so without it a mobile visitor downloaded the 960. */
     widths: [480, 960, 1920],
     webp: { quality: 80, effort: 6 },
-    sources: [{ file: "yacht-handover.png", name: "yacht-handover" }],
+    sources: [
+      { file: "yacht-handover.png", name: "yacht-handover" },
+      { file: "villa-listing.png", name: "villa-listing" },
+    ],
   },
   {
     name: "product",

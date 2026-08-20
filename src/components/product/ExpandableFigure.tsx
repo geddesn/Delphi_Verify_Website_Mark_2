@@ -155,8 +155,13 @@ export function ExpandableFigure({
               width={width}
               height={height}
               callouts={callouts}
-              panels="always"
-              showStackedList={false}
+              /* "auto", not "always". Expanding on a phone gives a ~330px
+                 image, and the panels have a 210px minimum — three of them
+                 overlapped each other and the photograph. Below lg they become
+                 the stacked list instead, which is what that mode is for.
+                 Expanding still earns its place on mobile: the picture is
+                 bigger and the callout text becomes readable prose. */
+              panels="auto"
             />
           )}
           {caption && <p className="mt-3 text-caption text-ink-muted">{caption}</p>}

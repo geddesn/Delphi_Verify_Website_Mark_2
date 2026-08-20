@@ -1,0 +1,69 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  2e98321f-3a47-4567-a72a-cb381ff578fd
+
+Photorealistic medium-format photograph: a mid-size business jet standing in a
+clean maintenance hangar, with nobody in the frame.
+
+SCENE
+A private aviation hangar, swept and well ordered. A mid-size business jet on
+pale sealed concrete, seen along its flank at a three-quarter angle from the
+front, nose toward the left. Polished white fuselage, bare metal leading
+edges, one engine nacelle and the wing root in the near ground. A wheeled
+maintenance stand alongside, ground cables coiled neatly on the floor. Tall
+hangar doors stand open at the far end, admitting flat daylight.
+
+Behind the aircraft, a plain unbroken hangar wall in pale painted panel.
+
+THE MOMENT
+The asset secures a facility, and the party financing it has never stood in
+front of it. Still and quiet, waiting to be checked over. The emptiness is
+deliberate.
+
+STRICTLY NOT
+No people anywhere — no crew, no engineers, no ground staff, no figures on the
+apron or in the hangar, no silhouettes. No gold, no VIP cabin, no stairs with
+a red carpet, no champagne, no models. Not a passenger terminal, not an
+airliner, not an air show, not a museum. Not a dirty or chaotic workshop. No
+coloured or party lighting, no neon. Not a rendering, not CGI.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the aircraft and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level from inside the hangar, the aircraft running across
+the lower two thirds of the frame.
+
+The upper third of the frame is the plain hangar wall — smooth, evenly lit and
+entirely empty. No roof trusses, no ducting, no service runs, no lighting
+units, no signage, no bright hotspots. Calm, uninterrupted negative space.
+
+The aircraft presents several visually distinct, uncluttered areas: the
+forward fuselage, the engine nacelle, the wing root, and the nose landing
+gear. Keep those areas free of busy detail.
+
+Verticals true and corrected, no converging distortion. One obvious subject,
+generous negative space, so the picture stays legible when displayed large
+across a page.
+
+LIGHT AND COLOUR
+Cool neutral palette warmed by the daylight from the doors — white fuselage,
+pale concrete, aluminium, muted stone. Soft directional light with real shadow
+structure and highlights held rather than blown. Neutral filmic grade, no
+saturation push, no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial photography for a brand campaign — calm, still and precise,
+the visual language of an aviation or engineering title. High resolution,
+believable reflections in the fuselage and on the floor, accurate aeronautical
+proportion.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere, including
+registration marks, tail numbers, manufacturer badges, warning placards, floor
+markings and hangar signage. People of any kind. Overlays, graphics, panels,
+user interface, holograms, data visualisations. Visible third-party brands.
+Watermarks. Distorted or impossible geometry.

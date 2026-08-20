@@ -359,6 +359,174 @@ export const vehicleHandover = {
   note: "Illustrative certificate data. Values shown are examples.",
 } as const;
 
+export const assetInspection = {
+  eyebrow: "Worked example",
+  headline: "Collateral, evidenced.",
+  standfirst:
+    "An asset secures a facility, and the party financing it has never stood in front of it. Each capture becomes a certificate the lender, the operator and the surveyor can all open.",
+  image: {
+    base: "/assets/features/asset-inspection",
+    width: 2720,
+    height: 1530,
+    alt: "A mid-size business jet standing alone in a clean maintenance hangar, a wheeled stand and coiled ground cables alongside, with nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "fuselage",
+      title: "Forward fuselage",
+      subtitle: "Condition at inspection",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 14:02 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 22, y: 68 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "wing",
+      title: "Wing root & flap",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 14:09 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 62, y: 74 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "engine",
+      title: "Engine & pylon",
+      subtitle: "Walk-round completed",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 14:16 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 89, y: 60 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
+export const consignmentHandover = {
+  eyebrow: "Worked example",
+  headline: "A handover, evidenced.",
+  standfirst:
+    "Custody passes through several pairs of hands, and if the work is damaged nobody can say at which. Each capture becomes a certificate the shipper, the handler, the receiver and the insurer can all open.",
+  image: {
+    base: "/assets/features/consignment-handover",
+    width: 2720,
+    height: 1530,
+    alt: "An open birch ply crate on a wheeled dolly in a fine art inspection bay, a wrapped work inside and the removed front panel leaning beside it, with nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "crate",
+      title: "Crate & contents",
+      subtitle: "Condition at transfer of custody",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 15:31 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 40, y: 58 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "base",
+      title: "Base & handling",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 15:36 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 44, y: 85 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "second",
+      title: "Second consignment",
+      subtitle: "Recorded before despatch",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 15:42 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 59, y: 62 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
+export const equipmentReturn = {
+  eyebrow: "Worked example",
+  headline: "A return, evidenced.",
+  standfirst:
+    "Equipment comes back and responsibility for its condition is about to transfer. Each capture becomes a certificate the unit, the depot and the support contractor can all open.",
+  image: {
+    base: "/assets/features/equipment-return",
+    width: 2720,
+    height: 1530,
+    alt: "An olive support truck with its tailgate lowered in a maintenance hangar, an inspection platform and tool bench alongside, with nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "tailgate",
+      title: "Tailgate & fittings",
+      subtitle: "Condition at return",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 16:05 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 34, y: 62 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "body",
+      title: "Body & load bed",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 16:11 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 55, y: 45 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "running",
+      title: "Wheels & running gear",
+      subtitle: "Walk-round completed",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 16:18 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 67, y: 75 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
 /* Keyed by industry id, so adding a worked example to another sector is a
    content change rather than a page change. Industries.tsx looks the figure up
    here; it does not name sectors. */
@@ -369,4 +537,7 @@ export const featureFigures = {
   construction: constructionMilestone,
   insurance: claimInspection,
   automotive: vehicleHandover,
+  industrial: assetInspection,
+  logistics: consignmentHandover,
+  defence: equipmentReturn,
 } as const;

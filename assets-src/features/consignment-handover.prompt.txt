@@ -1,0 +1,70 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  ae37faea-b609-47ec-8866-04118ab9a945
+
+Photorealistic medium-format photograph: a crated artwork standing open in the
+inspection bay of a fine art storage facility, with nobody in the frame.
+
+SCENE
+The loading and inspection bay of a discreet fine art warehouse. A tall flight
+case in pale birch ply stands upright on a low wheeled dolly, its front panel
+lifted off and set against the wall beside it, revealing the corner of a large
+framed work still wrapped in glassine and foam corners. A second closed crate
+waits behind. Sealed grey concrete floor, plain white walls, clean air. A
+roller shutter stands part open at the far end, admitting flat daylight.
+
+Everything is quiet, ordered and expensive to get wrong.
+
+THE MOMENT
+Custody is passing from one party to another, and if the work is damaged
+nobody will be able to say at which pair of hands it happened. Still and
+quiet, waiting to be checked. The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere — no handlers, no drivers, no figures at the shutter, no
+silhouettes. No forklifts in motion, no pallets of cardboard boxes, no
+shipping containers, no docks, no lorries, no racking stretching away. Not a
+parcel depot, not a distribution centre, not a factory. No mess, no damage
+drama, no dust. Do not show the artwork itself clearly — it stays wrapped and
+mostly concealed. A British facility, not American.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the bay and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level, straight-on to slightly three-quarter, the open
+crate standing in the middle distance toward the left of centre.
+
+The upper third of the frame is plain white warehouse wall — smooth, evenly
+lit and entirely empty. No racking, no roof structure, no ducting, no service
+runs, no lighting units, no signage, no bright hotspots. Calm, uninterrupted
+negative space.
+
+The bay presents several visually distinct, uncluttered areas: the open crate
+face, the removed front panel, the dolly and its castors, and the closed
+second crate. Keep those areas free of busy detail.
+
+Verticals true and corrected, no converging distortion, no fisheye. One
+obvious subject, generous negative space, so the picture stays legible when
+displayed large across a page.
+
+LIGHT AND COLOUR
+Cool neutral palette — pale birch ply, white wall, sealed grey floor, muted
+glassine. Flat, even daylight from the shutter opening, softly directional,
+with real but gentle shadow structure. Neutral filmic grade, no saturation
+push, no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial photography for a brand campaign — calm, careful and
+precise, the visual language of an art handling or conservation title. High
+resolution, accurate proportion, believable materials.
+
+AVOID
+Text, lettering, numbers, barcodes, shipping labels, fragile marks, stencils,
+logos or writing of any kind anywhere, including on the crates and walls.
+People of any kind. Overlays, graphics, panels, user interface, holograms,
+data visualisations. Visible third-party brands. Watermarks. Distorted or
+impossible geometry.

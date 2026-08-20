@@ -47,6 +47,9 @@ const GROUPS = [
       { file: "construction-milestone.png", name: "construction-milestone" },
       { file: "claim-inspection.png", name: "claim-inspection" },
       { file: "vehicle-handover.png", name: "vehicle-handover" },
+      { file: "asset-inspection.png", name: "asset-inspection" },
+      { file: "consignment-handover.png", name: "consignment-handover" },
+      { file: "equipment-return.png", name: "equipment-return" },
     ],
   },
   {

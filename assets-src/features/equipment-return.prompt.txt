@@ -1,0 +1,73 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  19689efb-70df-4f94-8efd-765aebbc4a8f
+
+Photorealistic medium-format photograph: a military support vehicle standing
+in a maintenance hangar at a UK base, with nobody in the frame.
+
+SCENE
+A clean, well-run vehicle maintenance hangar. A large olive drab military
+support truck stands on sealed concrete, seen along its flank at a
+three-quarter angle from the rear, tailgate lowered. A wheeled inspection
+platform is drawn up alongside. Tools laid out square on a steel bench,
+cables coiled. Tall doors stand part open at the far end, admitting flat
+British daylight.
+
+Behind the vehicle, a plain unbroken hangar wall in pale painted panel.
+
+Everything ordered and swept.
+
+THE MOMENT
+The vehicle has come back and responsibility for its condition is about to
+transfer. Nobody is present to agree what state it is in. Still and quiet,
+waiting to be checked over. The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere — no technicians, no personnel, no figures at the doors, no
+silhouettes. No weapons of any kind, no rifles, no ammunition, no missiles, no
+gun mounts. No combat, no field conditions, no camouflage netting, no damage,
+no smoke. Not a parade, not a recruitment advertisement. No insignia, no unit
+markings, no flags, no roundels, no rank markings. Not American — British base
+and British vehicle conventions. Not a scrapyard, not a derelict shed.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the hangar and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level, the vehicle running across the lower two thirds of
+the frame, tailgate toward the left of centre.
+
+The upper third of the frame is the plain hangar wall — smooth, evenly lit and
+entirely empty. No roof trusses, no ducting, no service runs, no lighting
+units, no signage, no bright hotspots. Calm, uninterrupted negative space.
+
+The vehicle presents several visually distinct, uncluttered areas: the open
+tailgate, the rear body panel, a wheel and hub, and the load bed. Keep those
+areas free of busy detail.
+
+Verticals true and corrected, no converging distortion. One obvious subject,
+generous negative space, so the picture stays legible when displayed large
+across a page.
+
+LIGHT AND COLOUR
+Muted neutral palette — olive drab, pale concrete, steel grey, painted panel.
+Soft directional daylight from the hangar doors with real but gentle shadow
+structure, highlights held rather than blown. Neutral filmic grade, no
+saturation push, no orange-and-teal, no HDR flatness. Calm and precise, not
+gritty photojournalism.
+
+STYLE
+Premium commercial photography for a brand campaign — the visual language of
+an engineering or logistics title documenting equipment maintenance. High
+resolution, accurate vehicle proportion.
+
+AVOID
+Text, lettering, numbers, serials, stencils, unit markings, registration
+plates, warning notices, logos or writing of any kind anywhere — on the
+vehicle, the walls, the bench, the equipment or any signage. People of any
+kind. Weapons of any kind. Overlays, graphics, panels, user interface,
+holograms, data visualisations. Visible third-party brands. Watermarks.
+Distorted or impossible geometry.

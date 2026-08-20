@@ -43,6 +43,7 @@ const GROUPS = [
     sources: [
       { file: "yacht-handover.png", name: "yacht-handover" },
       { file: "villa-listing.png", name: "villa-listing" },
+      { file: "villa-checkout.png", name: "villa-checkout" },
     ],
   },
   {

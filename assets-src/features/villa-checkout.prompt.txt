@@ -1,0 +1,71 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  144f39ef-e281-4e4a-a0fa-394cf70ef5bd
+
+Photorealistic medium-format interior photograph: the main living space of a
+high-end villa, emptied and cleaned at changeover, with nobody in the frame.
+
+SCENE
+A large, calm living and sleeping space in an upmarket villa. Oiled timber
+floor, plain plastered walls in a warm off-white, a low bed with white linen
+squared and hospital-cornered, a linen sofa, a low timber table, a woven rush
+rug. Full-height glazed doors along one side, open to a shaded terrace with
+soft daylight beyond. A single set of keys on the table. Nothing personal
+anywhere — no clothes, no luggage, no toiletries, no food.
+
+Immaculate but not staged for sale: this is a room that has just been turned
+over and is waiting to be checked, not photographed for a brochure.
+
+THE MOMENT
+Between guests. The previous occupant has gone and the next has not arrived.
+Nobody is present to vouch for its condition. The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere — not in the room, not on the terrace, no figures beyond
+the glazing, no silhouettes, no reflections of people. No pets. No flowers,
+no fruit bowl, no towel sculpture, no rose petals, no champagne, no cocktails,
+no welcome tray. No gold, no chandelier, no marble excess, no ornate
+panelling. Not a hotel-brochure shot. No clutter, no damage drama, no mess.
+No television screen showing anything.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph of a room. Do not add any graphic elements of
+any kind: no panels, no cards, no boxes, no banners, no labels, no captions,
+no callouts, no annotations, no user interface, no diagram, no dots, no
+markers, no arrows, no lines drawn over the picture. Nothing is superimposed
+on the image. The frame contains the room and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye-level, straight-on to slightly three-quarter, so the room
+runs across the frame with the glazed doors toward one side.
+
+The upper third of the frame is a plain flat ceiling and plain upper wall,
+smooth and even in tone, entirely empty — free of beams, pitched timber,
+pendant lights, downlights, cornicing, artwork, shelving or bright hotspots.
+Deliberately NOT a pitched or timber-clad ceiling. Calm, uninterrupted
+negative space.
+
+The room presents several visually distinct, uncluttered areas: the bed and
+linen, the floor, the glazed doors, and the seating. Keep those areas free of
+busy detail.
+
+Verticals true and corrected, no converging distortion, no fisheye. One
+obvious subject, generous negative space, so the picture stays legible when
+displayed large across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette — bone, oatmeal, pale timber, soft grey, white linen.
+Soft directional daylight entering through the glazed doors with real but
+gentle shadow structure. Bright and airy without being blown out. Neutral
+filmic grade, no saturation push, no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial interior photography for a brand campaign — calm, still and
+precise, the visual language of an architecture and design title. High
+resolution, accurate architectural proportion, believable soft shadows.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere in the frame.
+People of any kind. Overlays, graphics, panels, user interface, holograms,
+data visualisations. Visible third-party brands. Watermarks. Distorted or
+impossible geometry.

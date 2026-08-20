@@ -135,10 +135,67 @@ export const villaListing = {
   note: "Illustrative certificate data. Values shown are examples.",
 } as const;
 
+export const villaCheckout = {
+  eyebrow: "Worked example",
+  headline: "A check-out, evidenced.",
+  standfirst:
+    "A tenancy ends and the deposit is contested. Condition at check-out decides who pays for what — and it is the moment the two accounts diverge. Each capture becomes a certificate the tenant, the landlord and an adjudicator can all open.",
+  image: {
+    base: "/assets/features/villa-checkout",
+    width: 2720,
+    height: 1530,
+    alt: "The emptied living and sleeping space of a high-end villa at changeover, linen squared, a single set of keys on the table and nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "room",
+      title: "Room & finishes",
+      subtitle: "Condition recorded at check-out",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 11:04 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 43, y: 60 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "furnishings",
+      title: "Furnishings & floor",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 11:09 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 56, y: 77 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "doors",
+      title: "Doors & terrace",
+      subtitle: "Recorded to the boundary",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 11:15 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 74, y: 55 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
 /* Keyed by industry id, so adding a worked example to another sector is a
    content change rather than a page change. Industries.tsx looks the figure up
    here; it does not name sectors. */
 export const featureFigures = {
   "yachts-marine": yachtHandover,
   "property-sales": villaListing,
+  rentals: villaCheckout,
 } as const;

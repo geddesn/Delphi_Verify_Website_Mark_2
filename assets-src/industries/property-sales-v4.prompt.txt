@@ -1,0 +1,66 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  b6b0c20d-35ac-437f-9ea4-a9b732d1309b
+
+Photorealistic premium editorial photograph of a British estate agent
+photographing the interior of a London home with a smartphone.
+
+SCENE
+A living room in a Victorian London terrace conversion. Tall white-painted
+timber sash window with slim glazing bars, looking onto a quiet British street
+with red brick and London plane trees. Stripped oak floorboards running the
+length of the room. Plain flat plaster walls painted off-white, with a simple
+picture rail and a plain skirting board. A neutral linen sofa, a low timber
+coffee table, a stack of books, a mug, a folded throw — a few ordinary personal
+objects so it reads as somewhere a person actually lives rather than a hotel or
+a showroom. Soft overcast London daylight from the window. Quietly expensive
+through quality and proportion, never through display.
+
+STRICTLY NOT
+Not a French or Parisian apartment. No parquet de Versailles or herringbone
+floor, no gold or gilded trim, no ornate wall panelling or boiserie, no
+decorative cornicing, no French casement doors, no shutters, no espagnolette
+bolts, no column radiators, no Haussmann rooftops through the window. Not an
+American interior. Not a hotel lobby, not a grand civic or institutional space,
+no stone columns, no pilasters, no rusticated stonework.
+
+SUBJECT
+One estate agent in understated smart business clothing, tailored and muted,
+no loud pattern. Photographed from just behind and beside his shoulder so his
+face is clearly visible in genuine three-quarter profile, cheekbone and jawline
+lit, eyes on the room. He is concentrating on framing the shot. Working
+posture, mid-task, not posed and not aware of the camera.
+
+THE PHONE
+He holds the smartphone in both hands, low and toward the lower left of the
+frame, and it should occupy only a small part of the picture. The screen shows
+the live camera view of this same room, correctly aligned with the real room
+behind it, as a photograph being composed. The screen is a clean camera
+viewfinder image only: no app interface, no buttons, no icons, no symbols, no
+numbers, no words, no menu bars, no shutter button.
+
+COMPOSITION
+16:9 landscape. The agent occupies the right third; the room opens away to the
+left. One obvious subject and an uncluttered background, so the picture still
+reads clearly when displayed small. Natural eye-level perspective and realistic
+proportions. Agent and phone sharp, the far side of the room gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette — bone, oatmeal, pale oak, soft grey — balanced by cool
+natural daylight from the window. Crisp but natural. No artificial fill, no
+colour grading, no orange-and-teal look.
+
+STYLE
+Premium commercial architectural photography for a brand campaign. Calm,
+confident, quietly trustworthy. Restrained. High resolution, realistic skin
+texture, anatomically correct hands with exactly five fingers each, accurate
+smartphone geometry, believable reflections.
+
+AVOID
+Text or lettering of any kind anywhere in the image. Holograms, floating
+interface panels, glowing overlays, futuristic effects. Blockchain, padlock,
+shield or fingerprint symbols. Cyber-security graphics, data visualisations,
+network lines or nodes. Generic stock-photo poses, handshakes, thumbs-up,
+smiling at the camera. Exaggerated wealth, marble, chandeliers. Visible
+third-party brands or logos. Distorted or extra fingers, warped phone.
+Surveillance or CCTV connotations. Watermarks.

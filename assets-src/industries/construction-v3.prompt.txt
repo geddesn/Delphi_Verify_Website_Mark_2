@@ -1,0 +1,80 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  85852b5c-41eb-439d-8ece-ac46159d3fdb
+
+Photorealistic medium-format architectural photograph: a site manager
+documenting build state inside a high-specification villa under construction in
+Abu Dhabi, with a smartphone.
+
+SCENE
+The interior of a contemporary low-rise villa on a well-run Abu Dhabi
+development, at first-fix stage. Reinforced concrete frame, fair-faced
+blockwork, clean structural openings of generous height framing hard Gulf
+daylight. Services exposed and about to be covered: conduit runs and back
+boxes, copper and insulated pipework, ducting, a distribution board enclosure,
+insulation between framing. A stack of plain plasterboard resting flat against
+a wall. Fine construction dust in the light.
+
+The site is exceptionally tidy - materials stacked square, floor swept, no
+debris. A premium development run to a high standard, not a rough site.
+
+STRICTLY NOT
+No gold, no mirrored or gold-tinted glass, no supercars, no skyline of glass
+towers, no Dubai-style spectacle. Nothing flashy. Not a finished interior, not
+a showhome, not a render. Not a muddy or chaotic site. Not European or American
+construction - Gulf blockwork and concrete frame. No BIM or CAD overlays.
+
+SUBJECT
+One site manager in clean, correct site PPE: plain hi-vis vest in a muted,
+slightly desaturated safety yellow, plain hard hat, long sleeves, work boots.
+Every item completely unmarked - no printing, no logo, no lettering, no
+stickers, no name tape.
+
+Photographed OVER THE SHOULDER, from behind and slightly beside him, so the
+camera shares his viewpoint and looks where he is looking. His head is seen in
+profile or near profile with his eyes down on the work. That is correct and
+intended. He must never look at, turn toward, or make eye contact with the
+camera, and must not be aware of it.
+
+ANATOMY - CRITICAL
+He has exactly two arms and exactly two hands. Both hands are on the phone and
+nowhere else. There is no third arm, no spare hand, no floating limb, no second
+right arm reaching elsewhere in the frame. Five fingers per hand, correctly
+jointed.
+
+THE PHONE
+Held in both hands, low and toward the lower left of the frame, occupying only
+a small part of the picture. The screen shows the live camera view of this same
+work area, correctly aligned with what is really in front of it, as a
+photograph being composed. The screen is a clean camera image only: no app
+interface, no buttons, no icons, no symbols, no numbers, no words, no shutter
+button.
+
+COMPOSITION
+16:9 landscape. The manager occupies the right third; the exposed services and
+structure open away to the left. Verticals corrected and true. One obvious
+subject, uncluttered, so the picture reads clearly when displayed small.
+Natural eye-level perspective. Subject and phone sharp, the far side of the
+space gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette - concrete grey, sand, buff block, pale timber. Strong
+directional Gulf daylight through the structural openings, controlled and
+shaped, with real shadow structure and highlights held rather than blown.
+Neutral filmic grade. Calm and premium, not gritty photojournalism. No
+saturation push, no orange-and-teal, no HDR flatness.
+
+STYLE
+Premium commercial architectural photography for a brand campaign - the visual
+language of an architecture title documenting a building under construction.
+High resolution, realistic skin texture, accurate smartphone geometry.
+
+AVOID
+Text, lettering, numbers or logos of any kind anywhere, including on PPE,
+signage, packaging, plasterboard, pipework and scaffolding. A third arm or any
+extra limb. The subject facing, turning toward or making eye contact with the
+camera. Holograms, floating interface panels, glowing overlays. Blockchain,
+padlock or shield symbols. Cyber-security graphics, data visualisations.
+Generic stock-photo poses, handshakes, thumbs-up, hard-hat-and-clipboard
+cliches. Visible third-party brands. Distorted or extra fingers, warped phone.
+Watermarks.

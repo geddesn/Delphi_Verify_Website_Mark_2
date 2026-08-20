@@ -1,0 +1,77 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  1fa68f2e-4826-4479-8034-f3e2378b2ae4
+
+Photorealistic medium-format photograph: a large motor yacht at anchor in calm
+Mediterranean water, seen from a low three-quarter bow angle, with nobody
+aboard and nobody in the water.
+
+SCENE
+A well-kept white motor yacht of perhaps forty-five metres, lying at anchor in
+sheltered water off a rocky Mediterranean coast. Seen from the water, from a
+low viewpoint just above the surface, at a three-quarter angle from forward:
+the bow and flare lead the eye, the full run of the topsides and superstructure
+falls away toward the stern. The whole vessel is in frame with clear separation
+from the background.
+
+Sharp sheerline, raked bow, dark glazing set flush into white composite
+superstructure, oiled teak decks, stainless rails and cleats. A tender is
+stowed and covered on the aft deck. Fenders are in. Sunpads uncovered but bare
+- no cushions arranged, no towels, no table laid.
+
+Behind, a low dry headland in soft haze, well separated from the vessel. Calm
+water with fine surface texture and a believable reflection of the hull.
+
+THE MOMENT
+Between charters. Recently in service, not currently in use, and nobody aboard
+to vouch for its condition. Still, quiet, waiting to be checked over. The
+emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere - not on deck, not on the flybridge, not in a tender, not
+swimming, no figures on shore, no silhouettes, no reflections of people. No
+guests, no crew, no champagne, no glassware, no swimwear, no party. No gold
+fittings, no leopard print. Not a brochure or charter advertisement. No drone
+or high aerial view - the camera is low, near the water. No sunset, no lens
+flare, no orange sky. Not Caribbean, not Gulf, not Northern Europe.
+
+COMPOSITION - LEAVE ROOM FOR THE OVERLAY
+16:9 landscape. The vessel occupies the lower two-thirds of the frame and runs
+across the middle of the picture, bow toward the left-of-centre.
+
+The upper third must stay QUIET: open sky and distant haze, smooth and even in
+tone, free of clutter, birds, cloud drama or bright hotspots. Navy information
+panels will be composited over this band, so it needs to read as calm negative
+space rather than as sky doing something interesting.
+
+The vessel must present several visually distinct, uncluttered areas that a
+small marker dot can sit on cleanly: the bow and anchor, the midships
+topsides, the aft deck, and the waterline. Keep those areas free of busy
+detail.
+
+Verticals true, horizon dead level, no converging distortion. One obvious
+subject, generous negative space, so the picture stays legible when displayed
+large across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette - bone white, teak, stainless grey, pale stone, muted
+navy. Soft directional morning light with real shadow structure along the
+topsides. Sea and sky restrained and slightly desaturated, never postcard
+turquoise, never Maldivian. Neutral filmic grade. No saturation push, no
+orange-and-teal, no HDR flatness.
+
+STYLE
+Premium commercial marine photography for a brand campaign - calm, confident,
+understated. High resolution, accurate naval architecture, correct deck
+hardware and rigging, believable water surface and reflections, credible scale
+for a forty-five metre vessel.
+
+AVOID
+Any person, figure, silhouette or human reflection. Text, lettering, numbers or
+logos of any kind anywhere, including vessel names, hailing ports and
+registration marks. Any user interface, panel, label, callout, marker, pin,
+badge or annotation - these are added afterwards and must not be drawn.
+Holograms, floating panels, glowing dots, light trails, network lines,
+connecting lines. Blockchain, padlock, shield or fingerprint symbols. Data
+visualisations. Visible third-party brands. Watermarks. Anything that reads as
+a scale model, a render or CGI.

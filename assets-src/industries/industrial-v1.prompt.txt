@@ -1,0 +1,74 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  6dc7fe34-131e-47b5-9e4c-822a0f86a771
+
+Photorealistic medium-format photograph: an asset inspector documenting a
+financed business jet inside a maintenance hangar in Abu Dhabi, with a
+smartphone.
+
+SCENE
+A clean, well-lit private aviation hangar. A mid-size business jet stands on
+pale sealed concrete, nose to the left, one engine nacelle and the wing root in
+the near ground. Polished white fuselage, bare metal leading edges, a wheeled
+maintenance stand alongside, neatly coiled ground cables. Tall hangar doors
+part open at the far end, hard Gulf daylight cutting a bright band across the
+floor. Everything ordered and swept - a high-value asset held to a standard,
+which is precisely why a lender would care where it is and what condition it is
+in.
+
+STRICTLY NOT
+No gold, no VIP interior, no cabin shots, no champagne, no models, no stairs
+with a red carpet. Not a passenger terminal, not an airliner, not a museum. Not
+a dirty or chaotic workshop. No skyline of glass towers, no Dubai-style
+spectacle. Nothing flashy.
+
+SUBJECT
+One asset inspector in plain technical workwear - a muted shirt or overall in
+stone or navy, no hi-vis needed, no name badge, no visible branding.
+
+Photographed OVER THE SHOULDER, from behind and slightly beside, so the camera
+shares their viewpoint and looks where they are looking. The head is seen in
+profile or near profile with eyes on the airframe. That is correct and
+intended. The subject must never look at, turn toward, or make eye contact with
+the camera, and must not be aware of it.
+
+ANATOMY - CRITICAL
+Exactly two arms and exactly two hands. Both hands are on the phone and nowhere
+else. No third arm, no spare hand, no floating limb. Five fingers per hand,
+correctly jointed.
+
+THE PHONE
+Held in both hands, low and toward the lower left of the frame, occupying only
+a small part of the picture. The screen shows the live camera view of the same
+section of airframe, correctly aligned with what is really there, as a
+photograph being composed. The screen is a clean camera image only: no app
+interface, no buttons, no icons, no symbols, no numbers, no words, no shutter
+button.
+
+COMPOSITION
+16:9 landscape. The inspector occupies the right third; the aircraft and the
+hangar open away to the left. Verticals corrected and true. One obvious
+subject, uncluttered, so the picture reads clearly when displayed small.
+Natural eye-level perspective. Inspector and phone sharp, the far end of the
+hangar gently soft.
+
+LIGHT AND COLOUR
+Cool neutral palette warmed by the daylight band - white fuselage, pale
+concrete, aluminium, muted stone. Directional light from the open doors with
+real shadow structure and highlights held rather than blown. Neutral filmic
+grade. No saturation push, no orange-and-teal, no HDR flatness.
+
+STYLE
+Premium commercial photography for a brand campaign - the visual language of an
+aviation or engineering title, calm and precise. High resolution, realistic
+skin texture, accurate smartphone geometry, believable reflections in the
+fuselage.
+
+AVOID
+Text, lettering, numbers or logos of any kind anywhere, including registration
+marks, tail numbers, manufacturer badges, warning placards and hangar signage.
+The subject facing, turning toward or making eye contact with the camera. A
+third arm or extra limb. Holograms, floating interface panels, glowing
+overlays. Blockchain, padlock or shield symbols. Data visualisations. Generic
+stock-photo poses, handshakes, thumbs-up, clipboards. Distorted or extra
+fingers, warped phone. Watermarks.

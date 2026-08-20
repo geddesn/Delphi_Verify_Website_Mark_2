@@ -1,0 +1,102 @@
+{
+  "hosting": {
+    "public": "dist",
+    "cleanUrls": false,
+    "trailingSlash": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/product",
+        "destination": "/platform",
+        "type": 301
+      },
+      {
+        "source": "/product/**",
+        "destination": "/platform",
+        "type": 301
+      },
+      {
+        "source": "/verify-hashes",
+        "destination": "/verify",
+        "type": 301
+      },
+      {
+        "source": "/verify-hashes/**",
+        "destination": "/verify",
+        "type": 301
+      },
+      {
+        "source": "/download",
+        "destination": "/platform",
+        "type": 301
+      },
+      {
+        "source": "/download/**",
+        "destination": "/platform",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "comment": "Hashed build assets are immutable — cache them hard.",
+        "source": "/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "comment": "HTML must revalidate so a deploy is visible immediately.",
+        "source": "**/*.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=0, must-revalidate"
+          }
+        ]
+      },
+      {
+        "comment": "Security headers. The CSP is deliberately strict: this site loads no third-party scripts, fonts or frames. If analytics are added, widen script-src and connect-src for that host ONLY, rather than relaxing the policy.",
+        "source": "**",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "DENY"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=63072000; includeSubDomains; preload"
+          }
+        ]
+      }
+    ]
+  }
+}

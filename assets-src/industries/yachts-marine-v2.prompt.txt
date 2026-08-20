@@ -1,0 +1,103 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  (not yet generated)
+
+DIRECTION CHANGE — v2 removes the human subject.
+v1 showed a captain photographing the deck. This shows the vessel alone at the
+moment of redelivery. The industry is carried by the asset and the situation,
+not by a person performing an action. Two consequences worth knowing:
+  1. Every failure mode in v1 was anatomical - extra arms, warped phone, eye
+     contact. Those disappear entirely here.
+  2. Scale becomes the new risk. With no figure for reference a large yacht
+     reads as a model, so the SCALE block below is load-bearing, not optional.
+
+Photorealistic medium-format photograph: a large motor yacht lying stern-to at
+a Mediterranean quay early in the morning, immediately after redelivery, with
+nobody aboard.
+
+SCENE
+The aft section and transom of a well-kept motor yacht of perhaps forty metres,
+berthed stern-to the quay in a working Mediterranean marina near Marbella.
+Oiled teak decking laid in neat seams, stainless rails and cleats, white
+composite superstructure. The passerelle is lowered to the quay. Mooring lines
+are freshly made fast to the bollards and still holding their coil. Fenders are
+still out along the hull. A tender cover lies folded on the aft deck. Aft
+sunpads are uncovered but empty; no cushions arranged, no table laid.
+
+Beyond the transom: the granite quay edge, cleats and bollards, other masts
+further along, the dry Andalusian hills in soft haze.
+
+THE MOMENT
+This is the gap between two parties. The charter has ended, the guests have
+gone, and the vessel has not yet been checked over and signed for. Everything
+should read as very recently active but now still: the deck cleared but not yet
+cleaned, lines made fast but not yet tidied, nobody present.
+
+The emptiness is the subject. It should feel like a held breath rather than a
+photograph taken before anyone arrived.
+
+STRICTLY NOT
+No people anywhere - not on deck, not on the quay, not on neighbouring vessels,
+no figures in the background, no silhouettes, no reflections of people. No
+champagne, glassware, guests, swimwear, models or party. No gold fittings, no
+leopard print, no supercar on the quay, no helicopter. Not a brochure or
+charter advertisement. No drone or aerial view. No sunset, no lens flare. Not
+Caribbean, not Gulf - this is the Mediterranean coast of Spain.
+
+SCALE - CRITICAL
+With no human figure in frame the vessel must still read as genuinely large.
+Establish scale through built elements at known size: the width of the teak
+seams, the height of the stainless rail, the passerelle treads, quay bollards
+and cleats, the diameter of the fenders, the courses of stone in the quay wall.
+The transom should feel tall from the quayside viewpoint. Nothing should read
+as a scale model, a toy, or a tabletop render.
+
+COMPOSITION - CENTRE-WEIGHTED, READ THIS BEFORE FRAMING
+Delivered as 16:9, but the website crops it. On desktop the card renders at
+roughly 421×385 - very nearly square - and `object-cover` centre-crops the
+source, discarding about 18% of the width from EACH side. Only the central
+square survives. On mobile the full 16:9 is shown.
+
+So the frame has two jobs at once:
+
+  SAFE AREA - the central square, i.e. the middle ~64% of the width. The
+  vessel, the transom, the lowered passerelle and the mooring lines must all
+  sit inside it. This region alone has to read as "large yacht, just handed
+  back". Compose it as if it were a square photograph.
+
+  EXTENSION - the outer left and right eighteenths. Quay, further masts, hills,
+  open water. Atmosphere and depth only. Nothing here may be load-bearing,
+  because desktop visitors will never see it.
+
+Do NOT place the subject in the right third and let the scene open away to the
+left. That is the v1 composition, and the centre crop cuts straight through it.
+
+Camera at natural standing eye level on the quay. The transom sits centred and
+square-on to slightly off-axis, the passerelle running down toward the viewer
+as a leading diagonal that stays within the safe area.
+
+Verticals corrected and true, architectural discipline. One obvious subject,
+uncluttered, generous negative space, so the picture reads clearly at small
+size on a web page. Transom, passerelle and near deck sharp; the marina beyond
+gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette - teak, bone white, stainless grey, muted navy, pale
+stone. Soft directional early daylight, low sun, with real shadow structure
+across the deck and quay. The sea and sky restrained and slightly desaturated,
+never postcard blue. Neutral filmic grade. No saturation push, no
+orange-and-teal, no HDR flatness, no artificial fill.
+
+STYLE
+Premium commercial photography for a brand campaign - the visual language of a
+serious marine title, calm, quiet and understated. High resolution, accurate
+naval architecture, correct rigging and deck hardware, believable reflections
+in water and stainless.
+
+AVOID
+Any person, figure, silhouette or human reflection. Text, lettering, numbers or
+logos of any kind anywhere, including vessel names, hailing ports, registration
+marks and equipment badges. Holograms, floating interface panels, glowing
+overlays. Blockchain, padlock, shield or fingerprint symbols. Cyber-security
+graphics, data visualisations, network lines. Visible third-party brands.
+Watermarks. Anything that reads as a scale model or CGI render.

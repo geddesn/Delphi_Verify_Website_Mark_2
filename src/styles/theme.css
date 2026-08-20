@@ -1,0 +1,537 @@
+/* ============================================================================
+   DELPHI VERIFY — CENTRALISED DESIGN TOKENS
+   ============================================================================
+
+   This is the ONLY file in which raw colour, font, size, radius, shadow and
+   motion values are permitted to exist.
+
+   Components must never hard-code a colour or use an arbitrary Tailwind value
+   (e.g. `bg-[#2d2a70]`). `npm run check:tokens` fails the build if they do.
+   That single rule is what stops the design system rotting — it is exactly
+   how the previous site ended up with stock grey tokens and navy sprinkled
+   on top as one-off utility classes.
+
+   ── HOW TO CHANGE THINGS ──────────────────────────────────────────────────
+
+   Rebrand (new colours) ........ edit LAYER 1 only.
+   Re-theme (light/dark tuning) . edit LAYER 2 only.
+   Change a typeface ............ edit --font-display-stack / --font-body-stack.
+   Change corner style .......... edit --radius-* in the theme block.
+
+   Components never change. See every token rendered live at /styleguide.
+   ========================================================================= */
+
+@import "tailwindcss";
+
+/* Escape hatch for the rare case a component needs an explicit dark rule.
+   Prefer a semantic token — they switch automatically. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================================================
+   LAYER 1 — PRIMITIVES
+   Raw values. Never referenced directly by a component.
+   ========================================================================= */
+
+:root {
+  /* ── Brand: Delphi navy ────────────────────────────────────────────────
+     ANCHORED ON THE REAL LOGO. The wordmark is #2D3187, which is exactly
+     oklch(36.7% 0.141 275) — so --delphi-700 IS the brand colour, and the
+     rest of the scale is built around it at the same hue with perceptually
+     even lightness steps.
+
+     Do not shift the hue. 275 is where the logo lives; anything else makes
+     the site subtly disagree with the mark sitting in the header.          */
+  --delphi-50:   oklch(97.0% 0.012 275);
+  --delphi-100:  oklch(93.5% 0.028 275);
+  --delphi-200:  oklch(87.0% 0.056 275);
+  --delphi-300:  oklch(78.5% 0.090 275);
+  --delphi-400:  oklch(67.5% 0.128 275);
+  --delphi-500:  oklch(56.0% 0.158 275);
+  --delphi-600:  oklch(46.0% 0.156 275);
+  --delphi-700:  oklch(36.7% 0.141 275); /* ← #2D3187, the brand mark */
+  --delphi-800:  oklch(30.0% 0.118 275);
+  --delphi-900:  oklch(24.0% 0.094 275);
+  --delphi-950:  oklch(17.5% 0.068 275);
+  --delphi-1000: oklch(12.0% 0.048 275);
+
+  /* ── Neutrals ──────────────────────────────────────────────────────────
+     Very slightly cooled toward the brand hue so greys never look muddy
+     beside navy. Deliberately not pure zero-chroma — that flatness is part
+     of what made the old palette read as an untouched template.            */
+  --neutral-0:   oklch(100%  0     0);
+  --neutral-25:  oklch(99.1% 0.002 275);
+  --neutral-50:  oklch(97.8% 0.004 275);
+  --neutral-100: oklch(95.6% 0.006 275);
+  --neutral-200: oklch(91.4% 0.008 275);
+  --neutral-300: oklch(85.2% 0.010 275);
+  --neutral-400: oklch(70.4% 0.012 275);
+  --neutral-500: oklch(58.2% 0.014 275);
+  --neutral-600: oklch(47.6% 0.014 275);
+  --neutral-700: oklch(38.4% 0.012 275);
+  --neutral-800: oklch(28.6% 0.010 275);
+  --neutral-900: oklch(20.4% 0.008 275);
+  --neutral-950: oklch(14.2% 0.006 275);
+
+  /* ── Evidence signals ──────────────────────────────────────────────────
+     Reserved exclusively for verification state. Never decorative: if green
+     appears anywhere on this site, it must mean "verified".                */
+  --signal-verified:      oklch(62.4% 0.148 152);
+  --signal-verified-tint: oklch(95.4% 0.038 152);
+  --signal-pending:       oklch(72.8% 0.152 78);
+  --signal-pending-tint:  oklch(96.2% 0.044 78);
+  --signal-failed:        oklch(58.6% 0.196 25);
+  --signal-failed-tint:   oklch(95.6% 0.036 25);
+
+  /* ── Typefaces ─────────────────────────────────────────────────────────
+     Self-hosted via @fontsource — no third-party CDN. Faster, and it removes
+     the Google Fonts GDPR exposure that matters for an EU company selling
+     evidence integrity to enterprise procurement teams.
+
+     IBM Plex is chosen deliberately over a neutral geometric grotesque: it was
+     drawn as a corporate/technical typeface, and Sans and Mono share the same
+     skeleton — so a hash sits beside body text as part of the same system
+     rather than looking bolted on. That cohesion does real work here, because
+     monospace evidence data appears throughout the site.
+
+     To trial a different typeface, change one line here, then open
+     /styleguide to see the entire system respond at once.                  */
+  --font-display-stack: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body-stack:    "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono-stack:    "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+
+/* ============================================================================
+   LAYER 2 — SEMANTIC TOKENS  (LIGHT)
+   Roles, not values. This is the ONLY layer components reference.
+   ========================================================================= */
+
+:root {
+  /* Surfaces */
+  --canvas:          var(--neutral-0);
+  --surface:         var(--neutral-0);
+  --surface-sunken:  var(--neutral-50);
+  --surface-raised:  var(--neutral-0);
+  --surface-inverse: var(--delphi-950);
+  --surface-accent:  var(--delphi-50);
+
+  /* Text ("ink") */
+  --ink:            var(--neutral-950);
+  --ink-secondary:  var(--neutral-700);
+  --ink-muted:      var(--neutral-500);
+  --ink-inverse:    var(--neutral-0);
+  --ink-on-accent:  var(--neutral-0);
+  --ink-accent:     var(--delphi-700);
+
+  /* Lines — hairlines are core to the "instrument of record" language */
+  --line:         var(--neutral-200);
+  --line-strong:  var(--neutral-300);
+  --line-inverse: oklch(100% 0 0 / 0.14);
+
+  /* Interactive */
+  --accent:        var(--delphi-600);
+  --accent-hover:  var(--delphi-700);
+  --accent-ink:    var(--neutral-0);
+  --accent-subtle: var(--delphi-50);
+  --focus-ring:    var(--delphi-500);
+
+  /* Evidence state */
+  --verified:      var(--signal-verified);
+  --verified-tint: var(--signal-verified-tint);
+  --pending:       var(--signal-pending);
+  --pending-tint:  var(--signal-pending-tint);
+  --failed:        var(--signal-failed);
+  --failed-tint:   var(--signal-failed-tint);
+
+  /* Elevation — restrained. Evidence systems are flat and precise. */
+  --elev-card:    0 1px 2px oklch(18.2% 0.068 275 / 0.05),
+                  0 1px 1px oklch(18.2% 0.068 275 / 0.03);
+  --elev-raised:  0 4px 12px oklch(18.2% 0.068 275 / 0.07),
+                  0 1px 2px  oklch(18.2% 0.068 275 / 0.04);
+  --elev-overlay: 0 16px 40px oklch(18.2% 0.068 275 / 0.14),
+                  0 2px 6px   oklch(18.2% 0.068 275 / 0.06);
+
+  /* Brand mark. The logo SVG is a single flat colour, so it is applied as a
+     CSS mask and painted with this token — which means it themes correctly
+     without shipping two image files or inlining 13 kB of path data. */
+  --logo-ink: var(--delphi-700); /* exactly #2D3187 in light mode */
+
+  /* Hero backdrop. Sector photography is anchored right and erased before it
+     reaches the headline — an alpha mask rather than a dark scrim, so the type
+     sits on clean canvas instead of on a dimmed picture. Fully transparent at
+     the halfway line. Tune the fade here, not in the component.
+     Only the alpha of these stops matters; the hues are inert. */
+  --backdrop-fade: linear-gradient(
+    to right,
+    oklch(0% 0 0 / 0) 0%,
+    oklch(0% 0 0 / 0.30) 40%,
+    oklch(0% 0 0 / 0.65) 65%,
+    oklch(0% 0 0 / 1) 92%
+  );
+  --backdrop-opacity: 0.45;
+
+  /* ── Callout panels ────────────────────────────────────────────────────
+     Annotation panels sit ON TOP of photography, so unlike everything else
+     in this file they must NOT flip with the theme — a light panel over a
+     bright sky would be unreadable, and the photograph beneath does not
+     change between themes either. Defined once, deliberately absent from
+     both dark blocks below. */
+  --callout-surface:   oklch(17.5% 0.068 275 / 0.94);
+  --callout-ink:       oklch(100% 0 0);
+  --callout-ink-muted: oklch(100% 0 0 / 0.70);
+  --callout-line:      oklch(100% 0 0 / 0.85);
+  --callout-border:    oklch(100% 0 0 / 0.14);
+  /* Leader lines and marker dots are white, and white on a pale sky is
+     invisible. Every one is drawn twice: this darker halo underneath, the
+     white on top — the same trick that keeps map labels legible over
+     arbitrary terrain. */
+  --callout-halo:      oklch(17.5% 0.068 275 / 0.45);
+
+  /* Watermark on scene photography. Like the callout tokens this is
+     theme-invariant: it sits on a photograph, which does not change between
+     light and dark. Held back from full white so it reads as a mark on the
+     image rather than as a label pasted over it. */
+  --watermark-ink:   oklch(100% 0 0 / 0.88);
+  --watermark-shade: oklch(17.5% 0.068 275 / 0.55);
+
+  /* Selection */
+  --selection-bg: var(--delphi-200);
+  --selection-ink: var(--delphi-950);
+
+  /* Masks. Structural (alpha-only) rather than colour, but they live here so
+     no raw value ever appears in a component — see the drift guard. */
+  --mask-hero-fade: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    rgb(0 0 0) 40%,
+    transparent 100%
+  );
+}
+
+/* ── LAYER 2 — DARK MAPPING ────────────────────────────────────────────────
+   Only the mapping changes. No component is aware this block exists.
+   Shared by the OS-preference and explicit-choice selectors below.        */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas:          var(--delphi-1000);
+    --surface:         var(--delphi-950);
+    --surface-sunken:  var(--delphi-950);
+    --surface-raised:  var(--delphi-800);
+    --surface-inverse: var(--neutral-0);
+    --surface-accent:  var(--delphi-900);
+
+    --ink:           var(--neutral-50);
+    --ink-secondary: var(--neutral-300);
+    --ink-muted:     var(--neutral-400);
+    --ink-inverse:   var(--neutral-950);
+    --ink-on-accent: var(--neutral-0);
+    --ink-accent:    var(--delphi-300);
+
+    --line:         oklch(100% 0 0 / 0.11);
+    --line-strong:  oklch(100% 0 0 / 0.20);
+    --line-inverse: var(--neutral-300);
+
+    --accent:        var(--delphi-400);
+    --accent-hover:  var(--delphi-300);
+    --accent-ink:    var(--delphi-1000);
+    --accent-subtle: var(--delphi-900);
+    --focus-ring:    var(--delphi-300);
+
+    --verified-tint: oklch(62.4% 0.148 152 / 0.16);
+    --pending-tint:  oklch(72.8% 0.152 78  / 0.16);
+    --failed-tint:   oklch(58.6% 0.196 25  / 0.16);
+
+    --elev-card:    0 1px 2px  oklch(0% 0 0 / 0.36);
+    --elev-raised:  0 4px 12px oklch(0% 0 0 / 0.44);
+    --elev-overlay: 0 16px 40px oklch(0% 0 0 / 0.56);
+
+    --logo-ink: var(--neutral-50);
+    --selection-bg:  var(--delphi-700);
+    --selection-ink: var(--neutral-0);
+  }
+}
+
+/* Explicit choice always beats the OS preference.
+   Note this is an ATTRIBUTE selector, not :root — so any element can opt into
+   the dark mapping locally. That is how inverted sections work: a <section
+   data-theme="dark"> re-maps the semantic layer for its own subtree, and every
+   component inside it renders correctly with no dark: variants at all. */
+[data-theme="dark"] {
+  --canvas:          var(--delphi-1000);
+  --surface:         var(--delphi-950);
+  --surface-sunken:  var(--delphi-950);
+  --surface-raised:  var(--delphi-800);
+  --surface-inverse: var(--neutral-0);
+  --surface-accent:  var(--delphi-900);
+
+  --ink:           var(--neutral-50);
+  --ink-secondary: var(--neutral-300);
+  --ink-muted:     var(--neutral-400);
+  --ink-inverse:   var(--neutral-950);
+  --ink-on-accent: var(--neutral-0);
+  --ink-accent:    var(--delphi-300);
+
+  --line:         oklch(100% 0 0 / 0.11);
+  --line-strong:  oklch(100% 0 0 / 0.20);
+  --line-inverse: var(--neutral-300);
+
+  --accent:        var(--delphi-400);
+  --accent-hover:  var(--delphi-300);
+  --accent-ink:    var(--delphi-1000);
+  --accent-subtle: var(--delphi-900);
+  --focus-ring:    var(--delphi-300);
+
+  --verified-tint: oklch(62.4% 0.148 152 / 0.16);
+  --pending-tint:  oklch(72.8% 0.152 78  / 0.16);
+  --failed-tint:   oklch(58.6% 0.196 25  / 0.16);
+
+  --elev-card:    0 1px 2px  oklch(0% 0 0 / 0.36);
+  --elev-raised:  0 4px 12px oklch(0% 0 0 / 0.44);
+  --elev-overlay: 0 16px 40px oklch(0% 0 0 / 0.56);
+
+  --logo-ink: var(--neutral-50);
+  --selection-bg:  var(--delphi-700);
+  --selection-ink: var(--neutral-0);
+}
+
+/* ============================================================================
+   TAILWIND THEME BINDING
+   Exposes the semantic layer as utilities: bg-surface, text-ink, border-line,
+   text-display-lg, rounded-md, shadow-card …
+   ========================================================================= */
+
+@theme inline {
+  /* ── Surfaces ── */
+  --color-canvas:          var(--canvas);
+  --color-surface:         var(--surface);
+  --color-surface-sunken:  var(--surface-sunken);
+  --color-surface-raised:  var(--surface-raised);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-accent:  var(--surface-accent);
+
+  /* ── Ink ── */
+  --color-ink:           var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted:     var(--ink-muted);
+  --color-ink-inverse:   var(--ink-inverse);
+  --color-ink-on-accent: var(--ink-on-accent);
+  --color-ink-accent:    var(--ink-accent);
+
+  /* ── Lines ── */
+  --color-line:         var(--line);
+  --color-line-strong:  var(--line-strong);
+  --color-line-inverse: var(--line-inverse);
+
+  /* ── Callout panels (theme-invariant — they sit over photography) ── */
+  --color-callout-surface:   var(--callout-surface);
+  --color-callout-ink:       var(--callout-ink);
+  --color-callout-ink-muted: var(--callout-ink-muted);
+  --color-callout-line:      var(--callout-line);
+  --color-callout-border:    var(--callout-border);
+  --color-callout-halo:      var(--callout-halo);
+  --color-watermark-ink:     var(--watermark-ink);
+
+  /* ── Interactive ── */
+  --color-accent:        var(--accent);
+  --color-accent-hover:  var(--accent-hover);
+  --color-accent-ink:    var(--accent-ink);
+  --color-accent-subtle: var(--accent-subtle);
+
+  /* ── Evidence state ── */
+  --color-verified:      var(--verified);
+  --color-verified-tint: var(--verified-tint);
+  --color-pending:       var(--pending);
+  --color-pending-tint:  var(--pending-tint);
+  --color-failed:        var(--failed);
+  --color-failed-tint:   var(--failed-tint);
+
+  /* ── Typefaces ── */
+  --font-display: var(--font-display-stack);
+  --font-body:    var(--font-body-stack);
+  --font-mono:    var(--font-mono-stack);
+
+  /* ── Named type scale ──────────────────────────────────────────────────
+     Fixes the old site's drift, where an H2 was 24px in one section and
+     32px in another. Sections choose a *role*, never a pixel size.        */
+  --text-display-xl: 4.25rem;
+  --text-display-xl--line-height: 1.02;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-xl--font-weight: 700;
+
+  --text-display-lg: 3.25rem;
+  --text-display-lg--line-height: 1.06;
+  --text-display-lg--letter-spacing: -0.030em;
+  --text-display-lg--font-weight: 700;
+
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.12;
+  --text-display--letter-spacing: -0.024em;
+  --text-display--font-weight: 700;
+
+  --text-heading: 1.75rem;
+  --text-heading--line-height: 1.22;
+  --text-heading--letter-spacing: -0.018em;
+  --text-heading--font-weight: 600;
+
+  --text-subheading: 1.3125rem;
+  --text-subheading--line-height: 1.32;
+  --text-subheading--letter-spacing: -0.012em;
+  --text-subheading--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.62;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.58;
+
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.46;
+
+  /* Eyebrow labels — small, spaced, uppercase. A recurring structural
+     device that makes sections read like numbered parts of a document. */
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.14em;
+  --text-eyebrow--font-weight: 700;
+
+  /* Evidence text — hashes, coordinates, timestamps, certificate IDs. */
+  --text-mono: 0.8125rem;
+  --text-mono--line-height: 1.55;
+  --text-mono--letter-spacing: -0.005em;
+
+  --text-mono-sm: 0.6875rem;
+  --text-mono-sm--line-height: 1.5;
+  --text-mono-sm--letter-spacing: 0.01em;
+
+  /* ── Radii ─────────────────────────────────────────────────────────────
+     Deliberately tighter than the old 0.625rem shadcn default. Precision,
+     not friendliness — the single most effective lever for moving away
+     from "generic SaaS template".                                         */
+  --radius-xs:   2px;
+  --radius-sm:   3px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-xl:   8px;
+  --radius-full: 9999px;
+
+  /* ── Elevation ── */
+  --shadow-card:    var(--elev-card);
+  --shadow-raised:  var(--elev-raised);
+  --shadow-overlay: var(--elev-overlay);
+
+  /* ── Motion ── (neutralised under prefers-reduced-motion, below) */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ── Layout ── */
+  --container-content: 74rem;
+  --container-prose:   44rem;
+}
+
+/* Motion durations live outside @theme so the reduced-motion block can
+   override them globally. */
+:root {
+  --duration-fast:   140ms;
+  --duration-normal: 220ms;
+  --duration-slow:   420ms;
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================= */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-body-stack);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display-stack);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Tabular figures wherever numbers are compared — coordinates, counts,
+     timestamps. Stops digits jittering between rows. */
+  code, kbd, samp, pre, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tailwind v4 removed the default `cursor: pointer` on <button>. Restoring
+     it globally rather than remembering it per component. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
+
+  /* Minimum 44×44px touch target for anything interactive, without forcing
+     that size visually — the padding box does the work. */
+  @media (pointer: coarse) {
+    a[data-touch-target],
+    button,
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: var(--selection-bg);
+    color: var(--selection-ink);
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY — REDUCED MOTION
+   The previous site had zero support for this. Motion tokens collapse to nil,
+   disabling every animation in the codebase from one place.
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast:   0ms;
+    --duration-normal: 0ms;
+    --duration-slow:   0ms;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

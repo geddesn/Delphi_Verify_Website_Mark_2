@@ -1,0 +1,69 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  56d0da60-f52d-48c4-badf-070af7164a9b
+
+Photorealistic medium-format architectural photograph: an estate agent
+documenting the interior of a prime central London townhouse with a smartphone.
+
+SCENE
+A first-floor drawing room in a stucco-fronted townhouse in Belgravia or
+Chelsea. Generous ceiling height and confident proportion. Full-height sash
+windows with slim glazing bars onto a private garden square, mature plane trees
+outside. Honed limestone fireplace with a plain chimneypiece. Wide oiled oak
+boards. Lime-plastered walls in a soft warm white. A linen sofa, one good
+walnut side table, a single large artwork, a stack of books, a stoneware bowl.
+Very few objects, each of obvious quality, deliberately placed. Late afternoon
+light raking across the room, catching the plaster and the timber.
+
+The register is quiet money: expensive through proportion, material and
+restraint. A serious home, not a showpiece.
+
+STRICTLY NOT
+No gold, gilding or brass excess. No marble everywhere, no chandelier, no
+ornate cornicing or boiserie, no glossy showhome staging, no fur, no crystal,
+no oversized floral arrangement. Not a hotel suite, not a penthouse cliche, not
+a developer show flat. Nothing that reads as flash or new money. Not French or
+Parisian, not American - no parquet de Versailles, no French casement doors,
+no shutters, no column radiators.
+
+SUBJECT
+One estate agent in a well-cut, muted suit in fine wool - quiet tailoring, no
+pattern, no visible branding. Photographed from beside and slightly behind the
+shoulder, turned far enough toward camera that it is a genuine three-quarter
+FRONT view: both eyes readable, the far cheek visible. Not a side profile.
+Concentrating on framing the shot, mid-task, unaware of the camera.
+
+THE PHONE
+Held in both hands, low and toward the lower left of the frame, occupying only
+a small part of the picture. The screen shows the live camera view of this same
+room, correctly aligned with the real room behind it, as a photograph being
+composed. The screen is a clean camera image only: no app interface, no
+buttons, no icons, no symbols, no numbers, no words, no menu bars, no shutter
+button.
+
+COMPOSITION
+16:9 landscape. The agent occupies the right third; the room opens away to the
+left. Verticals corrected and true, architectural discipline. One obvious
+subject, uncluttered, so the picture still reads clearly when displayed small.
+Natural eye-level perspective, realistic proportions. Agent and phone sharp,
+the far side of the room gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette - bone, oatmeal, pale oak, stone grey, soft black.
+Directional late-afternoon daylight, controlled and shaped, with real shadow
+structure. Neutral filmic grade. No saturation push, no orange-and-teal, no
+HDR flatness, no artificial fill.
+
+STYLE
+Premium commercial architectural photography for a brand campaign - the visual
+language of an international property title, calm and confident. High
+resolution, realistic skin texture, anatomically correct hands with exactly
+five fingers each, accurate smartphone geometry, believable reflections.
+
+AVOID
+Text or lettering of any kind anywhere in the image. Holograms, floating
+interface panels, glowing overlays, futuristic effects. Blockchain, padlock,
+shield or fingerprint symbols. Cyber-security graphics, data visualisations,
+network lines. Generic stock-photo poses, handshakes, thumbs-up, smiling at
+camera. Visible third-party brands or logos. Distorted or extra fingers,
+warped phone. Surveillance connotations. Watermarks.

@@ -1,0 +1,75 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  525b5dc0-fe4d-48c9-b993-21cebc14c116
+
+Photorealistic premium editorial photograph of a British site manager
+photographing covered works inside a part-built house with a smartphone.
+
+SCENE
+Inside a partially built British house on a residential development, at
+first-fix stage — the moment before everything is closed up. Unplastered grey
+concrete blockwork walls. Timber stud partitions with mineral wool insulation
+between the studs, one bay still open. Sawn timber floor joists on galvanised
+joist hangers, chipboard decking part laid. Copper and plastic first-fix
+pipework and grey electrical conduit and cabling running through drilled
+joists and up the studs, exposed and about to be boarded over. A stack of
+plain plasterboard against a wall. Bare dusty concrete floor. Daylight
+floods through a large unglazed window opening; beyond it, out of focus, steel
+scaffold tubes and boards and the brickwork of the next plot under a soft
+overcast British sky. Tidy and well run.
+
+STRICTLY NOT
+Not an American site: no all-timber stud framing with OSB or plywood sheathing
+throughout, no American tools or fixtures. Not a French chantier. Not a heavy
+civil or industrial site — no tower cranes, no steel frame, no diggers, no
+muddy groundworks. Nothing gritty or photojournalistic.
+
+SUBJECT
+One site manager in ordinary British site PPE: a plain unmarked hi-vis vest in
+yellow-orange with plain silver reflective bands and no printing, lettering,
+numbers, badge or logo anywhere on it; a plain smooth hard hat in one flat
+colour with a completely blank shell — no printed name, no manufacturer
+marking, no stickers; a dark long-sleeved work shirt and work boots.
+Photographed from just behind his shoulder so his face is clearly visible in
+genuine three-quarter profile, jawline lit by the window, eyes on the exposed
+services. Working posture, mid-task, not posed, not aware of the camera.
+
+THE PHONE
+He holds the smartphone in both hands, raised in front of his chest toward the
+lower left of the frame, occupying only a small part of the picture. The
+screen shows the live camera view of this same run of exposed pipework,
+cabling and insulation, correctly aligned with the real work behind it, as a
+photograph being composed. The screen is a clean camera viewfinder image only:
+no app interface, no buttons, no icons, no symbols, no numbers, no words, no
+menu bars, no shutter button, no grid, no branded software.
+
+COMPOSITION
+16:9 landscape. The site manager occupies the right third; the part-built
+space and the exposed services open away to the left toward the window. One
+obvious subject, uncluttered background, so it reads clearly when small.
+Natural eye-level perspective, realistic proportions. Manager and phone sharp,
+the far side of the room gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette — pale sawn timber, grey block, buff brick, soft dust
+tones, muted hi-vis — balanced by cool natural daylight from the window
+opening. Crisp but natural. No colour grading, no orange-and-teal look, no
+harsh flash.
+
+STYLE
+Premium commercial architectural photography for a brand campaign. Calm,
+confident, restrained and clean, never gritty photojournalism. High
+resolution, realistic skin texture, anatomically correct hands with exactly
+five fingers each, accurate smartphone geometry.
+
+AVOID
+Text, lettering, writing or numbers of any kind anywhere in the image: nothing
+written on the hi-vis vest, nothing on the hard hat, no site signage, no
+safety notices, no hoardings, no printed markings on insulation, membranes,
+plasterboard, timber, pipes or cable, no branded packaging, labels, stickers
+or printed tape. No third-party brands or logos. Holograms, floating interface
+panels, glowing overlays. BIM, CAD or blueprint overlays. Blockchain, padlock
+or shield symbols. Cyber-security graphics, data visualisations, network lines
+or nodes. Stock-photo poses, handshakes, thumbs-up, hard hat and clipboard
+clichés, rolled drawings, smiling at the camera, teams posing. Distorted or
+extra fingers, warped phone. Watermarks.

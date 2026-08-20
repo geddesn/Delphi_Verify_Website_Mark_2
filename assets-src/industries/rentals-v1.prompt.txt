@@ -1,0 +1,72 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  0f8aa6ec-f05d-4778-a0b5-5a8a8e8ae8e3
+
+Photorealistic editorial photograph of a British inventory clerk recording the
+condition of an ordinary rented flat with a smartphone at check-out.
+
+SCENE
+The small kitchen of a modest, unremarkable British rental, just emptied at the
+end of a tenancy: worktops bare, cupboards cleared, nothing personal left.
+Cheap flat-fronted white units, chrome bar handles, wood-effect
+laminate worktop, stainless steel sink and mixer tap under the window, a white
+freestanding electric cooker, a washing machine built under the counter, a
+white plastic combi boiler in the corner. A kettle and one door key on a ring are the
+only objects. One cupboard door stands open. Grey speckled vinyl flooring, worn in front of the sink. Flat magnolia walls, faintly
+scuffed, a pale patch where something used to hang. Square white MDF skirting.
+British fittings, clearly visible: a rectangular UK three-pin double socket
+with rocker switches above the worktop, a square white UK rocker light switch
+by the doorway, a flat white panel radiator, a plain white uPVC window with a
+trickle vent onto a dull British back garden — red brick, fence panel, wheelie
+bin, flat grey sky. Behind her a white panel door onto a carpeted hallway. Ordinary and
+functional, slightly tired, never glamorous.
+
+STRICTLY NOT
+Not a luxury home, designer kitchen or show flat. No stone or marble worktops,
+no island, no range cooker, no exposed brick, no period fireplace, no cornicing
+or picture rail, no oak floorboards. Not French or Parisian: no parquet de
+Versailles or herringbone floor, no gilded trim, no boiserie or ornate
+panelling, no French casement doors, no shutters, no espagnolette bolts, no
+column radiators, no Haussmann rooftops or iron balconies. Not American: no US
+outlets, no toggle switches, no fly screens. No hotel, office or showroom.
+
+SUBJECT
+One inventory clerk in plain practical workwear — dark trousers, a simple
+plain-coloured sweater, unbranded. Ordinary, unglamorous, doing an everyday
+job. Photographed from just behind and beside her shoulder so her face is
+clearly visible in genuine three-quarter profile, cheekbone and jawline lit by
+the window, eyes on the wall she is recording. Working posture, mid-task,
+concentrating on framing the shot, not posed, not aware of the camera.
+
+THE PHONE
+She holds the smartphone in both hands, raised only slightly, toward the lower
+left of frame, occupying only a small part of the picture. The screen shows the
+live camera view of this same kitchen, correctly aligned with the real room
+behind it, as a photograph being composed. The screen is a clean camera
+viewfinder image only: no app interface, no buttons, no icons, no symbols, no
+numbers, no words, no menu bars, no shutter button, no grid lines, no branded software.
+
+COMPOSITION
+16:9 landscape. The clerk occupies the right third; the kitchen opens away to
+the left toward the window. One obvious subject, uncluttered simple background,
+so the picture reads clearly when displayed small. Natural eye-level
+perspective, realistic proportions. Clerk and phone sharp, far end gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette — magnolia, bone, pale grey, laminate, brushed steel —
+balanced by cool natural daylight from the window. Crisp but natural. No
+artificial fill, no colour grading, no orange-and-teal.
+
+STYLE
+Premium commercial documentary photography. Calm, matter-of-fact.
+High resolution, realistic skin texture, anatomically correct hands with
+exactly five fingers each, accurate smartphone geometry.
+
+AVOID
+Text or lettering of any kind anywhere in the image — no signage, labels,
+appliance markings, writing on the phone, numbers on dials. Holograms, floating
+interface panels, glowing overlays. Blockchain, padlock or shield symbols.
+Cyber-security graphics or data visualisations. Stock-photo poses, handshakes,
+thumbs-up, smiling at the camera. Clipboards, paperwork, tablets. Clutter,
+mess, dirt. Third-party brands or logos. Distorted or extra fingers, warped
+phone. Watermarks.

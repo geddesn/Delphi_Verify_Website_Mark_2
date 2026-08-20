@@ -1,0 +1,74 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  d57a0108-807c-4f66-8386-0cba5b5fa8c4
+
+Photorealistic medium-format architectural photograph: a site manager
+documenting build state inside a high-specification villa under construction in
+Abu Dhabi, with a smartphone.
+
+SCENE
+The interior of a contemporary low-rise villa on a well-run Abu Dhabi
+development, at first-fix stage. Reinforced concrete frame, fair-faced
+blockwork, clean structural openings of generous height framing hard Gulf
+daylight. Services exposed and about to be covered: conduit runs and back
+boxes, copper and insulated pipework, ducting, a distribution board enclosure,
+insulation between framing. A stack of plain plasterboard resting flat against
+a wall. Fine construction dust in the light.
+
+The site is exceptionally tidy and well-ordered - materials stacked square,
+floor swept, no debris. This is a premium development run to a high standard,
+not a rough site. Ambitious architecture, honest structure.
+
+STRICTLY NOT
+No gold, no mirrored or gold-tinted glass, no supercars, no skyline of glass
+towers, no Dubai-style spectacle. Nothing flashy. Not a finished interior, not
+a showhome, not a render. Not a muddy, chaotic or dilapidated site. Not
+European or American construction - this is Gulf blockwork and concrete frame.
+No BIM overlays, no CAD lines, no augmented-reality graphics.
+
+SUBJECT
+One site manager in clean, correct site PPE: plain hi-vis vest, plain hard hat,
+work boots, long sleeves. Every item completely unmarked - no printing, no
+logo, no lettering, no stickers, no name tape. Photographed from beside and
+slightly behind the shoulder, turned far enough toward camera that it is a
+genuine three-quarter FRONT view: both eyes readable, the far cheek visible.
+Not a side profile. Concentrating on documenting the work, mid-task, unaware of
+the camera.
+
+THE PHONE
+Held in both hands, low and toward the lower left of the frame, occupying only
+a small part of the picture. The screen shows the live camera view of this same
+work area, correctly aligned with what is really in front of it, as a
+photograph being composed. The screen is a clean camera image only: no app
+interface, no buttons, no icons, no symbols, no numbers, no words, no menu
+bars, no shutter button.
+
+COMPOSITION
+16:9 landscape. The manager occupies the right third; the exposed services and
+structure open away to the left. Verticals corrected and true, architectural
+discipline. One obvious subject, uncluttered, so the picture still reads
+clearly when displayed small. Natural eye-level perspective, realistic
+proportions. Subject and phone sharp, the far side of the space gently soft.
+
+LIGHT AND COLOUR
+Warm neutral palette - concrete grey, sand, buff block, pale timber, muted
+high-visibility yellow. Strong directional Gulf daylight entering through the
+structural openings, controlled and shaped, with real shadow structure and
+highlights held rather than blown. Neutral filmic grade. Calm and premium, not
+gritty photojournalism. No saturation push, no orange-and-teal, no HDR
+flatness.
+
+STYLE
+Premium commercial architectural photography for a brand campaign - the visual
+language of an architecture title documenting a building under construction.
+High resolution, realistic skin texture, anatomically correct hands with
+exactly five fingers each, accurate smartphone geometry.
+
+AVOID
+Text, lettering, numbers or logos of any kind anywhere in the image, including
+on PPE, signage, packaging, plasterboard, pipework and scaffolding. Holograms,
+floating interface panels, glowing overlays. Blockchain, padlock or shield
+symbols. Cyber-security graphics, data visualisations. Generic stock-photo
+poses, handshakes, thumbs-up, hard-hat-and-clipboard cliches, smiling at
+camera. Visible third-party brands. Distorted or extra fingers, warped phone.
+Watermarks.

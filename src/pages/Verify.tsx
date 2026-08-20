@@ -44,7 +44,11 @@ export default function Verify() {
     <>
       <Section tone="inverse">
         <Container>
-          <div className="grid gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
+          {/* min-w-0 / minmax(0,…) for the same reason as the homepage hero:
+              grid items default to min-width:auto, so a track cannot size
+              below its content's min-content width. Here the offender is the
+              code input — see below. */}
+          <div className="grid gap-14 [&>*]:min-w-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] lg:gap-20">
             <div className="flex flex-col gap-6">
               <Eyebrow>Independent verification</Eyebrow>
               <h1 className="text-display-lg text-ink">
@@ -80,7 +84,17 @@ export default function Verify() {
                 inputMode="text"
                 aria-describedby={showError ? "code-error" : "code-hint"}
                 aria-invalid={showError || undefined}
-                className="h-14 rounded-md border border-line-strong bg-surface px-4 text-center font-mono text-heading uppercase tracking-[0.3em] text-ink placeholder:text-ink-muted placeholder:tracking-[0.3em]"
+                /* w-full and min-w-0 are load-bearing.
+
+                   An <input> with no explicit width takes its intrinsic width
+                   from the `size` attribute, which defaults to 20 characters.
+                   At 28px monospace with 0.3em tracking that is a min-content
+                   of 383px, which forced the grid track to 433px inside a
+                   363px container and made the whole page scroll sideways on
+                   a phone. Eight characters are ever typed here; twenty was
+                   never intentional, just the HTML default showing through. */
+                size={9}
+                className="h-14 w-full min-w-0 rounded-md border border-line-strong bg-surface px-4 text-center font-mono text-heading uppercase tracking-[0.3em] text-ink placeholder:text-ink-muted placeholder:tracking-[0.3em]"
               />
 
               {showError ? (

@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "target": "improvement",
     "public": "dist",
     "cleanUrls": false,
     "trailingSlash": true,

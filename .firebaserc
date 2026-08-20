@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "delphiverify"
+  },
+  "targets": {
+    "delphiverify": {
+      "hosting": {
+        "improvement": [
+          "delphi-improvement"
+        ]
+      }
+    }
+  }
+}

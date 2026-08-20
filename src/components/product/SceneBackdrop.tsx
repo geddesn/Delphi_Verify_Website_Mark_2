@@ -38,20 +38,23 @@ export type BackdropFrame = {
 const DWELL_MS = 7000;
 const FADE_MS = 1800;
 
-/* The backdrop is a desktop device and only makes sense there.
+/* The backdrop runs everywhere, but in two shapes. Position, size and mask all
+   live in theme.css under .scene-backdrop — the mask has to change between
+   portrait and landscape, and an inline style cannot carry a media query.
 
-   Below lg it was `w-full` with `inset-y-0`, so it filled a hero box that is
-   PORTRAIT on a phone — roughly 390×850 once the headline wraps and the four
-   conditions stack. A 16:9 photograph with object-cover has to scale to about
-   1500px wide to cover 850px of height, so a phone showed a ~4x zoomed sliver
-   of one image. The horizontal mask made it worse: it fades in from the left,
-   which on a full-width element puts the visible part directly behind the
-   headline instead of beside it.
+   Phone: a 16:9 band pinned to the bottom of the hero, fading upward, so the
+   picture sits below the text rather than under it.
+   Desktop: the original — full height, right-hand side, fading left to right.
 
-   Rather than reworking the mask for portrait, the backdrop is simply not
-   shown on small screens. Six decorative images are also six fetches a phone
-   no longer makes — and they are eager, so that is real bandwidth. */
+   An earlier revision disabled this below lg. That fixed a real bug — a
+   full-height portrait box scaled a 16:9 image to a ~4x zoomed sliver — but
+   threw the effect away on mobile to do it. The band keeps both.
+
+   What stays mobile-aware is how many frames load. They are eager by
+   necessity (a lazy frame fades in blank when its turn arrives), so six is
+   real bandwidth on a phone. Mobile cycles a subset. */
 const DESKTOP = "(min-width: 1024px)";
+const MOBILE_FRAMES = 3;
 
 export function SceneBackdrop({
   frames,
@@ -75,20 +78,27 @@ export function SceneBackdrop({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  /* Fewer frames on a phone, and the cycle indexes into this list rather than
+     the full one, so it can never select a frame that was not rendered. */
+  const shown = isDesktop ? frames : frames.slice(0, MOBILE_FRAMES);
+
   useEffect(() => {
-    if (!isDesktop || frames.length < 2) return;
+    if (shown.length < 2) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reduced.matches) return;
 
     const id = setInterval(
-      () => setActive((i) => (i + 1) % frames.length),
+      () => setActive((i) => (i + 1) % shown.length),
       DWELL_MS,
     );
     return () => clearInterval(id);
-  }, [frames.length, isDesktop]);
+  }, [shown.length]);
 
-  if (!isDesktop) return null;
+  /* Keep the index in range when the breakpoint changes under us. */
+  useEffect(() => {
+    setActive((i) => (i < shown.length ? i : 0));
+  }, [shown.length]);
 
   return (
     <div
@@ -101,24 +111,21 @@ export function SceneBackdrop({
 
            Clipping lives here rather than on the section, so a sibling layer
            (the app screens) can deliberately overflow the hero. */
-        /* w-3/5 unconditionally now — the component returns null below lg, so
-           the old w-full mobile case no longer exists. */
-        "pointer-events-none absolute inset-y-0 right-0 z-0 w-3/5 select-none overflow-hidden",
+        /* Geometry and mask come from .scene-backdrop in theme.css — see the
+           note there. Both breakpoints are handled in one place. */
+        "scene-backdrop pointer-events-none z-0 select-none overflow-hidden",
         className,
       )}
-      style={{
-        /* Both spellings — Safari still wants the prefixed property. */
-        maskImage: "var(--backdrop-fade)",
-        WebkitMaskImage: "var(--backdrop-fade)",
-      }}
     >
-      {frames.map((b, i) => (
+      {shown.map((b, i) => (
         <img
           key={b.name}
           src={`/assets/backdrops/${b.name}-1440.webp`}
           srcSet={`/assets/backdrops/${b.name}-720.webp 720w, /assets/backdrops/${b.name}-1440.webp 1440w`}
           /* Desktop-only component, so the small-screen branch is dead. */
-          sizes="60vw"
+          /* 60vw beside the headline on desktop; full width as a band on a
+             phone. */
+          sizes="(min-width: 1024px) 60vw, 100vw"
           alt=""
           /* Never lazy. A lazy frame that has not fetched by the time its turn
              comes round fades in blank, and because these sit at opacity 0 the

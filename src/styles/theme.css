@@ -169,6 +169,22 @@
   );
   --backdrop-opacity: 0.45;
 
+  /* Portrait equivalent, for phones. The landscape mask above fades left to
+     right because the image sits beside the headline. On a phone there is no
+     beside — the hero is one column — so the image sits ACROSS THE TOP and
+     dissolves downward before it reaches the copy. Same idea, rotated.
+
+     Anchored at the top rather than the bottom because a phone hero is tall:
+     pinned to the bottom the band falls below the fold and is never seen,
+     which defeats the point of having it. */
+  --backdrop-fade-portrait: linear-gradient(
+    to bottom,
+    oklch(0% 0 0 / 1) 0%,
+    oklch(0% 0 0 / 0.85) 34%,
+    oklch(0% 0 0 / 0.35) 64%,
+    oklch(0% 0 0 / 0) 92%
+  );
+
   /* ── Callout panels ────────────────────────────────────────────────────
      Annotation panels sit ON TOP of photography, so unlike everything else
      in this file they must NOT flip with the theme — a light panel over a
@@ -508,6 +524,46 @@
   ::selection {
     background-color: var(--selection-bg);
     color: var(--selection-ink);
+  }
+}
+
+/* ============================================================================
+   SCENE BACKDROP GEOMETRY
+   ============================================================================
+   Two different treatments, and the mask cannot be swapped from an inline
+   style, so it lives here as a class.
+
+   Phone: a landscape band across the TOP of the hero, dissolving downward, so
+   the strongest part of the picture sits above the copy and has gone by the
+   time the headline starts. Sized by aspect-ratio rather than a percentage of
+   the hero, which avoids the WebKit percentage-height problem and — because
+   the masters are 16:9 — means nothing is cropped. The earlier full-height
+   version had to scale a 16:9 image to about 1500px wide to cover a portrait
+   box, which is why phones showed a hugely zoomed sliver.
+
+   Desktop (≥1024px): the original — full height, right three-fifths, fading
+   left to right so the headline sits on clean canvas beside it.
+   ========================================================================= */
+
+.scene-backdrop {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  aspect-ratio: 16 / 9;
+  mask-image: var(--backdrop-fade-portrait);
+  -webkit-mask-image: var(--backdrop-fade-portrait);
+}
+
+@media (min-width: 1024px) {
+  .scene-backdrop {
+    inset-block: 0;
+    top: auto;
+    inset-inline: auto 0;
+    width: 60%;
+    height: auto;
+    aspect-ratio: auto;
+    mask-image: var(--backdrop-fade);
+    -webkit-mask-image: var(--backdrop-fade);
   }
 }
 

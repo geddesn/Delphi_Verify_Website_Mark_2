@@ -36,7 +36,7 @@ export const yachtHandover = {
     {
       id: "bow",
       title: "Bow & anchor gear",
-      subtitle: "Condition captured at redelivery",
+      subtitle: "Supports a redelivery damage claim",
       rows: [
         { icon: "date", text: "6 Aug 2026, 13:08 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -49,7 +49,7 @@ export const yachtHandover = {
     {
       id: "topsides",
       title: "Topsides & hull",
-      subtitle: "No new damage recorded",
+      subtitle: "Establishes condition at handback",
       rows: [
         { icon: "date", text: "6 Aug 2026, 13:14 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -62,7 +62,7 @@ export const yachtHandover = {
     {
       id: "aft",
       title: "Aft deck & tender",
-      subtitle: "Inventory and stowage verified",
+      subtitle: "Evidence for owner and charterer",
       rows: [
         { icon: "date", text: "6 Aug 2026, 13:21 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -95,7 +95,7 @@ export const villaListing = {
     {
       id: "elevation",
       title: "Entrance & elevation",
-      subtitle: "Condition captured at listing",
+      subtitle: "Establishes condition at listing",
       rows: [
         { icon: "date", text: "6 Aug 2026, 09:12 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -108,7 +108,7 @@ export const villaListing = {
     {
       id: "glazing",
       title: "Glazing & upper terrace",
-      subtitle: "Recorded in the same session",
+      subtitle: "Grounds for a remote buyer to commit",
       rows: [
         { icon: "date", text: "6 Aug 2026, 09:19 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -121,7 +121,7 @@ export const villaListing = {
     {
       id: "terrace",
       title: "Terrace & pool",
-      subtitle: "Grounds captured to the boundary",
+      subtitle: "Reduces renegotiation on condition",
       rows: [
         { icon: "date", text: "6 Aug 2026, 09:26 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -144,46 +144,46 @@ export const villaCheckout = {
     base: "/assets/features/villa-checkout",
     width: 2720,
     height: 1530,
-    alt: "The emptied living and sleeping space of a high-end villa at changeover, linen squared, a single set of keys on the table and nobody present",
+    alt: "The emptied living space of a modern city apartment at the end of a tenancy — scuffed wall, a pale rectangle where a picture hung, a chipped kitchen unit and a single set of keys on the worktop, with nobody present",
   },
   /* Illustrative. Values are examples, and the figure says so beneath. */
   callouts: [
     {
-      id: "room",
-      title: "Room & finishes",
-      subtitle: "Condition recorded at check-out",
+      id: "wall",
+      title: "Walls & decoration",
+      subtitle: "Supports the deposit position",
       rows: [
         { icon: "date", text: "6 Aug 2026, 11:04 UTC" },
         { icon: "location", text: "Location confirmed" },
         { icon: "integrity", text: "Media integrity secured" },
       ],
-      anchor: { x: 43, y: 60 },
+      anchor: { x: 28, y: 60 },
       panel: { x: 4, y: 8 },
       align: "top-left",
     },
     {
-      id: "furnishings",
-      title: "Furnishings & floor",
-      subtitle: "Captured in the same session",
+      id: "floor",
+      title: "Floor & wear",
+      subtitle: "Supports the fair-wear assessment",
       rows: [
         { icon: "date", text: "6 Aug 2026, 11:09 UTC" },
         { icon: "device", text: "Captured on attested device" },
         { icon: "integrity", text: "Media integrity secured" },
       ],
-      anchor: { x: 56, y: 77 },
+      anchor: { x: 46, y: 89 },
       panel: { x: 36, y: 8 },
       align: "top-left",
     },
     {
-      id: "doors",
-      title: "Doors & terrace",
-      subtitle: "Recorded to the boundary",
+      id: "kitchen",
+      title: "Kitchen & fittings",
+      subtitle: "Evidence for an adjudicator",
       rows: [
         { icon: "date", text: "6 Aug 2026, 11:15 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
         { icon: "integrity", text: "Media integrity secured" },
       ],
-      anchor: { x: 74, y: 55 },
+      anchor: { x: 62, y: 76 },
       panel: { x: 96, y: 8 },
       align: "top-right",
     },
@@ -207,7 +207,7 @@ export const constructionMilestone = {
     {
       id: "frame",
       title: "Frame & slabs",
-      subtitle: "Build state at milestone",
+      subtitle: "Substantiates the stage payment",
       rows: [
         { icon: "date", text: "6 Aug 2026, 07:41 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -220,7 +220,7 @@ export const constructionMilestone = {
     {
       id: "infill",
       title: "Blockwork infill",
-      subtitle: "Recorded before covering",
+      subtitle: "Evidences work before it is buried",
       rows: [
         { icon: "date", text: "6 Aug 2026, 07:48 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -233,7 +233,7 @@ export const constructionMilestone = {
     {
       id: "upper",
       title: "Upper level & access",
-      subtitle: "Captured in the same session",
+      subtitle: "Supports remote sign-off",
       rows: [
         { icon: "date", text: "6 Aug 2026, 07:55 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -263,7 +263,7 @@ export const claimInspection = {
     {
       id: "wall",
       title: "Wall & plaster",
-      subtitle: "Damage recorded at inspection",
+      subtitle: "Supports the claim at first notification",
       rows: [
         { icon: "date", text: "6 Aug 2026, 10:22 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -276,7 +276,7 @@ export const claimInspection = {
     {
       id: "floor",
       title: "Floor & skirting",
-      subtitle: "Extent captured in sequence",
+      subtitle: "Establishes the extent of loss",
       rows: [
         { icon: "date", text: "6 Aug 2026, 10:28 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -289,7 +289,7 @@ export const claimInspection = {
     {
       id: "contents",
       title: "Contents & furnishings",
-      subtitle: "Recorded in the same visit",
+      subtitle: "Evidence for adjuster and underwriter",
       rows: [
         { icon: "date", text: "6 Aug 2026, 10:35 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -319,7 +319,7 @@ export const vehicleHandover = {
     {
       id: "front",
       title: "Front wing & bumper",
-      subtitle: "Condition at handover",
+      subtitle: "Establishes condition at handover",
       rows: [
         { icon: "date", text: "6 Aug 2026, 08:14 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -332,7 +332,7 @@ export const vehicleHandover = {
     {
       id: "flank",
       title: "Doors & sill",
-      subtitle: "Captured in the same session",
+      subtitle: "Supports recovery of damage cost",
       rows: [
         { icon: "date", text: "6 Aug 2026, 08:17 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -345,7 +345,7 @@ export const vehicleHandover = {
     {
       id: "rear",
       title: "Rear quarter & wheels",
-      subtitle: "Walk-round completed",
+      subtitle: "Evidence for fleet and driver",
       rows: [
         { icon: "date", text: "6 Aug 2026, 08:21 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -375,7 +375,7 @@ export const assetInspection = {
     {
       id: "fuselage",
       title: "Forward fuselage",
-      subtitle: "Condition at inspection",
+      subtitle: "Evidences collateral in place",
       rows: [
         { icon: "date", text: "6 Aug 2026, 14:02 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -388,7 +388,7 @@ export const assetInspection = {
     {
       id: "wing",
       title: "Wing root & flap",
-      subtitle: "Captured in the same session",
+      subtitle: "Supports the periodic review",
       rows: [
         { icon: "date", text: "6 Aug 2026, 14:09 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -401,7 +401,7 @@ export const assetInspection = {
     {
       id: "engine",
       title: "Engine & pylon",
-      subtitle: "Walk-round completed",
+      subtitle: "Evidence for lender and operator",
       rows: [
         { icon: "date", text: "6 Aug 2026, 14:16 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -431,7 +431,7 @@ export const consignmentHandover = {
     {
       id: "crate",
       title: "Crate & contents",
-      subtitle: "Condition at transfer of custody",
+      subtitle: "Fixes condition at this handover",
       rows: [
         { icon: "date", text: "6 Aug 2026, 15:31 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -444,7 +444,7 @@ export const consignmentHandover = {
     {
       id: "base",
       title: "Base & handling",
-      subtitle: "Captured in the same session",
+      subtitle: "Locates liability in the chain",
       rows: [
         { icon: "date", text: "6 Aug 2026, 15:36 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -457,7 +457,7 @@ export const consignmentHandover = {
     {
       id: "second",
       title: "Second consignment",
-      subtitle: "Recorded before despatch",
+      subtitle: "Supports a cargo claim",
       rows: [
         { icon: "date", text: "6 Aug 2026, 15:42 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },
@@ -487,7 +487,7 @@ export const equipmentReturn = {
     {
       id: "tailgate",
       title: "Tailgate & fittings",
-      subtitle: "Condition at return",
+      subtitle: "Establishes condition at return",
       rows: [
         { icon: "date", text: "6 Aug 2026, 16:05 UTC" },
         { icon: "location", text: "Location confirmed" },
@@ -500,7 +500,7 @@ export const equipmentReturn = {
     {
       id: "body",
       title: "Body & load bed",
-      subtitle: "Captured in the same session",
+      subtitle: "Supports the transfer of responsibility",
       rows: [
         { icon: "date", text: "6 Aug 2026, 16:11 UTC" },
         { icon: "device", text: "Captured on attested device" },
@@ -513,7 +513,7 @@ export const equipmentReturn = {
     {
       id: "running",
       title: "Wheels & running gear",
-      subtitle: "Walk-round completed",
+      subtitle: "Evidence for unit and contractor",
       rows: [
         { icon: "date", text: "6 Aug 2026, 16:18 UTC" },
         { icon: "chain", text: "Anchored on Base · confirmed" },

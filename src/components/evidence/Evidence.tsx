@@ -75,7 +75,18 @@ export function DataRow({
       <span className="shrink-0 text-caption text-ink-muted">{label}</span>
       <span
         className={cn(
-          "text-right font-mono text-mono text-ink tabular",
+          /* min-w-0 is load-bearing, not tidying.
+
+             `truncate` sets white-space: nowrap, and a nowrap string still
+             contributes its FULL width as min-content. A flex or grid item
+             defaults to min-width:auto, so it refuses to shrink below that —
+             the 48-character evidence hash forced the hero's grid track to
+             490px inside a 313px container on a phone, dragging the headline
+             out of view where the section's overflow-hidden clipped it.
+
+             min-w-0 lets the item shrink so the ellipsis can actually do its
+             job. Without it, truncate silently does nothing and overflows. */
+          "min-w-0 text-right font-mono text-mono text-ink tabular",
           truncate && "truncate",
         )}
         title={truncate ? value : undefined}

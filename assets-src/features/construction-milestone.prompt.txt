@@ -1,0 +1,71 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  1efbe628-7e23-4b1b-9169-518503f2b04e
+
+Photorealistic medium-format architectural photograph: the exposed reinforced
+concrete frame of a villa under construction on a well-run development, with
+nobody in the frame.
+
+SCENE
+A contemporary low-rise villa at structural stage. Clean fair-faced concrete
+columns and floor slabs, crisp structural openings of generous height, buff
+blockwork infill beginning on the lower floor. Neat scaffolding to one
+elevation. Materials stacked square on the swept ground: banded blocks, flat
+plasterboard, timber. Fine construction dust hanging in the low sun.
+
+Exceptionally tidy and well-ordered — a premium development run to a high
+standard, not a rough site.
+
+THE MOMENT
+Work has reached a stage that somebody off-site has to pay for, and nobody is
+here to attest to it. Still, quiet, waiting to be checked. The emptiness is
+deliberate.
+
+STRICTLY NOT
+No people anywhere — no workers, no site staff, no figures in the openings or
+on the scaffold, no silhouettes. No gold, no mirrored glass, no supercars, no
+tower cranes dominating the sky, no skyline of glass towers, no Dubai-style
+spectacle. Not a finished building, not a showhome, not an architectural
+rendering, not CGI. Not a muddy, chaotic or derelict site. No hoardings, no
+site cabins, no portable toilets, no skips, no safety signage.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the building and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level from the ground, three-quarter angle, the structure
+running across the lower two thirds of the frame.
+
+The upper third of the frame is open sky — pale, smooth and even in tone,
+entirely empty. No cloud drama, no birds, no cranes, no bright hotspots.
+Calm, uninterrupted negative space.
+
+The structure presents several visually distinct, uncluttered areas: a slab
+edge, a column, the blockwork infill, and a structural opening. Keep those
+areas free of busy detail.
+
+Verticals true and corrected, horizon level, no converging distortion. One
+obvious subject, generous negative space, so the picture stays legible when
+displayed large across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette — concrete grey, sand, buff block, pale timber, bleached
+sky. Strong directional low sun raking across the frame with long clean
+shadows through the openings, highlights held rather than blown. Neutral
+filmic grade, no saturation push, no orange-and-teal, no HDR flatness. Calm
+and premium, not gritty photojournalism.
+
+STYLE
+Premium commercial architectural photography for a brand campaign — composed,
+still and precise, the visual language of an architecture title documenting a
+building under construction. High resolution, accurate structural proportion.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere, including
+site signage, safety notices, hoardings, scaffold tags and material
+packaging. People of any kind. Overlays, graphics, panels, user interface,
+holograms, BIM or CAD lines, data visualisations. Visible third-party brands.
+Watermarks. Distorted or impossible geometry.

@@ -191,6 +191,62 @@ export const villaCheckout = {
   note: "Illustrative certificate data. Values shown are examples.",
 } as const;
 
+export const constructionMilestone = {
+  eyebrow: "Worked example",
+  headline: "A milestone, evidenced.",
+  standfirst:
+    "A stage payment falls due for work nobody off-site has seen, and much of it is about to be covered for good. Each capture becomes a certificate the developer, the contractor, the funder and the surveyor can all open.",
+  image: {
+    base: "/assets/features/construction-milestone",
+    width: 2720,
+    height: 1530,
+    alt: "The exposed concrete frame of a villa under construction in low sun, materials stacked square on swept ground and nobody on site",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "frame",
+      title: "Frame & slabs",
+      subtitle: "Build state at milestone",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 07:41 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 33, y: 46 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "infill",
+      title: "Blockwork infill",
+      subtitle: "Recorded before covering",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 07:48 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 36, y: 73 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "upper",
+      title: "Upper level & access",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 07:55 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 65, y: 57 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
 /* Keyed by industry id, so adding a worked example to another sector is a
    content change rather than a page change. Industries.tsx looks the figure up
    here; it does not name sectors. */
@@ -198,4 +254,5 @@ export const featureFigures = {
   "yachts-marine": yachtHandover,
   "property-sales": villaListing,
   rentals: villaCheckout,
+  construction: constructionMilestone,
 } as const;

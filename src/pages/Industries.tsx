@@ -353,7 +353,7 @@ function IndustryCard({
                    panels open in the dialog, where they can be read. */
                 <ExpandableFigure
                   src={`${figure.image.base}-1920.webp`}
-                  srcSet={`${figure.image.base}-960.webp 960w, ${figure.image.base}-1920.webp 1920w`}
+                  srcSet={`${figure.image.base}-480.webp 480w, ${figure.image.base}-960.webp 960w, ${figure.image.base}-1920.webp 1920w`}
                   sizes="(min-width: 1024px) 500px, 100vw"
                   width={figure.image.width}
                   height={figure.image.height}

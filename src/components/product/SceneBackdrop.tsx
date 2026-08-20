@@ -38,6 +38,21 @@ export type BackdropFrame = {
 const DWELL_MS = 7000;
 const FADE_MS = 1800;
 
+/* The backdrop is a desktop device and only makes sense there.
+
+   Below lg it was `w-full` with `inset-y-0`, so it filled a hero box that is
+   PORTRAIT on a phone — roughly 390×850 once the headline wraps and the four
+   conditions stack. A 16:9 photograph with object-cover has to scale to about
+   1500px wide to cover 850px of height, so a phone showed a ~4x zoomed sliver
+   of one image. The horizontal mask made it worse: it fades in from the left,
+   which on a full-width element puts the visible part directly behind the
+   headline instead of beside it.
+
+   Rather than reworking the mask for portrait, the backdrop is simply not
+   shown on small screens. Six decorative images are also six fetches a phone
+   no longer makes — and they are eager, so that is real bandwidth. */
+const DESKTOP = "(min-width: 1024px)";
+
 export function SceneBackdrop({
   frames,
   className,
@@ -46,9 +61,22 @@ export function SceneBackdrop({
   className?: string;
 }) {
   const [active, setActive] = useState(0);
+  /* False during prerender and on first client paint, so the prerendered HTML
+     carries no <img> at all and a phone never queues the fetches. Desktop
+     mounts them after hydration; they fade in regardless, so the delay is not
+     perceptible. */
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    if (frames.length < 2) return;
+    const mq = window.matchMedia(DESKTOP);
+    const sync = () => setIsDesktop(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop || frames.length < 2) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reduced.matches) return;
@@ -58,7 +86,9 @@ export function SceneBackdrop({
       DWELL_MS,
     );
     return () => clearInterval(id);
-  }, [frames.length]);
+  }, [frames.length, isDesktop]);
+
+  if (!isDesktop) return null;
 
   return (
     <div
@@ -71,7 +101,9 @@ export function SceneBackdrop({
 
            Clipping lives here rather than on the section, so a sibling layer
            (the app screens) can deliberately overflow the hero. */
-        "pointer-events-none absolute inset-y-0 right-0 z-0 w-full select-none overflow-hidden lg:w-3/5",
+        /* w-3/5 unconditionally now — the component returns null below lg, so
+           the old w-full mobile case no longer exists. */
+        "pointer-events-none absolute inset-y-0 right-0 z-0 w-3/5 select-none overflow-hidden",
         className,
       )}
       style={{
@@ -85,7 +117,8 @@ export function SceneBackdrop({
           key={b.name}
           src={`/assets/backdrops/${b.name}-1440.webp`}
           srcSet={`/assets/backdrops/${b.name}-720.webp 720w, /assets/backdrops/${b.name}-1440.webp 1440w`}
-          sizes="(min-width: 1024px) 60vw, 100vw"
+          /* Desktop-only component, so the small-screen branch is dead. */
+          sizes="60vw"
           alt=""
           /* Never lazy. A lazy frame that has not fetched by the time its turn
              comes round fades in blank, and because these sit at opacity 0 the

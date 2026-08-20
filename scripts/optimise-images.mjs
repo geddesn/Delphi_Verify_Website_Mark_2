@@ -36,7 +36,9 @@ const GROUPS = [
     name: "features",
     src: join(process.cwd(), "assets-src", "features"),
     out: join(process.cwd(), "public", "assets", "features"),
-    widths: [960, 1920],
+    /* 480 exists for the phone case: the figure renders ~270px wide in a
+       stacked card, so without it a mobile visitor downloaded the 960. */
+    widths: [480, 960, 1920],
     webp: { quality: 80, effort: 6 },
     sources: [{ file: "yacht-handover.png", name: "yacht-handover" }],
   },

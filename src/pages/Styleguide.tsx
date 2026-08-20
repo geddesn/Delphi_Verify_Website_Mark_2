@@ -195,7 +195,7 @@ export default function Styleguide() {
         >
           <AnnotatedFigure
             src={`${fig.image.base}-1920.webp`}
-            srcSet={`${fig.image.base}-960.webp 960w, ${fig.image.base}-1920.webp 1920w`}
+            srcSet={`${fig.image.base}-480.webp 480w, ${fig.image.base}-960.webp 960w, ${fig.image.base}-1920.webp 1920w`}
             sizes="(min-width: 1280px) 1100px, 100vw"
             width={fig.image.width}
             height={fig.image.height}

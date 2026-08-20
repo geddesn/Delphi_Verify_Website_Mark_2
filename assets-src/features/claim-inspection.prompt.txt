@@ -1,0 +1,72 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  fe819888-ac00-46ee-87c2-a55242424754
+
+Photorealistic medium-format interior photograph: a reception room in a
+high-value house after an escape of water, with nobody in the frame.
+
+SCENE
+A generous reception room in a well-kept period house. Tall sash window with
+slim glazing bars, soft overcast daylight. Wide oiled oak boards, plain
+plastered walls in a soft warm white, a simple skirting and picture rail.
+
+The damage is confined to the lower half of the room: a dark tide mark runs
+along the base of one wall with the plaster blistered and lifting above it,
+the boards below are cupped and darkened with moisture, and the skirting has
+swelled away from the wall. A good linen sofa has been pulled clear of the
+wall and covered with a dust sheet. A dehumidifier stands on the floor.
+
+The room is otherwise intact and expensive. The damage is the anomaly in an
+orderly, valuable interior — which is exactly what makes it worth recording.
+
+THE MOMENT
+The loss has been notified and nobody has yet agreed what it amounts to, or
+what the room looked like before. Still and quiet, waiting to be inspected.
+The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere — no adjuster, no occupants, no contractors, no figures at
+the window, no silhouettes, no reflections of people. No standing flood water,
+no dramatic destruction, no fire, no soot, no rubble, no mould horror. Not a
+derelict or squalid property. No stained or sagging ceiling — the ceiling is
+clean and undamaged. Not French, not American — a British interior.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the room and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level, straight-on to slightly three-quarter, the room
+running across the frame with the window toward one side.
+
+The upper third of the frame is a plain, clean, undamaged ceiling and upper
+wall — smooth and even in tone, entirely empty. No cornicing, no pendant
+light, no downlights, no artwork, no staining, no bright hotspots. Calm,
+uninterrupted negative space.
+
+The room presents several visually distinct, uncluttered areas: the tide mark
+on the wall, the cupped floorboards, the sheeted sofa, and the skirting. Keep
+those areas free of busy detail.
+
+Verticals true and corrected, no converging distortion, no fisheye. One
+obvious subject, generous negative space, so the picture stays legible when
+displayed large across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette — bone, oatmeal, pale oak, stone grey — with the damp
+reading as a cooler, darker stain. Soft directional daylight from the window
+with real but gentle shadow structure. Neutral filmic grade, no saturation
+push, no orange-and-teal, no HDR glow. Calm and forensic, unsensational.
+
+STYLE
+Premium commercial architectural photography for a brand campaign — composed,
+still and precise. High resolution, accurate architectural proportion,
+believable material damage.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere. People of any
+kind. Overlays, graphics, panels, user interface, holograms, data
+visualisations. Visible third-party brands. Watermarks. Distorted or
+impossible geometry.

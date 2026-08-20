@@ -247,6 +247,118 @@ export const constructionMilestone = {
   note: "Illustrative certificate data. Values shown are examples.",
 } as const;
 
+export const claimInspection = {
+  eyebrow: "Worked example",
+  headline: "A loss, evidenced.",
+  standfirst:
+    "A claim is notified and the argument turns on what the room looked like before. Each capture becomes a certificate the policyholder, the adjuster and the underwriter can all open.",
+  image: {
+    base: "/assets/features/claim-inspection",
+    width: 2720,
+    height: 1530,
+    alt: "A reception room after an escape of water — a tide mark and blistered plaster along the base of one wall, cupped floorboards, a sheeted sofa and a dehumidifier, with nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "wall",
+      title: "Wall & plaster",
+      subtitle: "Damage recorded at inspection",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 10:22 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 27, y: 73 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "floor",
+      title: "Floor & skirting",
+      subtitle: "Extent captured in sequence",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 10:28 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 46, y: 90 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "contents",
+      title: "Contents & furnishings",
+      subtitle: "Recorded in the same visit",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 10:35 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 66, y: 74 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
+export const vehicleHandover = {
+  eyebrow: "Worked example",
+  headline: "A handover, evidenced.",
+  standfirst:
+    "A vehicle changes hands and comes back with damage nobody will own. Each capture becomes a certificate the fleet, the driver and the insurer can all open.",
+  image: {
+    base: "/assets/features/vehicle-handover",
+    width: 2720,
+    height: 1530,
+    alt: "A dark executive saloon standing alone under a deep concrete canopy, palms and desert planting beyond, with nobody present",
+  },
+  /* Illustrative. Values are examples, and the figure says so beneath. */
+  callouts: [
+    {
+      id: "front",
+      title: "Front wing & bumper",
+      subtitle: "Condition at handover",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 08:14 UTC" },
+        { icon: "location", text: "Location confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 33, y: 62 },
+      panel: { x: 4, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "flank",
+      title: "Doors & sill",
+      subtitle: "Captured in the same session",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 08:17 UTC" },
+        { icon: "device", text: "Captured on attested device" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 58, y: 68 },
+      panel: { x: 36, y: 8 },
+      align: "top-left",
+    },
+    {
+      id: "rear",
+      title: "Rear quarter & wheels",
+      subtitle: "Walk-round completed",
+      rows: [
+        { icon: "date", text: "6 Aug 2026, 08:21 UTC" },
+        { icon: "chain", text: "Anchored on Base · confirmed" },
+        { icon: "integrity", text: "Media integrity secured" },
+      ],
+      anchor: { x: 76, y: 60 },
+      panel: { x: 96, y: 8 },
+      align: "top-right",
+    },
+  ] satisfies CalloutSpec[],
+  note: "Illustrative certificate data. Values shown are examples.",
+} as const;
+
 /* Keyed by industry id, so adding a worked example to another sector is a
    content change rather than a page change. Industries.tsx looks the figure up
    here; it does not name sectors. */
@@ -255,4 +367,6 @@ export const featureFigures = {
   "property-sales": villaListing,
   rentals: villaCheckout,
   construction: constructionMilestone,
+  insurance: claimInspection,
+  automotive: vehicleHandover,
 } as const;

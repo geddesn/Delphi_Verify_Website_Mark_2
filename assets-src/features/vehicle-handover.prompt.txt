@@ -1,0 +1,69 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  e410104c-ec67-46db-94d6-33d61050212e
+
+Photorealistic medium-format photograph: a single dark executive saloon
+standing under a deep architectural canopy at a vehicle handover bay, with
+nobody in the frame.
+
+SCENE
+One graphite-grey executive saloon on smooth pale concrete, seen along its
+flank at a three-quarter angle from the front. Above it, a deep cantilevered
+canopy in fair-faced concrete. Beyond the canopy, hard daylight on clean
+paving, a line of date palms and low desert planting. Clean, empty, ordered
+surroundings with nothing cluttering the frame.
+
+The car is immaculate, doors closed, and quite alone.
+
+THE MOMENT
+Between one keeper and the next. Nobody is present to agree what condition it
+is in, and the next person to look at it will have an interest in the answer.
+Still and quiet, waiting to be checked over. The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere — nobody beside the car, nobody in it, no figures in the
+background, no silhouettes, no reflections of people. No supercar, no sports
+car, no bright paint, no chrome excess, no gold, no spoilers. Not a showroom
+full of cars, not a car park, not a racetrack, not a desert dune shoot. Not a
+rental counter, not a garage workshop, not a scrapyard. No skyline of glass
+towers, no Dubai-style spectacle.
+
+CRITICAL — A PLAIN PHOTOGRAPH ONLY
+This is a straight photograph. Do not add graphic elements of any kind: no
+panels, cards, boxes, banners, labels, captions, callouts, annotations, user
+interface, diagrams, dots, markers, arrows or lines drawn over the picture.
+Nothing is superimposed. The frame contains the vehicle and nothing else.
+
+COMPOSITION
+16:9 landscape. Eye level, the vehicle running across the lower two thirds of
+the frame, front toward the left of centre.
+
+The upper third of the frame is the plain underside of the concrete canopy —
+smooth, evenly lit and entirely empty. No downlights, no service runs, no
+signage, no bright hotspots. Calm, uninterrupted negative space.
+
+The vehicle presents several visually distinct, uncluttered areas: the front
+wing, the door and sill, the front wheel, and the rear quarter. Keep those
+areas free of busy detail and reflection clutter.
+
+Verticals true and corrected, no converging distortion. One obvious subject,
+generous negative space, so the picture stays legible when displayed large
+across a page.
+
+LIGHT AND COLOUR
+Warm neutral palette — pale concrete, sand, graphite paintwork, muted stone.
+Strong directional daylight outside the canopy, controlled shade beneath it,
+real shadow structure, highlights held rather than blown. Neutral filmic
+grade, no saturation push, no orange-and-teal, no HDR flatness.
+
+STYLE
+Premium commercial photography for a brand campaign — restrained automotive
+photography in an architectural setting, calm and confident. High resolution,
+believable reflections in paintwork and glass, accurate vehicle proportion.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere, including
+number plates, badges, marque emblems, wheel centres and signage. Number
+plates must be blank. People of any kind. Overlays, graphics, panels, user
+interface, holograms, data visualisations. Visible third-party brands.
+Watermarks. Distorted or impossible geometry.

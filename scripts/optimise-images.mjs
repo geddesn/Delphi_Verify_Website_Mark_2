@@ -45,6 +45,8 @@ const GROUPS = [
       { file: "villa-listing.png", name: "villa-listing" },
       { file: "villa-checkout.png", name: "villa-checkout" },
       { file: "construction-milestone.png", name: "construction-milestone" },
+      { file: "claim-inspection.png", name: "claim-inspection" },
+      { file: "vehicle-handover.png", name: "vehicle-handover" },
     ],
   },
   {

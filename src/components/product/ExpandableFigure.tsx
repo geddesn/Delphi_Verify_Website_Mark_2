@@ -78,14 +78,27 @@ export function ExpandableFigure({
   }, []);
 
   return (
-    <div className={cn("h-full", className)}>
-      {/* ── Inline: the photograph, nothing over it but the affordance ── */}
-      <button
-        type="button"
-        onClick={show}
-        aria-haspopup="dialog"
-        aria-label={`${expandLabel}: ${dialogTitle}`}
-        className="group relative block h-full w-full cursor-pointer overflow-hidden rounded-md border border-line text-left"
+    <div className={cn("w-full", className)}>
+      {/* ── Inline: the photograph, with the badge as the only control ──
+
+          Two things are deliberate here.
+
+          The WRAPPER owns the aspect ratio and the image is absolutely
+          positioned inside it. The previous shape asked WebKit to resolve
+          height:100% against a box sized by aspect-ratio, which it does not
+          reliably do — h-full collapsed to auto and the image fell back to
+          its intrinsic 1120px width. That rendered enormous on iOS in both
+          Safari and Chrome, since Chrome on iOS is also WebKit, while every
+          desktop Chrome test passed.
+
+          The BADGE is the button, not the whole picture. When the entire
+          image is a control, a scroll-drag that starts on it can be
+          interpreted as a tap and open the dialog by accident — on a page
+          that is mostly photographs, that is most of the scrollable area.
+          A discrete control cannot be triggered by scrolling past it. */}
+      <div
+        className="relative w-full overflow-hidden rounded-md border border-line"
+        style={{ aspectRatio: `${width} / ${height}` }}
       >
         <img
           src={src}
@@ -97,7 +110,7 @@ export function ExpandableFigure({
           loading="lazy"
           decoding="async"
           className={cn(
-            "block h-full w-full",
+            "absolute inset-0 h-full w-full",
             fit === "cover" ? "object-cover" : "object-contain",
           )}
         />
@@ -108,8 +121,12 @@ export function ExpandableFigure({
 
         {/* Always visible rather than hover-only — hover cues do not exist on
             touch, and this is the only signal that there is more to see. */}
-        <span
-          className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-sm border border-callout-border px-2 py-1 text-caption text-callout-ink transition-[border-color] group-hover:border-callout-line"
+        <button
+          type="button"
+          onClick={show}
+          aria-haspopup="dialog"
+          aria-label={`${expandLabel}: ${dialogTitle}`}
+          className="absolute bottom-2.5 right-2.5 inline-flex cursor-pointer items-center gap-1.5 rounded-sm border border-callout-border px-2.5 py-1.5 text-caption text-callout-ink transition-[border-color] hover:border-callout-line"
           style={{
             backgroundColor: "var(--callout-surface)",
             transitionDuration: "var(--duration-fast)",
@@ -117,8 +134,8 @@ export function ExpandableFigure({
         >
           <ExpandIcon />
           {expandLabel}
-        </span>
-      </button>
+        </button>
+      </div>
 
       {/* ── Expanded ── */}
       <dialog

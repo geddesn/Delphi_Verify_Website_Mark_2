@@ -38,8 +38,21 @@ export function IndustryShot({
 }) {
   const base = `/assets/industries/${name}`;
 
+  /* The wrapper owns the aspect ratio and the image is absolutely positioned
+     inside it. The previous shape was:
+
+       div.aspect-video > div.h-full.w-full > img.h-full.w-full
+
+     which asks WebKit to resolve height:100% twice against a box sized by
+     aspect-ratio. WebKit does not reliably do that, so h-full collapsed to
+     auto and the image fell back to its intrinsic 1120px width — rendering
+     enormous on iOS, in Safari AND Chrome, since both use WebKit there.
+     Chrome on desktop resolves it, which is why every desktop test passed.
+
+     `absolute inset-0` resolves against the positioned ancestor's padding
+     box instead, so no percentage height is involved anywhere. */
   return (
-    <div className="relative h-full w-full">
+    <div className="relative aspect-video w-full overflow-hidden rounded-md">
       <img
         src={`${base}-1120.webp`}
         srcSet={`${base}-560.webp 560w, ${base}-1120.webp 1120w`}
@@ -52,7 +65,7 @@ export function IndustryShot({
         loading="lazy"
         decoding="async"
         className={cn(
-          "block h-full w-full rounded-md border border-line object-cover",
+          "absolute inset-0 h-full w-full rounded-md border border-line object-cover",
           className,
         )}
       />

@@ -42,6 +42,28 @@ export type TrustCapture = {
    the asset's width class or swap in an image of a different aspect ratio and
    every anchor below moves off the vessel; re-derive them, do not nudge. */
 
+/** One frame of the condition survey Act Two opens with.
+ *
+ *  Deliberately NOT a TrustCapture. A capture is a record that gets issued to
+ *  the parties and argued over; these are the raw walk-through — eight rooms
+ *  on one morning, of which exactly one ever ends up in the argument. Giving
+ *  them the same type would invite someone to render them the same way, and
+ *  the whole point of the beat is that the record is made of ordinary
+ *  photographs taken before anybody had a reason to take them. */
+export type TrustSurveyShot = {
+  /** What was photographed, in the crew's words. */
+  label: string;
+  /** Date and time, in full — this renders on a card about 220px wide, which
+   *  fits it. The filed thumbnails carry no caption at all. */
+  stamp: string;
+  /** Basename under public/assets/features. */
+  image: string;
+  imageAlt: string;
+  /** Where on the vessel this was taken, % of stage. See the anchor warning
+   *  above — these are measured against the cut-out's box, not chosen. */
+  anchor: StagePoint;
+};
+
 export type TrustParty = {
   id: string;
   label: string;
@@ -106,6 +128,24 @@ export type TrustScene = {
    *  the certificates are issued to whoever is in the list. */
   parties: TrustParty[];
 
+  /** The condition survey. Act Two's whole difference from Act One is that
+   *  this happened, so it is shown happening rather than asserted.
+   *
+   *  ⚠️  THE LAST SHOT IS THE ONE THE RECORD KEEPS. It must be the same image
+   *  and the same moment as record.verified.delivery — the story is that the
+   *  frame everybody later argues about was already sitting in an ordinary
+   *  survey, taken before there was anything to argue about. Two different
+   *  saloon photographs would quietly break that.
+   *
+   *  ⚠️  THE COUNT IS FIXED AT SURVEY_SHOTS IN THE COMPONENT. The narrative is
+   *  the same for every sector, so the beats are; a scene that supplies a
+   *  different number fails an assertion rather than silently losing its tail.
+   *
+   *  In capture order, which is also filing order: a walk from the top deck
+   *  aft to the stern, then forward along the accommodation, ending where the
+   *  damage will be. */
+  survey: readonly TrustSurveyShot[];
+
   /** The single event. Rendered identically in both acts — a marker on the
    *  vessel, nothing more. What is SHOWN of it lives in `record` below,
    *  because the whole point is that the same damage is evidenced two
@@ -156,6 +196,8 @@ export type TrustScene = {
     unverified: { title: string; capture: TrustCapture };
     verified: {
       title: string;
+      /** The same panel, before anything is in it. See the note on the value. */
+      pending: string;
       delivery: TrustCapture;
       redelivery: TrustCapture;
     };
@@ -223,6 +265,72 @@ export const yachtsScene: TrustScene = {
     },
   ],
 
+  /* Anchors derived from the cut-out's box (x 28-72, y 37.1-84.9) by reading
+     the render, not by taste — see scripts note in the anchor warning above.
+     Times run across twelve minutes of one morning and end at 09:14, which is
+     the stamp the delivery certificate carries: the last frame of the survey
+     IS the record's delivery frame. */
+  survey: [
+    {
+      label: "Flybridge",
+      stamp: "6 Aug 2026, 09:02 UTC",
+      image: "yacht-flybridge",
+      imageAlt: "The yacht's flybridge, helm and sunpads, empty",
+      anchor: { x: 56, y: 49.5 },
+    },
+    {
+      label: "Bar",
+      stamp: "6 Aug 2026, 09:04 UTC",
+      image: "yacht-bar",
+      imageAlt: "The upper-deck bar, bottles and glassware in place",
+      anchor: { x: 61, y: 55.5 },
+    },
+    {
+      label: "Aft deck",
+      stamp: "6 Aug 2026, 09:06 UTC",
+      image: "yacht-aft-deck",
+      imageAlt: "The aft deck seating and table, looking out over the water",
+      anchor: { x: 68.5, y: 60.5 },
+    },
+    {
+      label: "Tender garage",
+      stamp: "6 Aug 2026, 09:07 UTC",
+      image: "yacht-tender-garage",
+      imageAlt: "The tender garage open at the stern, tender and jet ski stowed",
+      anchor: { x: 70.5, y: 65.5 },
+    },
+    {
+      label: "Dining",
+      stamp: "6 Aug 2026, 09:09 UTC",
+      image: "yacht-dining",
+      imageAlt: "The dining table laid, under a glass chandelier",
+      anchor: { x: 43.5, y: 60.5 },
+    },
+    {
+      label: "Master cabin",
+      stamp: "6 Aug 2026, 09:11 UTC",
+      image: "yacht-master-cabin",
+      imageAlt: "The master cabin made up, sea visible through both windows",
+      anchor: { x: 38.5, y: 62.5 },
+    },
+    {
+      label: "Master ensuite",
+      stamp: "6 Aug 2026, 09:12 UTC",
+      image: "yacht-master-ensuite",
+      imageAlt: "The master ensuite in book-matched marble, towels folded",
+      anchor: { x: 34.5, y: 63.5 },
+    },
+    {
+      /* Last, and the one the record keeps. Same image and same minute as
+         record.verified.delivery — see the warning on the type. */
+      label: "Saloon",
+      stamp: "6 Aug 2026, 09:14 UTC",
+      image: "yacht-saloon-delivery",
+      imageAlt: "The yacht's saloon at delivery, the leather seating undamaged",
+      anchor: { x: 48, y: 60.5 },
+    },
+  ],
+
   incident: {
     anchor: { x: 48, y: 60.5 },
     label: "Saloon · leather seating, torn",
@@ -248,9 +356,17 @@ export const yachtsScene: TrustScene = {
     "a1-dispute": { line: "Two accounts of the same fact." },
 
     "a2-asset": { line: "The same charter, the same vessel." },
-    "a2-capture": {
+    /* On the FIRST SHOT, not on a2-capture. The line introduces the survey,
+       and the survey is what a2-shot-1 starts; by a2-capture the record is
+       already being sealed and the sentence would be describing something
+       three beats old. */
+    "a2-shot-1": {
       line: "This time her condition is recorded first.",
       sub: "Before the charterer is anywhere near her.",
+    },
+    "a2-file": {
+      line: "The whole vessel, in one record.",
+      sub: "Made once, and held where neither side can revise it.",
     },
     "a2-charterer": { line: "Everything after this runs exactly as before." },
     "a2-share": {
@@ -312,6 +428,16 @@ export const yachtsScene: TrustScene = {
 
     verified: {
       title: "Verified condition at delivery and redelivery",
+      /* What the panel says while it is OPEN AND EMPTY — from the moment the
+         captain picks up the phone until the survey has been filed into it.
+         It cannot use the title above: an empty certificate has verified
+         nothing, and a panel claiming otherwise before a single photograph
+         exists would undo the one thing this act is careful about.
+
+         "Delivery", singular, for the same reason. At this point in the story
+         redelivery is two weeks away and nobody knows there will be anything
+         to record. */
+      pending: "Condition record · delivery",
       delivery: {
         label: "Saloon · undamaged",
         stamp: "6 Aug 2026, 09:14 UTC",
@@ -378,6 +504,15 @@ export const trustEngineCopy = {
      themselves in this should not be told they are the dishonest one. */
   standfirst:
     "Two or more counterparties, one asset, and two honest accounts of the same thing. Delphi Verify sits between them as an impartial third party — a record neither side owns, and either can check. Disagreements are resolved, or avoided altogether. Value is protected rather than argued away.",
+  /* The header on the survey card. Brand-level rather than per scene: what
+     the card is doing is the same in every sector, and only the pictures
+     inside it change. */
+  /* "Capturing", not "Recording". Capture is the product's own verb — the
+     platform pages say trusted capture, in-app capture, capture moments — and
+     the stage should not invent a second word for the same act. The present
+     participle also does work here: the card is showing something in
+     progress, one frame of eight. */
+  survey: "Capturing condition",
   replay: "Replay",
   staticNote:
     "Shown as a comparison rather than an animation, because your system asks for reduced motion.",

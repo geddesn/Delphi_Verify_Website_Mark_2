@@ -69,6 +69,21 @@ const GROUPS = [
          of the take; only the current pair is converted. */
       { file: "yacht-saloon-delivery.png", name: "yacht-saloon-delivery" },
       { file: "yacht-saloon-redelivery.png", name: "yacht-saloon-redelivery" },
+      /* The rest of the condition survey Act Two opens with. Seven rooms that
+         are never argued about — which is the point of them: they are there to
+         show that the record was an ordinary walk round the vessel, made
+         before anybody had a reason to want one.
+
+         Only 240 and 480 are ever served. They appear at about 200px on the
+         survey card and 62px in the filed pile, and nothing on the stage ever
+         opens one larger. */
+      { file: "yacht-flybridge.png", name: "yacht-flybridge" },
+      { file: "yacht-bar.png", name: "yacht-bar" },
+      { file: "yacht-aft-deck.png", name: "yacht-aft-deck" },
+      { file: "yacht-tender-garage.png", name: "yacht-tender-garage" },
+      { file: "yacht-dining.png", name: "yacht-dining" },
+      { file: "yacht-master-cabin.png", name: "yacht-master-cabin" },
+      { file: "yacht-master-ensuite.png", name: "yacht-master-ensuite" },
       { file: "villa-listing.png", name: "villa-listing" },
       { file: "villa-checkout.png", name: "villa-checkout" },
       { file: "construction-milestone.png", name: "construction-milestone" },

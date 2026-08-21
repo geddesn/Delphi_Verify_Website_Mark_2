@@ -7,6 +7,7 @@ import type {
   TrustCapture,
   TrustParty,
   TrustScene,
+  TrustSurveyShot,
 } from "@/content/trust-scenes";
 import { AnchorDot, Leaders, type LeaderSpec } from "@/components/annotation/Leaders";
 import { AnnotationPanel, PanelImage, PanelLogo } from "@/components/annotation/Panel";
@@ -66,7 +67,23 @@ const STEPS = [
   /* ── ACT TWO — with a record ── */
   { id: "a2-asset", ms: 1100 },
   { id: "a2-captain", ms: 1100 }, // the person who will do the capturing
-  { id: "a2-capture", ms: 2000 }, // ⭐ the one difference
+  /* ⭐ THE ONE DIFFERENCE, and it gets eight beats rather than one.
+     "Her condition is recorded first" used to be a single step in which a
+     finished certificate simply appeared, which asked a viewer to take the
+     most important claim in the piece on trust. This walks the vessel: one
+     ordinary photograph at a time, each pointing at where it was taken, all
+     of them filed before anybody has a reason to argue. The saloon is last,
+     and is the frame the record keeps. */
+  { id: "a2-shot-1", ms: 520 },
+  { id: "a2-shot-2", ms: 520 },
+  { id: "a2-shot-3", ms: 520 },
+  { id: "a2-shot-4", ms: 520 },
+  { id: "a2-shot-5", ms: 520 },
+  { id: "a2-shot-6", ms: 520 },
+  { id: "a2-shot-7", ms: 520 },
+  { id: "a2-shot-8", ms: 900 }, // the saloon, held a beat longer
+  { id: "a2-file", ms: 1500 },  // the pile goes into the record
+  { id: "a2-capture", ms: 1500 }, // …and the record is what is left
   { id: "a2-charterer", ms: 1200 }, // arrives AFTER the record
   /* Capturing and sharing are two beats, not one. A record only settles an
      argument if every side had it BEFORE there was an argument, and that is a
@@ -93,6 +110,16 @@ const at = (id: string) => AT[id as (typeof STEPS)[number]["id"]] ?? 0;
 
 const REST = STEPS.length - 1;
 const TURN = at("turn");
+
+/* The survey's length is a property of the NARRATIVE, not of the scene: the
+   beats are written out in STEPS above, so the count lives here and a scene
+   supplying a different number of shots is a mistake rather than a silent
+   truncation. Resolved once, because at() answers 0 for an id it does not
+   know and a survey silently gated on step zero would be very hard to see. */
+const SURVEY_SHOTS = 8;
+const SHOT_STEPS = Array.from({ length: SURVEY_SHOTS }, (_, i) =>
+  at(`a2-shot-${i + 1}`),
+);
 
 /* ── Derived state — every visual is one of these ──────────────────────── */
 const s = {
@@ -121,13 +148,36 @@ const s = {
    *  on by the time the handover happens. */
   partyLeader: (p: TrustParty, n: number) =>
     (n >= at(p.enters.one) && n < at("a1-delivery")) ||
-    (n >= at(p.enters.two) && n < at("a2-capture")),
+    (n >= at(p.enters.two) && n < SHOT_STEPS[0]),
+
+  /* ── The survey ──
+     Two states per shot, and they are not the same thing. `shotLive` is the
+     one being taken right now — big, captioned, with a leader down to the
+     part of the vessel it shows. `shotFiled` is every shot taken so far,
+     which stays on the stage as a thumbnail in a growing pile. The pile is
+     the argument: by the eighth beat there are eight photographs of one
+     morning sitting there before anyone has a reason to want them. */
+  shotLive: (n: number, i: number) => n === SHOT_STEPS[i],
+  /* From the MOMENT it is taken, not from the beat after. The thumbnail
+     leaves the card while the card is still showing it, which is the gesture:
+     a photograph is taken and a copy of it drops onto the pile. Wait a beat
+     and the copy appears from nowhere instead. */
+  shotFiled: (n: number, i: number) => n >= SHOT_STEPS[i],
+  /** The record shows its empty grid from the moment it opens until it
+   *  resolves to the frame the argument is actually about. */
+  collecting: (n: number) => n >= at("a2-captain") && n < at("a2-capture"),
 
   /* Act One's occupant of the top slot: the photograph one side happens to
      have. Never in Act Two, where the record has the slot instead — the two
      are mutually exclusive by construction, which is the point. */
   ownerPhoto: (n: number) => n >= at("a1-photo") && n < TURN,
-  delphi: (n: number) => n >= at("a2-capture"),
+  /* OPEN AND EMPTY from the moment the captain arrives, which is a beat
+     before the first capture. The captures have to have somewhere to go: a
+     photograph flying to a point on a bare stage is a photograph flying into
+     nothing, and the viewer has to be told afterwards that a record was
+     being made. An empty certificate sitting there says it in advance, and
+     then the survey visibly fills it. */
+  delphi: (n: number) => n >= at("a2-captain"),
 
   /* Made, then handed out. The gap between these two is the beat. */
   deliveryCert: (n: number) => n >= at("a2-capture"),
@@ -342,6 +392,13 @@ export function TrustEngine({
 
   const act = s.act(step);
   const { incident, record } = scene;
+
+  /* Which capture is being taken on this beat, if any. Resolved by index
+     rather than searched for by id, so a scene carrying more shots than the
+     narrative has beats simply never shows the extra ones — SHOT_STEPS is
+     undefined past SURVEY_SHOTS and every comparison against it is false. */
+  const liveShot = scene.survey.findIndex((_, i) => s.shotLive(step, i));
+  const shot = liveShot >= 0 ? scene.survey[liveShot] : undefined;
   const showRecord = s.delphi(step);
   const showOwnerPhoto = s.ownerPhoto(step);
 
@@ -400,6 +457,21 @@ export function TrustEngine({
       };
     }),
     {
+      /* ONE leader for all eight captures, not eight. It is the same card
+         each time and only the far end moves, so a viewer reads it as a
+         camera being walked round the vessel rather than as eight separate
+         claims being made at once. Kept mounted with the anchor of whichever
+         shot is live, so it draws once at the first capture and retracts once
+         after the last instead of redrawing on every beat. */
+      id: "survey-card",
+      panel: SURVEY_CARD.panel,
+      align: SURVEY_CARD.align,
+      anchor: (shot ?? scene.survey[scene.survey.length - 1]).anchor,
+      box: SURVEY_CARD.box,
+      from: "left",
+      on: !!shot,
+    },
+    {
       /* One leader for the top slot, its id following whichever panel is in
          there — so the measured footprint the line departs from is the one
          actually on screen. The two panels are different widths. */
@@ -409,7 +481,12 @@ export function TrustEngine({
       anchor: incident.anchor,
       box: RECORD_BOX,
       from: "bottom",
-      on: showRecord || showOwnerPhoto,
+      /* Not `showRecord`. The panel is now on stage for the whole survey
+         with nothing in it, and a leader from an empty box to a point on the
+         hull claims a connection that does not exist yet — while competing
+         with the survey's own leader for the same stretch of stage. It
+         appears when the record actually holds the saloon. */
+      on: s.deliveryCert(step) || showOwnerPhoto,
     },
   ];
 
@@ -624,7 +701,12 @@ export function TrustEngine({
         <AnchorDot
           at={incident.anchor}
           size="md"
-          on={s.incident(step) || showOwnerPhoto || showRecord}
+          /* deliveryCert, not showRecord. The record now opens a beat before
+             the survey starts and stands there empty, and a marker on the
+             hull with nothing attached to it is a dot the viewer has to
+             explain to themselves. It lands when the record actually holds
+             the saloon. */
+          on={s.incident(step) || showOwnerPhoto || s.deliveryCert(step)}
           className={cn(
             "z-30 transition-colors",
             s.compare(step)
@@ -683,37 +765,93 @@ export function TrustEngine({
             transition: "width var(--duration-cross) var(--ease-out-quart)",
           }}
           boxRef={register("record-verified")}
-          title={record.verified.title}
+          title={
+            s.deliveryCert(step) ? record.verified.title : record.verified.pending
+          }
           trusted
         >
-          <div className="min-w-0 flex-1">
-            <EvidenceCard
-              cert={s.deliveryCert(step) ? record.verified.delivery : undefined}
-              tone="verified"
-              trusted
-              codeRef={register("code-delivery")}
-            />
-          </div>
-          {/* Always mounted, so its code has a position for the held copies to
-              fly out of — but with no width until the capture is taken. It
-              opens over the same duration the panel widens. */}
-          <div
-            className="min-w-0 overflow-hidden"
-            style={{
-              flex: s.redeliveryCert(step) ? "1 1 0%" : "0 0 0%",
-              opacity: s.redeliveryCert(step) ? 1 : 0,
-              transition:
-                "flex var(--duration-cross) var(--ease-out-quart), opacity var(--duration-slow) linear",
-            }}
-          >
-            <EvidenceCard
-              cert={record.verified.redelivery}
-              tone="failed"
-              trusted
-              codeRef={register("code-redelivery")}
-            />
+          {/* TWO LAYOUTS IN ONE BOX, cross-faded.
+              The record is a grid of nine frames while it is being filled and
+              a pair of evidence cards once it is being read — the same object
+              at two moments, not two panels.
+
+              THE CARDS OWN THE HEIGHT and the grid is laid over them, out of
+              flow. Stacked in flow instead, the grid went on claiming its own
+              height after it had faded out — and once the panel widens for
+              two cards side by side those are half the width and so half the
+              height, while a full-width 3x3 is not. The panel ended up twice
+              as tall as its contents, with a band of empty navy under them. */}
+          <div className="relative min-w-0 flex-1">
+            <div
+              className="flex gap-2 transition-opacity"
+              style={{
+                opacity: s.deliveryCert(step) ? 1 : 0,
+                transitionDuration: "var(--duration-slow)",
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <EvidenceCard
+                  cert={s.deliveryCert(step) ? record.verified.delivery : undefined}
+                  tone="verified"
+                  trusted
+                  codeRef={register("code-delivery")}
+                />
+              </div>
+              {/* Always mounted, so its code has a position for the held
+                  copies to fly out of — but with no width until the capture
+                  is taken. It opens over the same duration the panel
+                  widens. */}
+              <div
+                className="min-w-0 overflow-hidden"
+                style={{
+                  flex: s.redeliveryCert(step) ? "1 1 0%" : "0 0 0%",
+                  opacity: s.redeliveryCert(step) ? 1 : 0,
+                  transition:
+                    "flex var(--duration-cross) var(--ease-out-quart), opacity var(--duration-slow) linear",
+                }}
+              >
+                <EvidenceCard
+                  cert={record.verified.redelivery}
+                  tone="failed"
+                  trusted
+                  codeRef={register("code-redelivery")}
+                />
+              </div>
+            </div>
+
+            <div
+              className="pointer-events-none absolute inset-x-0 top-0 transition-opacity"
+              style={{
+                opacity: s.collecting(step) ? 1 : 0,
+                transitionDuration: "var(--duration-slow)",
+              }}
+            >
+              <RecordGrid gridRef={register("record-grid")} />
+            </div>
           </div>
         </RecordPanel>
+
+        {/* ── The survey ──
+            The card stands where the charterer will later stand, and the
+            pile builds in the opposite corner. Both are gone by the time the
+            record opens: what is left on the stage is the one frame out of
+            eight that anybody ever has cause to look at again. */}
+        <SurveyCard
+          shot={shot}
+          index={liveShot}
+          count={scene.survey.length}
+          on={!!shot}
+          boxRef={register("survey-card")}
+          frameRef={register("survey-frame")}
+        />
+        <SurveyFlight
+          shots={scene.survey}
+          taken={(i) => s.shotFiled(step, i)}
+          on={s.collecting(step)}
+          frameRect={boxes["survey-frame"]}
+          gridRect={boxes["record-grid"]}
+          canvas={CANVAS}
+        />
 
         {/* ── The title card ──
             One thing at a time, a beat and a half apart: the mark, then what
@@ -954,6 +1092,66 @@ function PartyPanel({
       </div>
     </AnnotationPanel>
   );
+}
+
+/* ── THE SURVEY'S GEOMETRY ────────────────────────────────────────────────
+   The card showing the shot being taken stands in the RIGHT column, which is
+   empty for the whole of the survey — the charterer does not arrive until the
+   record already exists, and that is the entire claim of Act Two. Using their
+   space to make the record says so without a word of copy.
+
+   The pile goes top-left, as far from the card as the stage allows, so the
+   flight into the record at the end is a journey across the stage rather than
+   a shrink in place. */
+const SURVEY_CARD = {
+  /* TOP right, and big. It sat mid-height in the counterparty column at the
+     width of a party panel, which made it one more box in a row of boxes —
+     and the thing it is showing is the only thing happening on the stage for
+     eight beats. Up in the corner at half again the size it is a monitor
+     rather than an annotation, and it pairs across the top with the pile
+     filling up opposite it: taken on the right, filed on the left. */
+  panel: { x: 96, y: 4 } as StagePoint,
+  align: "top-right" as Align,
+  width: "w-[30%] min-w-[264px]",
+  /* Fallback footprint only — the card is measured. */
+  box: { w: 30, h: 33 } as Box,
+};
+
+/* The waiting certificate's contents: a grid of empty frames that the survey
+   fills, left to right and then down.
+
+   The captures used to gather in a fanned pile in the opposite corner and go
+   in together at the end, which put them in mid-air for eight beats — flying
+   to a spot on a bare stage, with nothing there to receive them. Straight
+   into the record is both simpler and truer: every photograph is in the
+   record from the moment it is taken, which is the entire claim.
+
+   Nine cells for eight shots. The hole in the last one is not a mistake and
+   is worth leaving: a record with room in it reads as open, and this one is —
+   redelivery is two weeks away and nobody yet knows there will be anything
+   else to put in it. */
+const GRID_COLS = 3;
+const GRID_CELLS = 9;
+const GRID_GAP = 4; // canvas px
+
+/** One cell of the record's grid, in stage percentages, derived from the
+ *  measured grid rather than authored — so it stays exact whatever the panel
+ *  ends up being sized at. */
+function cellRect(grid: Rect, i: number, canvas: { w: number; h: number }) {
+  const gapX = (GRID_GAP / canvas.w) * 100;
+  const gapY = (GRID_GAP / canvas.h) * 100;
+  const rows = GRID_CELLS / GRID_COLS;
+  /* BOTH axes off the measured rect. Deriving the height from the width and
+     CERT_RATIO would be a second, independent opinion about the cell's shape
+     — and the grid's own rows are the one that is actually on screen. */
+  const w = (grid.w - gapX * (GRID_COLS - 1)) / GRID_COLS;
+  const h = (grid.h - gapY * (rows - 1)) / rows;
+  return {
+    x: grid.x + (i % GRID_COLS) * (w + gapX),
+    y: grid.y + Math.floor(i / GRID_COLS) * (h + gapY),
+    w,
+    h,
+  };
 }
 
 /* How far the held certificates ride up over their party's panel. Roughly a
@@ -1254,6 +1452,226 @@ function HeldCertificates({
   );
 }
 
+/** The shot being taken, right now.
+ *
+ *  One card for all eight, with its contents keyed by image so each arrival
+ *  is a mount rather than a swap — see .trust-shot-in in theme.css for why
+ *  that matters. The card itself never moves, so the eye stays on one spot
+ *  and only the picture, the caption and the leader change under it.
+ *
+ *  The counter is not decoration. It says the survey is systematic and
+ *  finite: a viewer who sees "3 / 8" knows there are five more coming and
+ *  reads the sequence as a procedure rather than as a slideshow. */
+function SurveyCard({
+  shot,
+  index,
+  count,
+  on,
+  boxRef,
+  frameRef,
+}: {
+  shot?: TrustSurveyShot;
+  index: number;
+  count: number;
+  on: boolean;
+  boxRef?: (el: HTMLElement | null) => void;
+  /** Reports the frame itself, not the card around it — the flight into the
+   *  record starts on the photograph, and starting it on the panel would put
+   *  the header row's height into the vector. */
+  frameRef?: (el: HTMLElement | null) => void;
+}) {
+  return (
+    <AnnotationPanel
+      spec={{ panel: SURVEY_CARD.panel, align: SURVEY_CARD.align }}
+      on={on}
+      width={SURVEY_CARD.width}
+      boxRef={boxRef}
+      className="z-20"
+    >
+      <div className="p-2">
+        <div className="flex items-center gap-2 px-0.5">
+          <PanelLogo className="h-3.5 w-[50px] shrink-0" />
+          <p className="min-w-0 flex-1 text-caption text-callout-ink">
+            {trustEngineCopy.survey}
+          </p>
+        </div>
+
+        {/* The accent border is the same one the verified evidence cards
+            carry. These ARE that evidence — it is simply being made rather
+            than being quoted, and a different treatment here would suggest
+            something changed between the taking and the keeping. */}
+        <div
+          ref={frameRef}
+          className="relative mt-2 overflow-hidden rounded-sm border"
+          style={{ borderColor: "var(--fx-accent-glow)" }}
+        >
+          {shot && (
+            <div key={shot.image} className="trust-shot-in">
+              <PanelImage
+                name={shot.image}
+                alt={shot.imageAlt}
+                width={882}
+                height={496}
+                /* CERT_RATIO, like every other view of a survey frame. The
+                   preview, the cell it flies into and the record card it may
+                   become are the same photograph cropped the same way — a
+                   frame that changes shape on the way in is a different
+                   frame, and this piece is careful about that everywhere
+                   else. */
+                ratio={CERT_RATIO}
+                sizes="(min-width: 640px) 320px, 45vw"
+              />
+              {/* Top left, like every other frame on this stage, and for the
+                  same reason: the caption is a property of the photograph. */}
+              <div
+                className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1"
+                style={{ backgroundColor: "var(--callout-caption)" }}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-0.5 shrink-0 rounded-xs bg-verified"
+                  />
+                  <span className="font-mono text-mono-xs text-callout-ink">
+                    {shot.label}
+                  </span>
+                </div>
+                <p className="font-mono text-mono-xs text-callout-ink-muted">
+                  {shot.stamp}
+                </p>
+              </div>
+              {/* On the frame, opposite the caption. It was in the header row
+                  beside the mark, where the three of them did not fit and the
+                  title truncated to "Conditio…" — and it belongs here anyway:
+                  a frame number is a property of the shot, like the room and
+                  the time, not of the panel holding it. */}
+              <p
+                className="absolute bottom-1.5 right-1.5 rounded-sm px-1.5 py-0.5 font-mono text-mono-xs text-callout-ink"
+                style={{ backgroundColor: "var(--callout-caption)" }}
+              >
+                {Math.min(index + 1, count)} / {count}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </AnnotationPanel>
+  );
+}
+
+/** The record's empty frames, waiting.
+ *
+ *  Rendered INSIDE the panel and measured, so the photographs flying in know
+ *  exactly where each cell is; the flight itself happens on a layer above the
+ *  stage, because this panel clips its contents and a capture crossing the
+ *  stage inside it would be invisible until the instant it landed. */
+function RecordGrid({ gridRef }: { gridRef?: (el: HTMLElement | null) => void }) {
+  return (
+    <div
+      ref={gridRef}
+      className="grid gap-1"
+      /* The GRID carries the card's ratio and the cells divide what is left,
+         rather than each cell carrying it and the grid adding up. Nine 2:1
+         cells plus two gaps come to a gap taller than one 2:1 card, every
+         time and by construction — so a grid built that way can never sit
+         exactly where the card it replaces sits. The cells come out at about
+         2.06:1 instead, which is not a difference anyone can see. */
+      style={{
+        aspectRatio: CERT_RATIO,
+        gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${GRID_CELLS / GRID_COLS}, minmax(0, 1fr))`,
+      }}
+    >
+      {Array.from({ length: GRID_CELLS }, (_, i) => (
+        <div
+          key={i}
+          className="rounded-xs border border-dashed border-callout-border"
+          style={{ backgroundColor: "var(--callout-halo)" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Each capture going into the record, one at a time.
+ *
+ *  Straight from the frame on the preview card to its cell — no staging area,
+ *  no gathering up at the end. The photograph is in the record from the beat
+ *  it is taken, and a viewer watching the grid fill left to right is watching
+ *  the claim being made rather than being told about it afterwards.
+ *
+ *  A layer of its own above everything, NOT inside the panel: the panel clips
+ *  its contents so a photograph can sit flush to its edge, and a flight
+ *  nobody can see is just a fade-in. Every cell is measured off the real
+ *  grid, so the landing is exact at any stage size. */
+function SurveyFlight({
+  shots,
+  taken,
+  on,
+  /** The frame on the preview card — where each photograph flies out of. */
+  frameRect,
+  /** The record's grid, measured. Nothing flies until this exists. */
+  gridRect,
+  canvas,
+}: {
+  shots: readonly TrustSurveyShot[];
+  taken: (i: number) => boolean;
+  on: boolean;
+  frameRect?: Rect;
+  gridRect?: Rect;
+  canvas: { w: number; h: number };
+}) {
+  if (!gridRect || !canvas.w) return null;
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-40">
+      {shots.map((shot, i) => {
+        const cell = cellRect(gridRect, i, canvas);
+        /* Back to the preview card: the vector from this cell to the frame it
+           was taken in, and how much bigger that frame is. Both in the cell's
+           own terms, so one transform carries the whole journey. */
+        const origin = frameRect
+          ? {
+              x:
+                ((frameRect.x + frameRect.w / 2 - (cell.x + cell.w / 2)) / 100) *
+                canvas.w,
+              y:
+                ((frameRect.y + frameRect.h / 2 - (cell.y + cell.h / 2)) / 100) *
+                canvas.h,
+              scale: frameRect.w / cell.w,
+            }
+          : { x: 0, y: 0, scale: 1 };
+        const held = taken(i);
+
+        return (
+          <img
+            key={shot.image}
+            src={`/assets/features/${shot.image}-240.webp`}
+            alt=""
+            width={882}
+            height={496}
+            loading="lazy"
+            decoding="async"
+            className="absolute rounded-xs object-cover"
+            style={{
+              left: `${cell.x}%`,
+              top: `${cell.y}%`,
+              width: `${cell.w}%`,
+              height: `${cell.h}%`,
+              transform: held
+                ? "none"
+                : `translate(${origin.x}px, ${origin.y}px) scale(${origin.scale})`,
+              opacity: on && held ? 1 : 0,
+              transition:
+                "transform var(--duration-fly) var(--ease-out-quart), opacity var(--duration-fast) linear",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /** The top slot's frame: a title row, then the evidence cards beneath it.
  *
  *  `trusted` is the whole distinction the piece turns on, so it is one prop
@@ -1339,12 +1757,19 @@ function EvidenceCard({
     <div
       className={cn(
         "relative overflow-hidden rounded-sm border transition-opacity",
-        !trusted && "border-dashed",
+        /* Dashed while it is empty, whoever it belongs to. A slot with
+           nothing in it is a slot waiting to be filled, and a dashed outline
+           is the one convention that says so without a caption. */
+        (!trusted || !cert) && "border-dashed",
       )}
       style={{
         borderColor:
           cert && trusted ? "var(--fx-accent-glow)" : "var(--callout-border)",
-        opacity: cert ? 1 : 0.25,
+        /* 0.4, not 0.25. This used to be seen only on the second slot before
+           redelivery, where it was deliberately easy to miss. It is now the
+           open record waiting through the whole survey, which is something a
+           viewer is meant to notice. */
+        opacity: cert ? 1 : 0.4,
         transitionDuration: "var(--duration-normal)",
       }}
     >
@@ -1379,6 +1804,10 @@ function EvidenceCard({
           bottom corner sat on the one detail the whole piece is about. The
           top-left of this crop is sea and window mullion — nothing to lose,
           and a dark plate reads well against it. */}
+      {/* Only where there is something to caption. Empty, this rendered a
+          bar and an em-dash on a plate — a label for a photograph that does
+          not exist. */}
+      {cert && (
       <div
         className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1"
         style={{ backgroundColor: "var(--callout-caption)" }}
@@ -1395,7 +1824,7 @@ function EvidenceCard({
             aria-hidden
           />
           <span className="font-mono text-mono-xs text-callout-ink">
-            {cert?.label ?? "—"}
+            {cert.label}
           </span>
         </div>
         <p
@@ -1404,9 +1833,10 @@ function EvidenceCard({
             trusted ? "text-callout-ink-muted" : "text-failed",
           )}
         >
-          {cert?.stamp ?? " "}
+          {cert.stamp}
         </p>
       </div>
+      )}
 
       {/* The code on the frame it certifies — the same code the parties are
           each handed a copy of. Only on a verified card: a photograph with

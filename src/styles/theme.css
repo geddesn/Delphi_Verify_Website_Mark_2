@@ -780,6 +780,30 @@
   animation: trust-held-pulse 2.4s ease-in-out infinite;
 }
 
+/* Each frame of the condition survey arriving.
+   The card that holds them persists across all eight beats — only its
+   contents change — so a CSS transition has no previous value to interpolate
+   from and the swap would be a hard cut. Keying the contents by image
+   remounts them, and a mount is the one thing an animation can start on.
+
+   `both` so the first frame is not visible for a paint before the animation
+   takes hold. Neutralised with everything else under prefers-reduced-motion,
+   by the global rule at the foot of this file. */
+@keyframes trust-shot-in {
+  from {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.trust-shot-in {
+  animation: trust-shot-in var(--duration-slow) var(--ease-out-quart) both;
+}
+
 /* ── Trust stage ground ──────────────────────────────────────────────────
    The floor the asset stands on, and the haze above it. Both come from a
    single mask rendered offline by scripts/render-ground.mjs — a real ray-cast

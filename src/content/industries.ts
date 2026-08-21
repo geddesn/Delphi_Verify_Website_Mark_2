@@ -28,9 +28,20 @@
    ========================================================================= */
 
 /* ── Commercial outcomes ───────────────────────────────────────────────────
-   The company-wide value framework. Sectors tag two or three each, so a
-   reader sees the commercial shape of a vertical before reading the copy.
-   Qualitative on purpose: no numbers attach to these until they are real. */
+   The company-wide value framework. Sectors tag two or three each.
+   Qualitative on purpose: no numbers attach to these until they are real.
+
+   ⚠️  NOTHING RENDERS THIS TODAY. It had a section of its own on /industries
+   and tags on each card; both have gone. The tags went because across nine
+   sectors they resolved to nearly the same three labels and so distinguished
+   nothing, and the section went because four abstract headings asked a reader
+   to map the value back onto their own operation — work the nine scenarios
+   below already do concretely.
+
+   Kept, rather than deleted, because the taxonomy itself is sound and the
+   per-sector tagging is the expensive part: it is the natural spine for a
+   sector page, a pricing page or a sales one-pager. Delete it if none of
+   those arrive. */
 export const outcomes = [
   {
     id: "revenue",
@@ -357,12 +368,23 @@ export const industriesPage = {
   eyebrow: "Where it applies",
   /* Every top-level H1 opens on a different word. Home takes "Trusted
      evidence…", Platform takes "Evidence…", Trust and Company both take
-     "Built…". This page takes the condition all nine sectors share. */
-  headline: "When it matters what was actually true.",
+     "Built…". This page takes the reader.
+
+     It used to read "When it matters what was actually true." — true, and
+     the condition all nine sectors share, but it described a philosophical
+     situation rather than a business one. A reader arriving here is asking
+     whether this is for them and what it is worth, and an abstraction is a
+     poor answer to both. This names them, and it names a cost they are
+     already carrying — which is the only kind of saving that needs no proof
+     to be interesting. */
+  headline: "Your industry pays for trust it cannot check.",
+  /* Deliberately load-bearing in three places: it lists sectors by name so a
+     reader can find themselves before scrolling, it says what the record is
+     in one clause rather than describing the technology, and it closes on
+     all three kinds of value — sooner (created), cheaper (saved), and not
+     argued (protected). No numbers: none are ours to quote yet. */
   standfirst:
-    "Delphi Verify helps organisations establish what was true about a physical asset at an important moment — reducing information asymmetry, disputes, fraud and unnecessary verification cost.",
-  outcomesEyebrow: "What it is worth",
-  outcomesHeadline: "Four ways verified evidence pays for itself.",
+    "The same shape appears in property, marine, construction, insurance and defence — something valuable changes hands, and neither side can independently establish the condition it was in. Delphi Verify gives both a record neither of them owns and either of them can check, so transactions complete sooner, assurance costs less, and disagreements are settled or avoided rather than argued.",
   familiesEyebrow: "Solutions",
   familiesHeadline:
     "Industries where trusted physical evidence matters.",

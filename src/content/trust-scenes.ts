@@ -305,7 +305,7 @@ export const yachtsScene: TrustScene = {
            behind the one that is there. */
         stamp: "Date and time unverified",
         event: "Redelivery",
-        image: "saloon-redelivery",
+        image: "yacht-saloon-redelivery",
         imageAlt: "A tear across the cream leather seating in the yacht's saloon",
       },
     },
@@ -316,7 +316,7 @@ export const yachtsScene: TrustScene = {
         label: "Saloon · undamaged",
         stamp: "6 Aug 2026, 09:14 UTC",
         event: "Delivery",
-        image: "saloon-delivery",
+        image: "yacht-saloon-delivery",
         imageAlt: "The yacht's saloon at delivery, the leather seating undamaged",
       },
       redelivery: {
@@ -325,7 +325,7 @@ export const yachtsScene: TrustScene = {
         label: "Saloon · torn",
         stamp: "20 Aug 2026, 16:40 UTC",
         event: "Redelivery",
-        image: "saloon-redelivery",
+        image: "yacht-saloon-redelivery",
         imageAlt: "The same saloon at redelivery, the leather seating torn",
       },
     },

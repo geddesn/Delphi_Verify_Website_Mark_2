@@ -16,14 +16,12 @@ import {
   industries,
   industriesPage,
   industryBackdrops,
-  outcomes,
   families,
   crossIndustry,
   industriesCta,
   type Industry,
 } from "@/content/industries";
 import { corroboration } from "@/content/platform";
-import { pattern } from "@/content/home";
 import { cn } from "@/lib/cn";
 
 /* ============================================================================
@@ -42,9 +40,19 @@ import { cn } from "@/lib/cn";
       now appear once — the first on /platform, the second in the
       cross-industry section under a single direction marker.
 
-   3. Commercial outcomes are surfaced. Each card carries two or three tags
-      from one company-wide framework, so a reader sees the shape of the value
-      before reading a word of the copy.
+   3. The commercial-outcomes framework — four ways verified evidence pays
+      for itself — is no longer on this page. It abstracted the value into
+      four headings a reader had to map back onto their own operation, which
+      is work the nine scenarios already do concretely. `outcomes` and the
+      per-sector tags are still in content/industries.ts and still typed;
+      nothing renders them today.
+
+   4. The four qualifying conditions have gone the same way, and for the same
+      reason: they asked a reader to run an abstract test on their own
+      operation before they had been shown a single concrete case. The jump
+      tiles sit where they were — the same "is this for me?" question,
+      answered by letting the reader find their own sector by name and
+      picture. `pattern` in content/home.ts is no longer rendered anywhere.
 
    Cards do not link anywhere yet. `pageHref` is optional in the content model
    and unset on all nine; when sector pages exist, setting it makes the card a
@@ -67,52 +75,24 @@ export default function Industries() {
             </p>
           </div>
 
-          {/* The qualifying test, restated compactly. It is the thing that
-              makes a visitor recognise themselves without a vertical page. */}
-          <div className="mt-14 grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
-            {pattern.conditions.map((c) => (
-              <div
-                key={c.n}
-                className="flex flex-col gap-2 border-t border-line-strong pt-4"
-              >
-                <span className="font-mono text-mono-sm uppercase text-ink-muted">
-                  {c.n}
-                </span>
-                <h2 className="text-body font-semibold text-ink">{c.title}</h2>
-              </div>
-            ))}
-          </div>
+          {/* ── Jump grid ──
+              Where the four qualifying conditions used to be. The tiles answer
+              the same question those conditions were asking — is this for me?
+              — but concretely, by letting a reader find their own sector by
+              name and picture and go straight to it.
+
+              On the inverse tone they pick up the dark mapping of
+              --tile-surface, so they read as they do in dark mode without a
+              variant of their own. */}
+          <IndustryTiles className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" />
         </Container>
       </Section>
 
-      {/* ── Jump grid ──
-          padding="none" so the py below actually applies — a base py-* from
-          sectionPadding wins over a className one on CSS source order. */}
-      <Section tone="sunken" padding="none" className="py-8 md:py-10">
-        <Container>
-          <IndustryTiles className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" />
-        </Container>
-      </Section>
-
-      {/* ── Commercial outcomes ── */}
-      <Section padding="tight">
-        <Container>
-          <SectionHeader
-            eyebrow={industriesPage.outcomesEyebrow}
-            headline={industriesPage.outcomesHeadline}
-          />
-          <ul className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            {outcomes.map((o) => (
-              <li key={o.id} className="flex flex-col gap-2 bg-surface p-6">
-                <h3 className="text-subheading text-ink">{o.label}</h3>
-                <p className="text-body-sm text-ink-secondary">{o.body}</p>
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </Section>
-
-      {/* ── The nine, in four families ── */}
+      {/* ── The nine, in four families ──
+          Full measure. The jump grid used to sit between this and the hero on
+          the same sunken tone, so a thin top padding kept the two reading as
+          one block; with the tiles moved up into the hero this section opens
+          against a tone change and needs the space back. */}
       <Section tone="sunken">
         <Container>
           <SectionHeader
@@ -248,7 +228,8 @@ export default function Industries() {
    labels on all nine cards, so they distinguished nothing. These are the
    sector's own vocabulary for the points at which evidence gets created —
    which is the question a reader actually has after "what is it?".
-   The commercial framework still appears, once, in its own section above. */
+   The commercial framework that used to sit above them has since gone too;
+   see point 3 in the page header. */
 function MomentTags({ moments }: { moments: Industry["moments"] }) {
   return (
     <ul className="flex flex-wrap gap-2">

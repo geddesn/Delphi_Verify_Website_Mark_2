@@ -44,7 +44,13 @@ export const hero = {
 /* ── The pattern ───────────────────────────────────────────────────────────
    The intellectual foundation of the company. This section is what makes
    Delphi legible as a platform rather than a property tool: it names the
-   recurring situation, then shows the same shape appearing everywhere. */
+   recurring situation, then shows the same shape appearing everywhere.
+
+   NOTHING RENDERS THIS TODAY. `conditions` was the head of /industries until
+   the jump tiles replaced it: four abstract headings a reader had to map onto
+   their own operation, standing between them and the nine concrete scenarios
+   that do the same job better. Kept because the argument is still the right
+   one and still unwritten anywhere else — see point 4 in pages/Industries.tsx. */
 export const pattern = {
   eyebrow: "The pattern",
   headline: "Where physical assets and money meet, trust becomes expensive.",

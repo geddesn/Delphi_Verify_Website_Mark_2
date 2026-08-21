@@ -785,12 +785,69 @@ export function TrustEngine({
           </button>
         )}
         <p className="font-mono text-mono-sm uppercase text-ink-muted">{scene.sector}</p>
+        {/* Right-aligned on the same row rather than above the frame, which is
+            where these started. Three chapter buttons stacked over the stage
+            read as a toolbar and made the piece look like something to be
+            operated; down here beside Replay they are what they are — transport
+            controls, available to anyone who wants them, in nobody's way. */}
+        <ChapterBar step={step} onJump={playFrom} reduced={reduced} className="ml-auto" />
       </div>
     </div>
   );
 }
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
+
+function ChapterBar({
+  step,
+  onJump,
+  reduced,
+  className,
+}: {
+  step: number;
+  onJump: (n: number) => void;
+  reduced: boolean;
+  className?: string;
+}) {
+  /* Thirty-three seconds is a long time to ask for. Chapters let a viewer go
+     straight to the comparison, which is the part that actually argues. */
+  /* By id, like every other reference to a beat. This was `at: 11` and adding
+     the title card silently re-pointed it into the middle of Act One — the
+     exact failure the gates were moved off indices to avoid, left behind here
+     because a chapter button looks like configuration rather than code. */
+  const chapters = [
+    { label: acts.one.marker, at: at("intro-logo") },
+    { label: acts.turn.marker, at: at("turn") },
+    { label: acts.two.marker, at: at("a2-asset") },
+  ];
+  if (reduced) return null;
+
+  return (
+    <div className={cn("flex flex-wrap gap-2", className)}>
+      {chapters.map((c, i) => {
+        const next = chapters[i + 1]?.at ?? REST + 1;
+        const active = step >= c.at && step < next;
+        return (
+          <button
+            key={c.label}
+            type="button"
+            onClick={() => onJump(c.at)}
+            aria-current={active ? "step" : undefined}
+            className={cn(
+              "cursor-pointer rounded-sm border px-2.5 py-1 font-mono text-mono-sm uppercase transition-colors",
+              active
+                ? "border-accent text-ink"
+                : "border-line text-ink-muted hover:text-ink-secondary",
+            )}
+            style={{ transitionDuration: "var(--duration-fast)" }}
+          >
+            {c.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /** The ground the asset stands on.
  *
@@ -906,7 +963,14 @@ const CERT_OVERLAP = "0.7rem";
 
 /* One crop for every view of the saloon — the callout and both certificates.
    The pair only proves anything if the two frames are identical apart from
-   the damage, and a crop is part of the frame. */
+   the damage, and a crop is part of the frame.
+
+   It used to do far more work than it does now. The old masters were 1358×1530
+   and this threw away most of them to reach 2:1; the current pair is 882×496,
+   near enough 2:1 already that the crop trims about a ninth of the height. The
+   value is kept rather than reset to centre because the bias is still the
+   right one — it holds the ceiling cove, which is what reads as "yacht
+   interior" at 300px, and keeps the torn cushion clear of the bottom edge. */
 const SALOON_CROP = "50% 66%";
 
 /* The record is the photograph, so the photograph gets the whole card and the
@@ -1292,8 +1356,8 @@ function EvidenceCard({
         <PanelImage
           name={cert.image}
           alt={cert.imageAlt}
-          width={1358}
-          height={1530}
+          width={882}
+          height={496}
           position={SALOON_CROP}
           sizes="(min-width: 640px) 300px, 45vw"
           ratio={CERT_RATIO}
@@ -1308,9 +1372,15 @@ function EvidenceCard({
 
       {/* The metadata belongs ON the photograph, the way a timestamp burned
           into a frame does — it is a property of that image, not a caption
-          filed beneath it. */}
+          filed beneath it.
+
+          TOP left, not bottom. The saloon's seating runs along the lower half
+          of the frame and the tear is on a seat cushion, so a caption in the
+          bottom corner sat on the one detail the whole piece is about. The
+          top-left of this crop is sea and window mullion — nothing to lose,
+          and a dark plate reads well against it. */}
       <div
-        className="absolute bottom-1.5 left-1.5 rounded-sm px-1.5 py-1"
+        className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1"
         style={{ backgroundColor: "var(--callout-caption)" }}
       >
         <div className="flex items-center gap-1.5">

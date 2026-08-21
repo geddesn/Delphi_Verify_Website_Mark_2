@@ -74,7 +74,7 @@ export const routes: RouteDef[] = [
     seo: {
       title: "Where verified evidence applies | Delphi Verify",
       description:
-        "Property sales, rentals, construction, insurance, marine, automotive, industrial assets and logistics — one verification model across eight sectors.",
+        "Property, rentals, construction, insurance, marine, vehicles, industrial assets, logistics and defence — one verification model across nine sectors.",
     },
     changefreq: "monthly",
     priority: 0.9,

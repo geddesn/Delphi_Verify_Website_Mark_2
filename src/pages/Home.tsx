@@ -27,9 +27,11 @@ import { ctas } from "@/content/site";
    reader watches the same charter run twice and sees for themselves that the
    only thing that changed was when the evidence was captured.
 
-   None of that material is lost. The pattern is the head of /industries, the
-   mechanism is /platform and /platform/technical, and the posture is /trust —
-   which is where a reader who wants the argument written down goes anyway.
+   None of that material is lost, with one exception. The mechanism is
+   /platform and /platform/technical, and the posture is /trust — which is
+   where a reader who wants the argument written down goes anyway. The
+   pattern was the head of /industries until the jump tiles took that slot;
+   it is still in content/home.ts, and nothing renders it now.
    ========================================================================= */
 
 export default function Home() {

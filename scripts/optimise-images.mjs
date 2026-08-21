@@ -55,13 +55,20 @@ const GROUPS = [
          dates. They must stay a matched pair — the whole argument is that
          nothing changed except the damage, so a reshoot means reshooting
          BOTH. Shown small, inside callout and certificate boxes, so 240/480
-         are the sizes that actually get served.
+         are the sizes that actually get served; PanelImage's srcSet does not
+         reference the larger two at all.
 
-         Supersedes saloon-damage.png, which was a lone detail shot with
-         nothing to compare it against. Its master and prompt stay in
-         assets-src as a record of the take. */
-      { file: "saloon-delivery.png", name: "saloon-delivery" },
-      { file: "saloon-redelivery.png", name: "saloon-redelivery" },
+         These masters are 882×496, well under the 960 and 1920 tiers, so
+         withoutEnlargement writes those two at 882 rather than upscaling.
+         Same bytes under three names — harmless, and cheaper than special-
+         casing the group's widths for one pair.
+
+         Supersedes saloon-delivery/-redelivery.png, a lower-grade interior
+         at a taller crop, which in turn superseded the lone saloon-damage.png
+         detail shot. Every master and prompt stays in assets-src as a record
+         of the take; only the current pair is converted. */
+      { file: "yacht-saloon-delivery.png", name: "yacht-saloon-delivery" },
+      { file: "yacht-saloon-redelivery.png", name: "yacht-saloon-redelivery" },
       { file: "villa-listing.png", name: "villa-listing" },
       { file: "villa-checkout.png", name: "villa-checkout" },
       { file: "construction-milestone.png", name: "construction-milestone" },

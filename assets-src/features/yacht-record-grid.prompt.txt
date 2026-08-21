@@ -1,0 +1,142 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  5d7ec897-514d-4092-9afc-368a37ea3286
+
+Photorealistic photography presented as a 3x3 GRID OF NINE SEPARATE
+PHOTOGRAPHS in one image: nine views of ONE superyacht, nobody aboard in any
+frame.
+
+THE GRID
+Three rows of three, each cell a complete photograph filling its cell to all
+four edges. Cells butt edge to edge. No border, no gutter, no white strip, no
+dividing line, no frame, no rounded corners, no drop shadow, no numbering.
+
+ONE VESSEL, ONE HAND
+Every frame shares one design language: book-matched figured walnut with
+polished bronze inlay, ivory semi-aniline leather, honed pale marble with soft
+grey veining, brushed bronze fittings, silk-wool rugs in oyster and sand,
+concealed cove lighting, full-height frameless glazing. A custom 60-metre
+yacht — deeply expensive, contemporary, tailored. Not a hotel, not a showroom.
+
+THE NINE
+Frames 1 and 2 are THE SAME SALOON photographed twice, weeks apart: same
+settee, same cushions, same joinery, same window line, same leather.
+
+1 TOP-LEFT. Saloon, intact. A long ivory leather settee below full-height
+glazing with open sea beyond; a sculptural low table in pale marble on a
+bronze base; a large abstract canvas; orchids. Every cushion unbroken.
+
+2 TOP-CENTRE. The SAME saloon, half a step closer and a few degrees round, now
+with ONE clean tear about 20cm long across the leather of a single seat
+cushion, its edges parted slightly. Plainly the same cushion that is undamaged
+in frame 1. Nothing else differs.
+
+3 TOP-RIGHT. Formal dining. An oval figured-walnut table with bronze inlay,
+high-backed leather chairs, a sculptural glass pendant, sea light.
+
+4 MIDDLE-LEFT. Master cabin. A wide bed in crisp ivory linen, a padded leather
+headboard wall, bronze reading lights, a silk rug, sea through the glazing.
+
+5 MIDDLE-CENTRE. Master ensuite. Book-matched marble, a freestanding stone
+basin, brushed bronze tapware, a frameless glass shower, folded white towels.
+
+6 MIDDLE-RIGHT. Bar. A marble-topped counter with a bronze rail, leather
+stools, backlit shelves of cut crystal glassware and unopened bottles.
+
+7 BOTTOM-LEFT. Aft deck. Teak underfoot, cream outdoor upholstery around a low
+stone table, open sea beyond.
+
+8 BOTTOM-CENTRE. Flybridge. Cream sunpads, a shaded helm console with brushed
+bronze detail, teak decking, horizon beyond.
+
+9 BOTTOM-RIGHT. Tender garage and swim platform. A gleaming tender and a jet
+ski stowed on teak, hatch open to bright water.
+
+THE MOMENT
+Nobody is aboard. Every frame is quiet and still, made to record her
+condition.
+
+STRICTLY NOT
+No people anywhere — no crew, no guests, no figures, no reflections of people.
+No labels, captions, arrows, circles, ticks, crosses or numbering. ONE tear,
+in frame 2 only: nowhere else in the grid is anything torn, stained,
+scratched, chipped, cracked, worn or out of place. Not a burst seam, not a
+burn, not a wide gash. No clutter or rubbish.
+
+CRITICAL — NINE PLAIN PHOTOGRAPHS
+All nine are straight photographs. Nothing is superimposed on any frame: no
+panels, cards, boxes, banners, labels, callouts, annotations, user interface,
+diagrams, dots, markers, arrows or lines drawn over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level or just above. Verticals true, no
+converging distortion, no fisheye. Keep the upper part of each frame calm —
+no bright hotspots, no blown windows.
+
+LIGHT AND COLOUR
+Cool neutral daylight throughout, from the glazing, warmed a little by the
+cove lighting and bronze. Palette, leather colour and exposure must match
+closely across all nine so they read as one vessel on one day. Frame 2 may
+read very slightly later in the day. Neutral filmic grade, no saturation push,
+no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial interior photography — calm, factual, precise. Accurate
+proportion, believable leather grain, stitching, marble veining and veneer
+figure.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind. Visible third-party
+brands. Watermarks. Distorted or impossible geometry. Any visible seam, frame
+or gap between cells.
+
+GENERATED AS ONE 3x3 GRID, THEN SPLIT INTO NINE
+2720x1530 master -> nine cells of 906x510, each exactly 16:9. A few pixels are
+trimmed off every inner edge so no seam pixel survives into any cell.
+
+WHY ONE GENERATION RATHER THAN NINE
+Nine independent generations produce nine different yachts. The moment they sit
+together in a record, mismatched leather and joinery read as a stock library
+rather than one vessel's condition on one day — which is the whole point of the
+set. One generation is what holds the design language identical across all
+nine. It also costs 9 credits instead of 81.
+
+WHY THE SALOON IS IN HERE TWICE
+Frames 1 and 2 are the same saloon, intact and torn. This supersedes the
+separate saloon-before-after take, whose setting read as mid-market: the low
+table was plain, the joinery flat, and nothing in the room said superyacht.
+The v1 brief asked for exactly that — "restrained", "plain", "expensive without
+ornament", "no artwork" — and got it. This brief inverts those instructions.
+
+THE SPLIT
+seedream added white gutters despite the brief. Measured off the master rather
+than assumed: columns 901-911 and 1808-1817, rows 509-518 and 1016-1024 all
+run near-white (mean luminance >245) for their full length. Cells are 882x496
+— 1.778:1, so 16:9 to within a rounding error — lifted at:
+
+  x = 9, 919, 1828      y = 6, 519, 1029
+
+which clears every gutter by at least 3px. Reshoot and these MUST be
+re-measured; the model does not place its gutters consistently.
+
+  yacht-saloon-delivery    yacht-saloon-redelivery   yacht-dining
+  yacht-master-cabin       yacht-master-ensuite      yacht-bar
+  yacht-aft-deck           yacht-flybridge           yacht-tender-garage
+
+WHAT IS LIVE
+The saloon pair only. It replaced saloon-delivery/-redelivery in
+content/trust-scenes.ts and scripts/optimise-images.mjs. SALOON_CROP in
+components/trust/TrustEngine.tsx stayed at "50% 66%" and did not need
+re-tuning: these cells are 16:9 into a 2/1 card, so barely a tenth of the
+height is cropped, and 66% favours the settee the tear is on.
+
+The other seven are masters only — nothing renders them, and they are not in
+optimise-images.mjs. Adding a line each to the features group converts them
+when there is somewhere for them to go.
+
+Note: re-running the generator on this file rewrites it and drops everything
+above the separator. Keep a copy of this block if you reshoot.
+
+---
+
+

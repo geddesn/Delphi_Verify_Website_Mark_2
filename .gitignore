@@ -27,6 +27,15 @@ assets-src/**/*.jpg
 assets-src/**/*.jpeg
 assets-src/**/*.webp
 
+# Capture output. scripts/capture-trust.mjs records the trust stage to a GIF or
+# a WebM; both are tens of megabytes and both are regenerable with
+# `npm run capture`, so neither belongs in git.
+trust-engine.gif
+trust-engine.webm
+
+# Playwright MCP scratch — snapshots and console logs from browser sessions
+.playwright-mcp/
+
 # Editor / OS
 .DS_Store
 Thumbs.db

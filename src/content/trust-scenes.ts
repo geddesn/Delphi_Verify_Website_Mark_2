@@ -36,8 +36,8 @@ export type TrustCapture = {
 
 /* ⚠️  ANCHORS ARE PERCENTAGES OF THE STAGE, NOT OF THE ASSET IMAGE.
    The asset is a cut-out trimmed to its own bounding box, so it occupies a
-   known rectangle of the stage — currently x 28-72, y 39-75, from w-[44%] at
-   top-[57%]. An
+   known rectangle of the stage — currently x 28-72, y 37-85, from w-[44%] at
+   top-[61%]. An
    anchor is therefore box.origin + (position on the vessel x box.size). Change
    the asset's width class or swap in an image of a different aspect ratio and
    every anchor below moves off the vessel; re-derive them, do not nudge. */
@@ -120,8 +120,13 @@ export type TrustScene = {
    *  here; the component composes them in. */
   narration: Record<string, { line: string; sub?: string }>;
 
-  /** Act One's ending. Deliberately bleak. */
-  unresolved: { headline: string; cost: string };
+  /** Act One's ending. Deliberately bleak.
+   *
+   *  `outcomes` mirrors the resolved list line for line — same order, same
+   *  subject, opposite result. That pairing is the argument: read down one
+   *  and then the other and the only thing that changed is whether there was
+   *  a record. Edit one and edit its opposite number. */
+  unresolved: { headline: string; cost: string; outcomes: readonly string[] };
 
   /** Act Two's ending. Not an adjudication. */
   resolved: { headline: string; outcomes: readonly string[] };
@@ -162,7 +167,7 @@ export const yachtsScene: TrustScene = {
      photograph in the middle of it reads as a picture pasted onto the scene
      rather than as the object everyone is standing around. */
   asset: "yacht-cutout",
-  assetAlt: "A motor yacht, shown on its own with nobody aboard",
+  assetAlt: "A motor yacht lying in calm water, with nobody aboard",
 
   /* Derived from the vessel, not chosen. Its waterline rises 7.36 degrees to
      the right — measured off the cut-out's own alpha channel — and extending
@@ -195,7 +200,7 @@ export const yachtsScene: TrustScene = {
       holds: "Conducts delivery and redelivery — and holds the phone.",
       side: "left",
       /* The wheelhouse — the captain is the person conning the vessel. */
-      anchor: { x: 53, y: 51 },
+      anchor: { x: 54, y: 57 },
       claim: "She was perfect at delivery.",
       enters: { one: "a1-captain", two: "a2-captain" },
     },
@@ -206,14 +211,14 @@ export const yachtsScene: TrustScene = {
       holds: "Takes her for two weeks, and carries the cost if the account is wrong.",
       side: "right",
       /* The aft deck, where a charter party actually boards. */
-      anchor: { x: 67, y: 61 },
+      anchor: { x: 68, y: 66 },
       claim: "That was already there.",
       enters: { one: "a1-charterer", two: "a2-charterer" },
     },
   ],
 
   incident: {
-    anchor: { x: 48, y: 61 },
+    anchor: { x: 48, y: 67 },
     label: "Saloon · leather seating, torn",
   },
 
@@ -261,6 +266,11 @@ export const yachtsScene: TrustScene = {
   unresolved: {
     headline: "Nobody can prove either version.",
     cost: "Vessel off-hire · weeks of correspondence · written off or fought",
+    outcomes: [
+      "No record of her condition at delivery",
+      "A surveyor, a lawyer, or both",
+      "Vessel off-hire while it is argued",
+    ],
   },
 
   resolved: {

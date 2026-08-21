@@ -94,6 +94,21 @@ const s = {
   party: (p: TrustParty, n: number) =>
     (n >= at(p.enters.one) && n < TURN) || n >= at(p.enters.two),
 
+  /** ...but their LEADER is only up while they are being introduced.
+   *
+   *  A leader's job is to say which of these boxes belongs to which part of
+   *  the vessel. Once it has said that, it is a line across the picture — and
+   *  by the end of Act Two there is a record panel, an evidence channel and
+   *  two sets of certificates competing for the same space. So each one
+   *  retracts once the introductions are over, and the stage is left to the
+   *  things that are still saying something.
+   *
+   *  The last introduction in each act is the one that ends it: everyone is
+   *  on by the time the handover happens. */
+  partyLeader: (p: TrustParty, n: number) =>
+    (n >= at(p.enters.one) && n < at("a1-delivery")) ||
+    (n >= at(p.enters.two) && n < at("a2-capture")),
+
   /* Act One's occupant of the top slot: the photograph one side happens to
      have. Never in Act Two, where the record has the slot instead — the two
      are mutually exclusive by construction, which is the point. */
@@ -186,7 +201,7 @@ export function TrustEngine({
   /* The panels report their own footprint, so a leader starts on the real
      edge of its box. Matters most for the counterparties, which grow when
      their claim surfaces during the dispute. */
-  const { boxes, size, register } = useBoxes(stageRef);
+  const { boxes, size, register, measure } = useBoxes(stageRef);
 
   const stop = useCallback(() => {
     if (timer.current) window.clearTimeout(timer.current);
@@ -243,6 +258,15 @@ export function TrustEngine({
 
   useEffect(() => stop, [stop]);
 
+  /* Re-measure on every beat.
+     The step is what drives the layout here — a claim opens, an outcome list
+     appears, a column re-centres — and a ResizeObserver does not see a panel
+     that has only MOVED. Without this the certificates and the access links
+     keep pointing at where the charterer used to be. */
+  useEffect(() => {
+    measure();
+  }, [step, measure]);
+
   const act = s.act(step);
   const { incident, record } = scene;
   const showRecord = s.delphi(step);
@@ -295,7 +319,7 @@ export function TrustEngine({
         id: p.id,
         anchor: p.anchor,
         ...columnFallback(p.side, list.indexOf(p), list.length),
-        on: s.party(p, step),
+        on: s.partyLeader(p, step),
       };
     }),
     {
@@ -328,13 +352,21 @@ export function TrustEngine({
         <StageGrid ground={scene.ground} />
 
         {/* ── The asset, centre ──
-            A cut-out on the bare stage: no frame, no ground, nothing behind
-            it. The master carries a real alpha channel and sharp keeps it all
-            the way into WebP, so there is nothing to mask here. The box IS the
-            vessel — the master is trimmed to its own bounding box — which is
-            what makes the anchor percentages below mean something. */}
+            A cut-out on the bare stage: no frame, nothing behind it. The
+            master carries a real alpha channel and sharp keeps it all the way
+            into WebP, so there is nothing to mask here.
+
+            It brings its OWN water — a feathered patch of sea around the
+            waterline, only about thirty pixels of which fall below the hull.
+
+            WIDTH AND TOP ARE SET FROM THE HULL, not from the box. This render
+            carries more vertical extent than the one it replaced (a taller
+            mast in frame), so matching the box would have moved the waterline.
+            44% and 54% instead put the bow, the stern and the waterline back
+            exactly where they were and let the mast run higher, which is the
+            part nothing else on the stage is measured against. */}
         <div
-          className="absolute left-1/2 top-[57%] w-[44%] -translate-x-1/2 -translate-y-1/2 transition-opacity"
+          className="absolute left-1/2 top-[61%] w-[44%] -translate-x-1/2 -translate-y-1/2 transition-opacity"
           style={{
             opacity: step === TURN ? 0.35 : 1,
             transitionDuration: "var(--duration-slow)",
@@ -345,8 +377,8 @@ export function TrustEngine({
             srcSet={`/assets/features/${scene.asset}-480.webp 480w, /assets/features/${scene.asset}-960.webp 960w`}
             sizes="(min-width: 1024px) 500px, 55vw"
             alt={scene.assetAlt}
-            width={899}
-            height={419}
+            width={925}
+            height={564}
             loading="lazy"
             decoding="async"
             className="block h-auto w-full"
@@ -378,6 +410,26 @@ export function TrustEngine({
                 boxRef={register(p.id)}
               />
             ))}
+
+            {/* The tally, under the last party on this side. IN FLOW, not
+                positioned: the column centres whatever it is given, so the
+                panel above simply rides up to make room and comes back down
+                when the list empties. Nothing here has to know how tall it
+                got. */}
+            {side === OUTCOME_SIDE && (
+              <OutcomeList
+                items={
+                  act === 2 ? scene.resolved.outcomes : scene.unresolved.outcomes
+                }
+                tone={act === 2 ? "verified" : "failed"}
+                on={act === 2 ? s.compare(step) : s.dispute(step)}
+                /* Clearing the certificates, which overlap the panel above
+                   without taking any room in the flow — so this margin is the
+                   only thing keeping the two apart, and it has to cover the
+                   whole tile: code, gap and caption plate, less the overlap. */
+                className={act === 2 ? "mt-16" : "mt-3"}
+              />
+            )}
           </PartyColumn>
         ))}
 
@@ -572,29 +624,6 @@ export function TrustEngine({
         </div>
       </div>
 
-      {/* ── Outcomes ── */}
-      <ul className="grid gap-3 sm:grid-cols-3">
-        {scene.resolved.outcomes.map((o, i) => (
-          <li
-            key={o}
-            className={cn(
-              "rounded-md border border-line bg-surface p-4 text-body-sm text-ink-secondary transition-all",
-              s.resolved(step) ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
-            )}
-            style={{
-              transitionDuration: "var(--duration-normal)",
-              transitionDelay: s.resolved(step) ? `${i * 110}ms` : "0ms",
-            }}
-          >
-            <span
-              aria-hidden
-              className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-verified align-middle"
-            />
-            {o}
-          </li>
-        ))}
-      </ul>
-
       <div className="flex flex-wrap items-center gap-4">
         {reduced ? (
           <p className="text-body-sm text-ink-muted">{trustEngineCopy.staticNote}</p>
@@ -783,6 +812,77 @@ const SALOON_CROP = "50% 66%";
    metadata sits on it. Short enough that two of these plus the panel around
    them do not bury the vessel they are describing. */
 const CERT_RATIO = "2 / 1";
+
+/* Which column carries the tally. The counterparty's, deliberately: these are
+   the consequences for the side that is exposed if the account turns out to be
+   wrong, and they belong beside them rather than floating under the stage. */
+const OUTCOME_SIDE: "left" | "right" = "right";
+
+/** How each act ends, itemised.
+ *
+ *  Two lists that mirror each other line for line, so reading down one and
+ *  then the other shows the same three subjects coming out the opposite way.
+ *  Ticks and crosses rather than bullets, because the point is not that these
+ *  are three items — it is that they went well or they did not. */
+function OutcomeList({
+  items,
+  tone,
+  on,
+  className,
+}: {
+  items: readonly string[];
+  tone: "verified" | "failed";
+  on: boolean;
+  className?: string;
+}) {
+  return (
+    <ul className={cn("flex w-full flex-col gap-2", className)}>
+      {items.map((o, i) => (
+        <li
+          key={o}
+          className="flex gap-2 text-caption text-ink-secondary"
+          style={{
+            opacity: on ? 1 : 0,
+            transform: on ? "none" : "translateY(6px)",
+            transition:
+              "opacity var(--duration-normal) linear, transform var(--duration-normal) var(--ease-out-quart)",
+            /* Down the list rather than all at once: three things arriving
+               together is a block of text, three things arriving in order is
+               a tally being read out. */
+            transitionDelay: on ? `${i * 130}ms` : "0ms",
+          }}
+        >
+          <OutcomeMark tone={tone} />
+          <span>{o}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function OutcomeMark({ tone }: { tone: "verified" | "failed" }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden
+      className={cn(
+        "mt-0.5 h-3.5 w-3.5 shrink-0",
+        tone === "verified" ? "text-verified" : "text-failed",
+      )}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {tone === "verified" ? (
+        <path d="m3 8.5 3.2 3.2L13 5" />
+      ) : (
+        <path d="m4 4 8 8M12 4l-8 8" />
+      )}
+    </svg>
+  );
+}
 
 /** A live channel between the record and a party holding a copy of it.
  *

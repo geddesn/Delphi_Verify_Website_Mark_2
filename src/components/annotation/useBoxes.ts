@@ -24,6 +24,13 @@ import type { Rect } from "./geometry";
 
    Empty on the server and on first paint, so callers keep a declared `box` as
    the fallback — that is what the prerendered HTML is drawn with.
+
+   ⚠️  A ResizeObserver IS NOT ENOUGH, which is why `measure` is returned.
+   It fires on size, not on position. A panel in a column that centres its
+   children MOVES whenever a sibling appears or grows, without changing size
+   at all — no callback, and every rect that depends on it silently goes
+   stale. Anything driving layout from state has to re-measure when that
+   state changes.
    ========================================================================= */
 
 const EPSILON = 0.15; // percent — below this a change is invisible
@@ -111,5 +118,5 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
     };
   }, [measure, stageRef]);
 
-  return { boxes, size, register };
+  return { boxes, size, register, measure };
 }

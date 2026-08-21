@@ -135,8 +135,17 @@ export function SceneBackdrop({
           loading="eager"
           fetchPriority={i === 0 ? "auto" : "low"}
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-0 transition-opacity ease-in-out"
+          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity ease-in-out"
           style={{
+            /* Which slice of the photograph is shown. The desktop panel is
+               narrower than 16:9, so object-cover always crops horizontally —
+               this decides where. Pushed right so the left of the frame is
+               dropped, which is the part the mask was dissolving away anyway.
+               Tune --backdrop-position in theme.css, not here.
+
+               No effect on the mobile band, which is exactly 16:9 and so is
+               not cropped at all. */
+            objectPosition: "var(--backdrop-position)",
             transitionDuration: `${FADE_MS}ms`,
             opacity: i === active ? "var(--backdrop-opacity)" : 0,
           }}

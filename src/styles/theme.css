@@ -169,6 +169,17 @@
   );
   --backdrop-opacity: 0.45;
 
+  /* How much of the hero the backdrop occupies on desktop, and which part of
+     the photograph is shown inside it.
+
+     The images are 16:9 but the desktop panel is tall and narrow, so
+     object-cover always crops horizontally — the only question is which
+     slice. 65% pushes the framing right, discarding roughly the left third
+     of the source, which is the part the mask was dissolving away anyway.
+     Tune these two, not the component. */
+  --backdrop-width: 68%;
+  --backdrop-position: 65% center;
+
   /* Portrait equivalent, for phones. The landscape mask above fades left to
      right because the image sits beside the headline. On a phone there is no
      beside — the hero is one column — so the image sits ACROSS THE TOP and
@@ -556,10 +567,16 @@
 
 @media (min-width: 1024px) {
   .scene-backdrop {
-    inset-block: 0;
-    top: auto;
-    inset-inline: auto 0;
-    width: 60%;
+    /* Written as four explicit sides. An earlier version used `inset-block: 0`
+       followed by `top: auto` to undo the portrait anchor — but inset-block
+       sets top AND bottom, so the later `top: auto` cancelled the top inset
+       and the panel collapsed to zero height, taking the whole desktop
+       backdrop with it. */
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: var(--backdrop-width);
     height: auto;
     aspect-ratio: auto;
     mask-image: var(--backdrop-fade);

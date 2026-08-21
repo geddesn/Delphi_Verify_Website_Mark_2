@@ -25,6 +25,7 @@ export function AnnotationPanel({
   width = "w-[21%] min-w-[210px]",
   boxRef,
   className,
+  style,
   children,
 }: {
   /** Where to put it. Omit to render in flow instead, letting a parent lay it
@@ -40,6 +41,9 @@ export function AnnotationPanel({
    *  rather than on a guessed one — see useBoxes. */
   boxRef?: (el: HTMLElement | null) => void;
   className?: string;
+  /** Merged onto the positioned element. For anything that has to be a
+   *  transitionable value rather than a class — a width that animates, say. */
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   const animated = on !== undefined;
@@ -57,11 +61,12 @@ export function AnnotationPanel({
         width,
         className,
       )}
-      style={
-        spec?.panel
+      style={{
+        ...(spec?.panel
           ? { left: `${spec.panel.x}%`, top: `${spec.panel.y}%` }
-          : undefined
-      }
+          : {}),
+        ...style,
+      }}
     >
       <div
         className={cn(
@@ -87,14 +92,22 @@ export function AnnotationPanel({
 }
 
 /** The Delphi mark, as a mask so it takes the panel's ink colour. */
-export function PanelLogo({ className }: { className?: string }) {
+export function PanelLogo({
+  className,
+  color = "var(--callout-ink)",
+}: {
+  className?: string;
+  /** Defaults to the callout panels' ink. Override where it appears on the
+   *  stage itself rather than on a panel. */
+  color?: string;
+}) {
   return (
     <span
       role="img"
       aria-label="Delphi Verify"
       className={cn("block h-[26px] w-[91px]", className)}
       style={{
-        backgroundColor: "var(--callout-ink)",
+        backgroundColor: color,
         maskImage: "url(/assets/logo.svg)",
         WebkitMaskImage: "url(/assets/logo.svg)",
         maskRepeat: "no-repeat",

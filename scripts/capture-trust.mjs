@@ -57,6 +57,10 @@ import {
   existsSync,
 } from "node:fs";
 
+/* ffmpeg's failures are all on stderr; piping it turns a one-line explanation
+   into a buffer dump of its own banner, so let it through. */
+const FF_IO = { stdio: ["ignore", "ignore", "inherit"] };
+
 /* Playwright keeps a static ffmpeg beside its browsers — VP8 and PNG only,
    no H.264 and no image2 demuxer, but enough to cut a WebM. */
 function findFfmpeg() {
@@ -85,7 +89,10 @@ const FPS = Number(arg("fps", 12));
    ground it costs more than it saves. */
 const COLOURS = Number(arg("colours", 256));
 const WIDTH = Number(arg("width", 1200));
-const SECONDS = Number(arg("seconds", 38));
+/* The whole piece: five seconds of title card, then roughly seventeen each
+   for the two acts and a beat for the turn, plus a little to rest on the
+   final frame. */
+const SECONDS = Number(arg("seconds", 44));
 const VIDEO = argv.includes("--video");
 const OUT = resolve(arg("out", VIDEO ? "trust-engine.webm" : "trust-engine.gif"));
 
@@ -148,6 +155,26 @@ const context = await browser.newContext({
   deviceScaleFactor: 1,
   ...(VIDEO ? { recordVideo: { dir: frameDir, size: VIDEO_SIZE } } : {}),
 });
+/* Paint the page dark before anything else can paint it white.
+
+   Recording starts with the context, which is before the first frame the
+   compositor produces — so the opening of every take was six tenths of a
+   second of the browser's blank white page. The lead-in trim cannot reliably
+   remove it: the cut is a stream copy, so it snaps to the nearest keyframe
+   and lands inside the flash.
+
+   #030416 is --delphi-1000, the site's canvas, converted out of OKLCH. It is
+   here rather than read from the page because the point is to be in place
+   before the stylesheet is. */
+await context.addInitScript(() => {
+  const paint = () => {
+    const el = document.documentElement;
+    if (el) el.style.background = "#030416";
+  };
+  paint();
+  document.addEventListener("DOMContentLoaded", paint);
+});
+
 const page = await context.newPage();
 
 /* "load", not "networkidle". A Vite dev server holds an HMR websocket open
@@ -175,14 +202,32 @@ console.log("  page ready");
    the stage is fixed to the viewport there is nothing to scroll to. */
 if (VIDEO) await page.evaluate(fillViewport);
 
-/* Everything decoded before the first frame: an image popping in halfway
-   through is the one artefact a viewer will notice every time. */
+/* Everything on the STAGE decoded before the first frame: an image popping in
+   halfway through is the one artefact a viewer will notice every time.
+
+   ⚠️  ONLY the stage, and never without a deadline. decode() on a lazy image
+   that is off-screen NEVER SETTLES — it does not resolve and it does not
+   reject — and pinning the stage to the viewport hides the rest of the page,
+   so every other image on it becomes exactly that. A bare Promise.all over
+   the whole document hangs here forever, silently, after the last thing was
+   logged. */
 await page.evaluate(async (scroll) => {
-  if (scroll) document.querySelector(".isolate")?.scrollIntoView({ block: "center" });
+  const stage = document.querySelector(".isolate");
+  if (scroll) stage?.scrollIntoView({ block: "center" });
+  const imgs = [...(stage?.querySelectorAll("img") ?? [])];
   await Promise.all(
-    [...document.querySelectorAll("img")].map((i) => i.decode().catch(() => {})),
+    imgs.map((i) =>
+      Promise.race([
+        i.decode().catch(() => {}),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]),
+    ),
   );
 }, !VIDEO);
+/* Long enough for the stylesheet, the fonts and the first images to be on
+   screen. The cut lands here, so this is the frame the video opens on. */
+await page.waitForTimeout(1500);
+console.log("  assets decoded");
 await page.waitForTimeout(1200);
 
 /* Start from the top rather than wherever the scroll trigger left it. */
@@ -216,16 +261,25 @@ if (VIDEO) {
   if (video) await video.saveAs(raw);
   await browser.close();
 
-  /* Trim the lead-in. A stream copy, not a re-encode: the bundled ffmpeg can
-     only make VP8, so re-encoding VP8 it already has would cost quality for
-     nothing. -ss lands on the nearest keyframe, which is close enough when
-     the thing being cut is a still frame. */
+  /* Trim the lead-in — RE-ENCODED, not stream-copied.
+     A copy was the obvious choice (the bundled ffmpeg only makes VP8, so
+     re-encoding VP8 costs quality for nothing) and it does not work: -ss on a
+     copy snaps to the nearest keyframe, and the keyframes here are far enough
+     apart that the cut kept landing inside the page load. The opening was
+     white, then dark, then white again — the browser painting a blank tab,
+     then the document, then the stylesheet.
+
+     Re-encoding makes the cut exact. At 2 Mbps against an 0.9 Mbps source the
+     loss is not visible, and it is the only way to be certain what the first
+     frame is. */
   const ffmpeg = findFfmpeg();
   if (ffmpeg && leadIn > 0.5) {
     execFileSync(
       ffmpeg,
-      ["-y", "-ss", leadIn.toFixed(2), "-i", raw, "-c", "copy", OUT],
-      { stdio: ["ignore", "ignore", "pipe"] },
+      ["-y", "-ss", leadIn.toFixed(2), "-i", raw,
+       "-c:v", "libvpx", "-b:v", "2M", "-deadline", "good", "-cpu-used", "2",
+       "-auto-alt-ref", "0", OUT],
+      FF_IO,
     );
     console.log(`
   trimmed ${leadIn.toFixed(1)}s of lead-in`);

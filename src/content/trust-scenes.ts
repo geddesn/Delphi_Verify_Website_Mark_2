@@ -88,6 +88,8 @@ export type StageGround = {
 export type TrustScene = {
   id: string;
   sector: string;
+  /** Named on the opening title card, under the brand line. */
+  study: string;
   /** Basename under public/assets/features — the clean asset, no people. */
   asset: string;
   assetAlt: string;
@@ -163,6 +165,10 @@ export type TrustScene = {
 export const yachtsScene: TrustScene = {
   id: "yachts-marine",
   sector: "Yachts & Marine",
+  /* The title card's second line. Sector-specific, and it says "example"
+     because that is what it is: an illustration of the mechanism, not a case
+     study of a real charter. */
+  study: "Yacht Charter · Example Study",
   /* A cut-out, not a photograph. The stage is a diagram, and a rectangular
      photograph in the middle of it reads as a picture pasted onto the scene
      rather than as the object everyone is standing around. */
@@ -346,6 +352,9 @@ export const acts = {
 } as const;
 
 export const trustEngineCopy = {
+  /* The title card. Brand-level, so it does not change with the sector — the
+     whole argument of the piece is that the platform does not either. */
+  intro: "Enhancing Trust",
   eyebrow: "How the value is created",
   headline: "The same charter, run twice.",
   standfirst:

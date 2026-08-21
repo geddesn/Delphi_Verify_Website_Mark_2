@@ -602,6 +602,12 @@
      again: it travels a real distance and the eye has to be able to follow
      where it came FROM, which is the whole content of the gesture. */
   --duration-fly:    1100ms;
+
+  /* One scene giving way to another — the title card to the vessel. Long, and
+     deliberately longer than any transition inside a scene: this is a cut
+     between two things rather than a change within one, and at UI speed it
+     reads as a glitch rather than as a dissolve. */
+  --duration-cross:  1200ms;
 }
 
 /* ============================================================================
@@ -844,6 +850,7 @@
     --duration-slow:   0ms;
     --duration-draw:   0ms;
     --duration-fly:    0ms;
+    --duration-cross:  0ms;
   }
 
   html {

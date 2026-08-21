@@ -57,6 +57,7 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
   const nodes = useRef(new Map<string, HTMLElement>());
   const callbacks = useRef(new Map<string, (el: HTMLElement | null) => void>());
   const observer = useRef<ResizeObserver | null>(null);
+  const pending = useRef<number | undefined>(undefined);
 
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -81,6 +82,20 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
         : { w: s.width, h: s.height },
     );
   }, [stageRef]);
+
+  /* The observer's path through here is DEBOUNCED; the direct one is not.
+     A panel with an animating width drives ResizeObserver at sixty frames a
+     second, and each fire re-renders the whole stage — leaders, certificates,
+     links and all — which is visible as stutter in the middle of the very
+     transition being measured. Callers that need an exact rect at an exact
+     moment (the step machine, on each beat) still call measure() directly. */
+  const scheduleMeasure = useCallback(() => {
+    if (pending.current) return;
+    pending.current = window.setTimeout(() => {
+      pending.current = undefined;
+      measure();
+    }, 120);
+  }, [measure]);
 
   /* One cached ref callback per id. Returning a fresh closure each render
      would make React detach and reattach every panel on every frame. */
@@ -107,7 +122,7 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
   );
 
   useEffect(() => {
-    const obs = new ResizeObserver(() => measure());
+    const obs = new ResizeObserver(() => scheduleMeasure());
     observer.current = obs;
     nodes.current.forEach((el) => obs.observe(el));
     if (stageRef.current) obs.observe(stageRef.current);
@@ -115,8 +130,9 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
     return () => {
       obs.disconnect();
       observer.current = null;
+      if (pending.current) window.clearTimeout(pending.current);
     };
-  }, [measure, stageRef]);
+  }, [measure, scheduleMeasure, stageRef]);
 
   return { boxes, size, register, measure };
 }

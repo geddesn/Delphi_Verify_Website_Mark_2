@@ -43,6 +43,13 @@ import { useBoxes } from "@/components/annotation/useBoxes";
    ========================================================================= */
 
 const STEPS = [
+  /* ── THE TITLE CARD ──
+     Five seconds of who this is and what it is about, before anything moves.
+     A piece that opens mid-story has no beginning, and a viewer who arrives
+     part-way through has nothing to catch up on. */
+  { id: "intro-logo", ms: 1500 },
+  { id: "intro-line", ms: 1500 },
+  { id: "intro-study", ms: 2000 },
   /* ── ACT ONE — without a record ── */
   { id: "a1-asset", ms: 1600 },
   { id: "a1-captain", ms: 1400 },
@@ -90,6 +97,13 @@ const TURN = at("turn");
 /* ── Derived state — every visual is one of these ──────────────────────── */
 const s = {
   act: (n: number) => (n < TURN ? 1 : n === TURN ? 0 : 2),
+
+  /* The title card, and the two lines that arrive under it. Nothing else is
+     on the stage while these are — not the vessel, not the act marker. */
+  intro: (n: number) => n < at("a1-asset"),
+  introLine: (n: number) => n >= at("intro-line") && n < at("a1-asset"),
+  introStudy: (n: number) => n >= at("intro-study") && n < at("a1-asset"),
+
   /** A party is on from the step they enter, for the rest of that act. */
   party: (p: TrustParty, n: number) =>
     (n >= at(p.enters.one) && n < TURN) || n >= at(p.enters.two),
@@ -368,8 +382,15 @@ export function TrustEngine({
         <div
           className="absolute left-1/2 top-[61%] w-[44%] -translate-x-1/2 -translate-y-1/2 transition-opacity"
           style={{
-            opacity: step === TURN ? 0.35 : 1,
-            transitionDuration: "var(--duration-slow)",
+            opacity: s.intro(step) ? 0 : step === TURN ? 0.35 : 1,
+            /* The vessel arriving as the title card leaves is a dissolve
+               between two scenes, not a state change within one, so it gets
+               the longer duration. Everything later — the dimming at the
+               turn — stays at UI speed. */
+            transitionDuration:
+              step <= at("a1-asset")
+                ? "var(--duration-cross)"
+                : "var(--duration-slow)",
           }}
         >
           <img
@@ -560,34 +581,76 @@ export function TrustEngine({
           title={record.unverified.title}
           trusted={false}
         >
-          <EvidenceCard
-            cert={record.unverified.capture}
-            tone="failed"
-            trusted={false}
-          />
+          <div className="min-w-0 flex-1">
+            <EvidenceCard
+              cert={record.unverified.capture}
+              tone="failed"
+              trusted={false}
+            />
+          </div>
         </RecordPanel>
 
+        {/* ONE CARD, THEN TWO — the panel widens rather than holding an
+            empty slot open from the start.
+
+            An empty frame beside the first capture promises a second one
+            before there is any reason to expect it, and reads as a template
+            waiting to be filled. Growing at the moment the second capture is
+            taken says something happened. The width is inline rather than a
+            class because it has to be a value a transition can interpolate. */}
         <RecordPanel
           spec={record}
           on={showRecord}
-          width="w-[min(52%,34rem)]"
+          width=""
+          style={{
+            width: s.redeliveryCert(step) ? "min(52%, 34rem)" : "min(27%, 17.5rem)",
+            transition: "width var(--duration-cross) var(--ease-out-quart)",
+          }}
           boxRef={register("record-verified")}
           title={record.verified.title}
           trusted
         >
-          <EvidenceCard
-            cert={s.deliveryCert(step) ? record.verified.delivery : undefined}
-            tone="verified"
-            trusted
-            codeRef={register("code-delivery")}
-          />
-          <EvidenceCard
-            cert={s.redeliveryCert(step) ? record.verified.redelivery : undefined}
-            tone="failed"
-            trusted
-            codeRef={register("code-redelivery")}
-          />
+          <div className="min-w-0 flex-1">
+            <EvidenceCard
+              cert={s.deliveryCert(step) ? record.verified.delivery : undefined}
+              tone="verified"
+              trusted
+              codeRef={register("code-delivery")}
+            />
+          </div>
+          {/* Always mounted, so its code has a position for the held copies to
+              fly out of — but with no width until the capture is taken. It
+              opens over the same duration the panel widens. */}
+          <div
+            className="min-w-0 overflow-hidden"
+            style={{
+              flex: s.redeliveryCert(step) ? "1 1 0%" : "0 0 0%",
+              opacity: s.redeliveryCert(step) ? 1 : 0,
+              transition:
+                "flex var(--duration-cross) var(--ease-out-quart), opacity var(--duration-slow) linear",
+            }}
+          >
+            <EvidenceCard
+              cert={record.verified.redelivery}
+              tone="failed"
+              trusted
+              codeRef={register("code-redelivery")}
+            />
+          </div>
         </RecordPanel>
+
+        {/* ── The title card ──
+            One thing at a time, a beat and a half apart: the mark, then what
+            it is for, then what this particular run is. Centred and alone —
+            the vessel is held back until it is over, so there is nothing to
+            read but this. */}
+        <TitleCard
+          on={s.intro(step)}
+          line={trustEngineCopy.intro}
+          lineOn={s.introLine(step)}
+          study={scene.study}
+          studyOn={s.introStudy(step)}
+        />
 
         {/* ── The narration ──
             Down here on the floor, below the vessel, where the stage is empty
@@ -599,7 +662,13 @@ export function TrustEngine({
             min-h with justify-end pins the BOTTOM: the block grows upward as
             lines wrap, so a two-line title does not shove the one-line title's
             baseline around between steps. */}
-        <div className="absolute inset-x-0 bottom-0 z-40 flex min-h-[7.5rem] flex-col justify-end gap-1 px-6 pb-2">
+        <div
+          className="absolute inset-x-0 bottom-0 z-40 flex min-h-[7.5rem] flex-col justify-end gap-1 px-6 pb-2 transition-opacity"
+          style={{
+            opacity: s.intro(step) ? 0 : 1,
+            transitionDuration: "var(--duration-normal)",
+          }}
+        >
           <p className="font-mono text-mono-sm uppercase text-ink-muted">
             {act === 1 ? acts.one.marker : act === 2 ? acts.two.marker : acts.turn.marker}
             {act !== 0 && (
@@ -657,10 +726,14 @@ function ChapterBar({
 }) {
   /* Thirty-three seconds is a long time to ask for. Chapters let a viewer go
      straight to the comparison, which is the part that actually argues. */
+  /* By id, like every other reference to a beat. This was `at: 11` and adding
+     the title card silently re-pointed it into the middle of Act One — the
+     exact failure the gates were moved off indices to avoid, left behind here
+     because a chapter button looks like configuration rather than code. */
   const chapters = [
-    { label: acts.one.marker, at: 0 },
-    { label: acts.turn.marker, at: TURN },
-    { label: acts.two.marker, at: 11 },
+    { label: acts.one.marker, at: at("intro-logo") },
+    { label: acts.turn.marker, at: at("turn") },
+    { label: acts.two.marker, at: at("a2-asset") },
   ];
   if (reduced) return null;
 
@@ -884,6 +957,61 @@ function OutcomeMark({ tone }: { tone: "verified" | "failed" }) {
   );
 }
 
+/** The opening title card.
+ *
+ *  Each line is held back by its own gate rather than a CSS delay, so the
+ *  timing lives in the step machine with everything else — and jumping to a
+ *  chapter lands on a coherent frame instead of halfway through an animation
+ *  that was counting from mount. */
+function TitleCard({
+  on,
+  line,
+  lineOn,
+  study,
+  studyOn,
+}: {
+  on: boolean;
+  line: string;
+  lineOn: boolean;
+  study: string;
+  studyOn: boolean;
+}) {
+  const rise = (shown: boolean) => ({
+    opacity: shown ? 1 : 0,
+    transform: shown ? "none" : "translateY(10px)",
+    transition:
+      "opacity var(--duration-slow) linear, transform var(--duration-slow) var(--ease-out-quart)",
+  });
+
+  return (
+    <div
+      aria-hidden={!on}
+      className={cn(
+        "pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center gap-5 px-6 text-center transition-opacity",
+        !on && "opacity-0",
+      )}
+      /* Out over the same span the vessel comes in over, so the two are one
+         dissolve rather than a fade-out followed by a fade-in. */
+      style={{ transitionDuration: "var(--duration-cross)" }}
+    >
+      {/* The mark itself, not the wordmark-in-a-panel version: on the stage
+          rather than on a callout, so it takes the stage's ink. */}
+      {/* Both axes together: maskSize:contain keeps the mark's ratio inside
+          the box, so changing one alone just leaves dead space. */}
+      <PanelLogo className="h-[104px] w-[364px]" color="var(--ink)" />
+      <p className="text-heading text-ink md:text-display" style={rise(lineOn)}>
+        {line}
+      </p>
+      <p
+        className="font-mono text-mono uppercase tracking-wide text-ink-secondary"
+        style={rise(studyOn)}
+      >
+        {study}
+      </p>
+    </div>
+  );
+}
+
 /** A live channel between the record and a party holding a copy of it.
  *
  *  Deliberately unlike a leader. Leaders are white hairlines that point at
@@ -1044,6 +1172,7 @@ function RecordPanel({
   spec,
   on,
   width,
+  style,
   boxRef,
   title,
   trusted,
@@ -1052,13 +1181,21 @@ function RecordPanel({
   spec: { panel: StagePoint; align: Align };
   on: boolean;
   width: string;
+  style?: React.CSSProperties;
   boxRef?: (el: HTMLElement | null) => void;
   title: string;
   trusted: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <AnnotationPanel spec={spec} on={on} width={width} boxRef={boxRef} className="z-20">
+    <AnnotationPanel
+      spec={spec}
+      on={on}
+      width={width}
+      style={style}
+      boxRef={boxRef}
+      className="z-20"
+    >
       <div className="p-2">
         <div className="flex items-center gap-2.5 px-0.5">
           {trusted ? (
@@ -1078,9 +1215,13 @@ function RecordPanel({
           </p>
         </div>
 
-        <div className="mt-2 grid gap-2 sm:auto-cols-fr sm:grid-flow-col">
-          {children}
-        </div>
+        {/* Flex, not grid.
+            A grid re-columns in a single frame, so the moment a second card
+            mounts the first one halves — while the panel around it is still a
+            second into a 1.2s width transition. The card snaps, the panel
+            glides, and the two disagree the whole way. Here the second child
+            grows from nothing over the same span, so nothing jumps. */}
+        <div className="mt-2 flex gap-2">{children}</div>
       </div>
     </AnnotationPanel>
   );

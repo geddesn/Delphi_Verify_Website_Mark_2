@@ -51,7 +51,22 @@
   --delphi-700:  oklch(36.7% 0.141 275); /* ← #2D3187, the brand mark */
   --delphi-800:  oklch(30.0% 0.118 275);
   --delphi-900:  oklch(24.0% 0.094 275);
+  /* Exists for one job: the raised surface in dark mode. The gap between 950
+     and 900 is 6.5 points of lightness, which is a large step to climb for a
+     card sitting one level above the page — and 900 was already spoken for by
+     the accent surface, so reusing it would have collapsed "raised" and
+     "accent" into the same colour. Chroma is pulled back harder than the
+     lightness is, because on a large filled panel it is the saturation that
+     reads as "blue", not the brightness. */
+  --delphi-925:  oklch(21.5% 0.080 275);
   --delphi-950:  oklch(17.5% 0.068 275);
+  /* The sunken section background in dark mode. In light mode "sunken" is
+     darker than the page, but the dark mapping had it at 950 — LIGHTER than
+     the 1000 canvas — so the relationship was inverted and, once the raised
+     surface came down to 925, a sunken band sat only 4 points of lightness
+     below the cards standing on it. This sits between the canvas and the
+     plain surface so the band is still legible as a band. */
+  --delphi-975:  oklch(14.5% 0.058 275);
   --delphi-1000: oklch(12.0% 0.048 275);
 
   /* ── Neutrals ──────────────────────────────────────────────────────────
@@ -111,6 +126,12 @@
   --surface:         var(--neutral-0);
   --surface-sunken:  var(--neutral-50);
   --surface-raised:  var(--neutral-0);
+  /* Jump-tile surface. Its own role rather than --surface-raised, because
+     the tiles are the one place a photograph DISSOLVES INTO the background:
+     the colour is the end of a fade, not just a card fill, and it wants to
+     be darker than a card in a way that would be wrong for the cards
+     themselves. In light mode there is no tension — both are plain white. */
+  --tile-surface:    var(--surface-raised);
   --surface-inverse: var(--delphi-950);
   --surface-accent:  var(--delphi-50);
 
@@ -253,15 +274,21 @@
      as a photograph.
 
      Note what this means for the labels, because it is a deliberate choice
-     and not an oversight: the ramp above does NOT clear them. On a 214px tile
-     with a 187px thumbnail, the label text begins between 92px and 113px from
-     the left edge — "Construction" earliest, because the labels are centred
-     and it is the longest word — which puts every label over roughly 0.38 to
-     0.51 alpha. Legibility here rests on the type, not on the mask: the
-     labels are semibold ink and the photographs are pale interiors.
+     and not an oversight: the ramp above does NOT clear them. The labels are
+     centred across the tile, so on a 214px tile with a 187px thumbnail the
+     text begins between about 62px and 83px from the left edge, putting every
+     label over roughly 0.56 to 0.74 alpha — "Construction" worst, because it
+     is the longest word and so starts furthest left.
 
-     So if a darker or busier photograph is ever added to the set, this is
-     where it will show up first, and "Construction" is the tile to look at.
+     That is the highest this has been. Holding the labels in the right
+     two-thirds put them at 0.38-0.51, but the text read as pushed aside by
+     the picture, so the centred version was chosen and the fade left alone.
+     Legibility rests entirely on the type now: semibold ink over pale
+     interiors. Add a darker or busier photograph and this is where it shows
+     up first — check the Construction tile.
+
+     (Positions computed from measured glyph widths at the 5-column desktop
+     layout, not re-measured in a browser.)
      Single value for both themes, as --backdrop-opacity is. */
   --tile-thumb-opacity: 1;
 
@@ -310,8 +337,16 @@
   :root:not([data-theme="light"]) {
     --canvas:          var(--delphi-1000);
     --surface:         var(--delphi-950);
-    --surface-sunken:  var(--delphi-950);
-    --surface-raised:  var(--delphi-800);
+    --surface-sunken:  var(--delphi-975);
+    /* 925, not 800. delphi-800 is 30% lightness at 0.118 chroma against a 12%
+       canvas — as a large fill (cards, jump tiles, callout panels) that read
+       as a light blue panel rather than as the page one step nearer. */
+    --surface-raised:  var(--delphi-925);
+    /* Not 925. A photograph landing on a card-coloured fill kept a blue cast
+       at the end of the fade; taking the tiles down to the canvas value gives
+       the picture deep navy to dissolve into instead. 9.5 points of lightness
+       below the cards, which is why this has to be a separate role. */
+    --tile-surface:    var(--delphi-1000);
     --surface-inverse: var(--neutral-0);
     --surface-accent:  var(--delphi-900);
 
@@ -354,8 +389,14 @@
 [data-theme="dark"] {
   --canvas:          var(--delphi-1000);
   --surface:         var(--delphi-950);
-  --surface-sunken:  var(--delphi-950);
-  --surface-raised:  var(--delphi-800);
+  --surface-sunken:  var(--delphi-975);
+  /* See the note in the media-query block above. */
+  --surface-raised:  var(--delphi-925);
+  /* Not 925. A photograph landing on a card-coloured fill kept a blue cast
+     at the end of the fade; taking the tiles down to the canvas value gives
+     the picture deep navy to dissolve into instead. 9.5 points of lightness
+     below the cards, which is why this has to be a separate role. */
+  --tile-surface:    var(--delphi-1000);
   --surface-inverse: var(--neutral-0);
   --surface-accent:  var(--delphi-900);
 
@@ -401,6 +442,7 @@
   --color-surface:         var(--surface);
   --color-surface-sunken:  var(--surface-sunken);
   --color-surface-raised:  var(--surface-raised);
+  --color-tile-surface:    var(--tile-surface);
   --color-surface-inverse: var(--surface-inverse);
   --color-surface-accent:  var(--surface-accent);
 

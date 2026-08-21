@@ -111,12 +111,9 @@ export default function Industries() {
                         className="tile-thumb"
                       />
                     )}
-                    {/* Right two-thirds, so the left third belongs to the
-                        picture. `relative` so it paints above the thumbnail
-                        rather than being covered by it. */}
-                    <span className="relative col-span-2 col-start-2">
-                      {s.label}
-                    </span>
+                    {/* `relative` so it paints above the thumbnail rather
+                        than being covered by it. */}
+                    <span className="relative">{s.label}</span>
                   </a>
                 </li>
               ))}
@@ -124,10 +121,7 @@ export default function Industries() {
                   cell reads as a bug. */}
               <li>
                 <Link to="/contact" className={cn(shortcutTile, "text-ink-accent")}>
-                  {/* Full width, not the right two-thirds: there is no picture
-                      to make room for here, and a label held off-centre with
-                      nothing beside it reads as a mistake. */}
-                  <span className="col-span-3">Yours? →</span>
+                  Yours? →
                 </Link>
               </li>
             </ul>
@@ -299,20 +293,18 @@ function tileThumbBase(id: string): string | null {
 /* Shared so the sector tiles and the contact tile cannot drift apart.
    Reads as a button rather than a table cell.
 
-   Thirds rather than a centred flex row. The thumbnail is absolutely
-   positioned and so takes no part in the grid, but the grid is what decides
-   where the LABEL starts — and the label is the only thing the picture has to
-   stay clear of. Centring the text across the whole tile put the longest word
-   barely 55px from the left edge, which left the fade nowhere to go and made
-   the picture look chopped off rather than dissolved. Centred in the right
-   two-thirds instead, the same word starts around 98px out, which is close to
-   double the runway. */
+   The label is centred across the whole tile. An earlier version held it in
+   the right two-thirds to keep it clear of the thumbnail, which worked but
+   read as text pushed aside by the picture. Centred is the right look, and
+   the cost is that the label now sits over a live part of the fade rather
+   than past the end of it — see the note beside --tile-thumb-opacity in
+   theme.css for the measurements. */
 const shortcutTile = cn(
   /* `relative overflow-hidden` so the sector thumbnail can be absolutely
      positioned inside and is clipped by the rounded corners. */
   "relative overflow-hidden",
-  "grid h-full grid-cols-3 items-center rounded-md border border-line",
-  "bg-surface-raised px-4 py-4 text-center shadow-raised",
+  "flex h-full items-center justify-center rounded-md border border-line",
+  "bg-tile-surface px-4 py-4 text-center shadow-raised",
   "text-body-sm font-semibold text-ink",
   "transition-colors hover:border-line-strong hover:text-ink-accent",
 );

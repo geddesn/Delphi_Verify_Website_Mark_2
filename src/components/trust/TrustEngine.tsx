@@ -1,73 +1,78 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { trustStages, trustEngineCopy } from "@/content/trust-scenes";
-import type { TrustScene } from "@/content/trust-scenes";
+import { acts, trustEngineCopy } from "@/content/trust-scenes";
+import type { TrustParty, TrustScene, StagePoint } from "@/content/trust-scenes";
 
 /* ============================================================================
-   TRUST ENGINE
+   TRUST ENGINE — two acts
    ============================================================================
-   The animated centrepiece: two counterparties, an exchange, a dispute, and
-   Delphi arriving from underneath to change the relationship.
+   Asset in the middle. Counterparties arrive around it on spokes. The same
+   charter runs twice: once without a record, once with one.
 
-   ── WHY IT IS BUILT THIS WAY ──────────────────────────────────────────────
+   ── THE RULE THAT MAKES IT WORK ───────────────────────────────────────────
+   The incident is rendered from ONE definition and appears at the identical
+   anchor in both acts. Nothing about the accident changes between them. If it
+   did, the story would read as "Delphi prevents damage" — a claim we cannot
+   make. The sameness is the argument, so it is enforced structurally here
+   rather than left to whoever edits the content.
 
-   DOM and SVG with real text, not canvas. The labels stay indexable,
-   translatable for the other locales, readable by a screen reader and able to
-   reflow on a phone. A canvas or a Lottie export would look identical on a
-   laptop and lose all four.
+   ── STEP MACHINE ──────────────────────────────────────────────────────────
+   One flat list. Every visual is a pure function of the step index, so there
+   are no overlapping timers and scrubbing anywhere is trivial. REST is both
+   the last step and the initial state, which is what makes the prerendered
+   HTML meaningful.
 
-   Effects are CSS. Glow is layered drop-shadow, depth is `perspective` plus
-   translateZ, beams are stroke-dashoffset. All compositor-level. Animated SVG
-   filters were deliberately avoided: feGaussianBlur re-rasterises every frame
-   and is the reliable way to make this stutter on a mid-range Android.
-
-   ── THE STEP MACHINE ──────────────────────────────────────────────────────
-
-   One flat list of steps rather than nested beats, because every visual is
-   then a pure function of the step index — no overlapping timers, and
-   scrubbing to any point is trivial. REST is the last step AND the initial
-   state, which is what makes the prerendered HTML meaningful.
-
-   ── STATES THAT ARE NOT AFTERTHOUGHTS ────────────────────────────────────
-
-   Prerender / no JS : renders REST — the resolved diagram, complete.
-   Reduced motion    : stays on REST, never animates, says so.
-   Not yet scrolled  : stays on REST until it is actually on screen.
+   ── VISUAL LANGUAGE ───────────────────────────────────────────────────────
+   Leaders, halos and dots reuse the callout treatment from Callout.tsx —
+   already proven legible over arbitrary photography, and it buys continuity
+   with the industry page for free.
    ========================================================================= */
 
-/* Durations in ms. Index into this list IS the animation state. */
 const STEPS = [
-  { id: "settle", ms: 1100 }, //  0 both parties present
-  { id: "pass-1-out", ms: 850 }, //  1 A → B
-  { id: "pass-1-back", ms: 850 }, //  2 B → A
-  { id: "pass-2-out", ms: 850 }, //  3 A → B again, unremarkable
-  { id: "dispute", ms: 2600 }, //  4 stalls mid-lane and fails
-  { id: "arrive", ms: 1900 }, //  5 Delphi rises, beams draw
-  { id: "stage-1", ms: 620 }, //  6 Capture
-  { id: "stage-2", ms: 620 }, //  7 Corroborate
-  { id: "stage-3", ms: 620 }, //  8 Seal
-  { id: "stage-4", ms: 620 }, //  9 Verify
-  { id: "clear", ms: 1000 }, // 10 token clears and completes
-  { id: "rest", ms: 0 }, // 11 outcomes, hold
+  /* ── ACT ONE — without a record ── */
+  { id: "a1-asset", ms: 1600 }, //  0
+  { id: "a1-owner", ms: 1400 }, //  1
+  { id: "a1-charterer", ms: 1400 }, //  2
+  { id: "a1-captain", ms: 1400 }, //  3
+  { id: "a1-delivery", ms: 1200 }, //  4  handover, unrecorded
+  { id: "a1-charter", ms: 1400 }, //  5
+  { id: "a1-incident", ms: 1800 }, //  6
+  { id: "a1-redelivery", ms: 1300 }, //  7
+  { id: "a1-dispute", ms: 2800 }, //  8
+  { id: "a1-unresolved", ms: 2800 }, //  9  freeze, grey
+  /* ── THE TURN ── */
+  { id: "turn", ms: 1400 }, // 10
+  /* ── ACT TWO — with a record ── */
+  { id: "a2-asset", ms: 1100 }, // 11
+  { id: "a2-owner", ms: 1000 }, // 12
+  { id: "a2-capture", ms: 2400 }, // 13 ⭐ the one difference
+  { id: "a2-charterer", ms: 1200 }, // 14 arrives AFTER the record
+  { id: "a2-captain", ms: 1200 }, // 15
+  { id: "a2-charter", ms: 1200 }, // 16
+  { id: "a2-incident", ms: 1800 }, // 17 identical to step 6
+  { id: "a2-recapture", ms: 2000 }, // 18
+  { id: "a2-compare", ms: 2600 }, // 19
+  { id: "a2-resolved", ms: 0 }, // 20 REST
 ] as const;
 
 const REST = STEPS.length - 1;
+const TURN = 10;
 
-/* Where the travelling token sits, as a percentage of the lane. */
-function tokenPercent(step: number): number {
-  if (step <= 0) return 0;
-  if (step === 1) return 100;
-  if (step === 2) return 0;
-  if (step >= 3 && step <= 9) return 55; // stalls, and stays stalled
-  return 100; // cleared and delivered
-}
-
-type TokenState = "neutral" | "failed" | "verified";
-function tokenState(step: number): TokenState {
-  if (step >= 4 && step <= 9) return "failed";
-  if (step >= 10) return "verified";
-  return "neutral";
-}
+/* ── Derived state — every visual is one of these ──────────────────────── */
+const s = {
+  act: (n: number) => (n < TURN ? 1 : n === TURN ? 0 : 2),
+  owner: (n: number) => (n >= 1 && n < TURN) || n >= 12,
+  charterer: (n: number) => (n >= 2 && n < TURN) || n >= 14,
+  captain: (n: number) => (n >= 3 && n < TURN) || n >= 15,
+  delphi: (n: number) => n >= 13,
+  incident: (n: number) => (n >= 6 && n < TURN) || n >= 17,
+  dispute: (n: number) => n >= 8 && n <= 9,
+  frozen: (n: number) => n === 9,
+  deliveryCert: (n: number) => n >= 13,
+  redeliveryCert: (n: number) => n >= 18,
+  compare: (n: number) => n >= 19,
+  resolved: (n: number) => n >= REST,
+};
 
 export function TrustEngine({
   scene,
@@ -76,11 +81,11 @@ export function TrustEngine({
   scene: TrustScene;
   className?: string;
 }) {
-  /* REST on both server and first client render, so hydration matches and the
-     prerendered markup is the finished diagram rather than an empty stage. */
+  /* REST on server and first client render, so hydration matches and the
+     prerendered markup is the resolved comparison rather than an empty stage. */
   const [step, setStep] = useState<number>(REST);
   const [reduced, setReduced] = useState(false);
-  const [hasPlayed, setHasPlayed] = useState(false);
+  const [played, setPlayed] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
 
@@ -89,21 +94,26 @@ export function TrustEngine({
     timer.current = undefined;
   }, []);
 
-  const play = useCallback(() => {
-    stop();
-    setStep(0);
-    const advance = (i: number) => {
-      if (i >= REST) {
-        setStep(REST);
-        return;
-      }
-      timer.current = window.setTimeout(() => {
-        setStep(i + 1);
-        advance(i + 1);
-      }, STEPS[i].ms);
-    };
-    advance(0);
-  }, [stop]);
+  /* Plays from any step, not just the start — so a chapter button resumes the
+     story from there rather than freezing on its first frame, which is what an
+     earlier version did and made the chapters useless. */
+  const playFrom = useCallback(
+    (from: number) => {
+      stop();
+      setStep(from);
+      const advance = (i: number) => {
+        if (i >= REST) return;
+        timer.current = window.setTimeout(() => {
+          setStep(i + 1);
+          advance(i + 1);
+        }, STEPS[i].ms);
+      };
+      advance(from);
+    },
+    [stop],
+  );
+
+  const play = useCallback(() => playFrom(0), [playFrom]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -113,137 +123,175 @@ export function TrustEngine({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  /* Play once, when it is actually on screen. A centrepiece that has already
-     finished by the time you scroll to it is not a centrepiece. */
   useEffect(() => {
-    if (reduced || hasPlayed) return;
+    if (reduced || played) return;
     const el = stageRef.current;
     if (!el) return;
-
     const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setHasPlayed(true);
+      (es) => {
+        if (es.some((e) => e.isIntersecting)) {
+          setPlayed(true);
           play();
           io.disconnect();
         }
       },
-      { threshold: 0.4 },
+      { threshold: 0.35 },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [reduced, hasPlayed, play]);
+  }, [reduced, played, play]);
 
   useEffect(() => stop, [stop]);
 
-  const showDelphi = step >= 5;
-  const showBeams = step >= 5;
-  const stagesLit = Math.max(0, Math.min(4, step - 5));
-  const showDispute = step >= 4 && step <= 9;
-  const showOutcomes = step >= REST;
-  const tPct = tokenPercent(step);
-  const tState = tokenState(step);
+  const act = s.act(step);
+  const { owner, counterparty, operator } = scene.parties;
 
   return (
-    <div className={cn("flex flex-col gap-8", className)}>
-      {/* ── Stage ────────────────────────────────────────────────────────
-          `perspective` here is what makes translateZ on the nodes read as
-          depth rather than as scale. Cheap, GPU, and works on a phone —
-          which real 3D would not. */}
+    <div className={cn("flex flex-col gap-6", className)}>
+      <ChapterBar step={step} onJump={playFrom} reduced={reduced} />
+
       <div
         ref={stageRef}
-        className="relative isolate overflow-hidden rounded-lg border border-line-strong"
+        className="relative isolate aspect-[16/10] w-full overflow-hidden rounded-lg border border-line-strong transition-[filter] md:aspect-[16/9]"
         style={{
-          perspective: "1400px",
           background:
-            "radial-gradient(120% 90% at 50% 110%, var(--fx-accent-halo), transparent 60%)",
+            "radial-gradient(120% 100% at 50% 115%, var(--fx-accent-halo), transparent 62%)",
+          /* Act One ends drained of colour. The freeze is the point. */
+          filter: s.frozen(step) ? "grayscale(0.85)" : "none",
+          transitionDuration: "var(--duration-slow)",
         }}
       >
         <StageGrid />
 
-        <div className="relative grid gap-6 p-6 md:p-10 lg:grid-cols-[1fr_auto_1fr] lg:items-start lg:gap-8">
-          <PartyCard
-            party={scene.a}
-            asset={scene.asset}
-            assetAlt={scene.assetAlt}
-            depth={step >= 5 ? 0 : 18}
+        {/* ── The asset, centre ── */}
+        <div
+          className="absolute left-1/2 top-1/2 w-[46%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-line-strong transition-opacity"
+          style={{
+            opacity: step === TURN ? 0.35 : 1,
+            transitionDuration: "var(--duration-slow)",
+          }}
+        >
+          <img
+            src={`/assets/features/${scene.asset}-960.webp`}
+            srcSet={`/assets/features/${scene.asset}-480.webp 480w, /assets/features/${scene.asset}-960.webp 960w`}
+            sizes="(min-width: 1024px) 520px, 60vw"
+            alt={scene.assetAlt}
+            width={2720}
+            height={1530}
+            loading="lazy"
+            decoding="async"
+            className="block h-auto w-full"
           />
-
-          {/* Lane: the exchange, and where it fails. */}
-          <Lane
-            label={scene.exchange}
-            percent={tPct}
-            state={tState}
-            shaking={step === 4}
-          />
-
-          <PartyCard party={scene.b} depth={step >= 5 ? 0 : 18} />
         </div>
 
-        {/* Dispute — the loudest thing on the stage while it is up. */}
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 justify-center px-6 transition-opacity",
-            showDispute ? "opacity-100" : "opacity-0",
-          )}
-          style={{ transitionDuration: "var(--duration-normal)" }}
-          aria-hidden
-        >
-          <div className="max-w-md text-center">
-            <p
-              className="text-display text-ink"
-              style={{ filter: "drop-shadow(0 0 22px var(--fx-failed-glow))" }}
-            >
-              “{scene.dispute}”
-            </p>
-            <p className="mt-2 font-mono text-mono-sm uppercase text-failed">
-              {scene.stall}
+        {/* ── Leaders ── */}
+        <Leaders
+          links={[
+            { from: owner.panel, to: owner.anchor, on: s.owner(step), align: owner.align },
+            { from: counterparty.panel, to: counterparty.anchor, on: s.charterer(step), align: counterparty.align },
+            { from: operator.panel, to: operator.anchor, on: s.captain(step), align: operator.align },
+            { from: scene.delphi.panel, to: scene.delphi.anchor, on: s.delphi(step), align: "bottom-left", accent: true },
+          ]}
+          disputing={s.dispute(step)}
+          resolved={s.compare(step)}
+        />
+
+        {/* ── Counterparties ── */}
+        <PartyPanel party={owner} on={s.owner(step)} />
+        <PartyPanel party={counterparty} on={s.charterer(step)} />
+        <PartyPanel party={operator} on={s.captain(step)} />
+
+        {/* ── The incident — one definition, both acts ── */}
+        <IncidentMark
+          at={scene.incident.anchor}
+          label={scene.incident.label}
+          on={s.incident(step)}
+          resolved={s.compare(step)}
+        />
+
+        {/* ── Delphi, from below (Act Two only) ── */}
+        <DelphiPanel
+          at={scene.delphi.panel}
+          label={scene.delphi.label}
+          on={s.delphi(step)}
+          delivery={s.deliveryCert(step) ? scene.captures.delivery : undefined}
+          redelivery={s.redeliveryCert(step) ? scene.captures.redelivery : undefined}
+        />
+
+        {/* ── Act One: the dispute ── */}
+        <Overlay on={s.dispute(step)}>
+          <div className="flex flex-col items-center gap-4 text-center">
+            {scene.claims.map((c) => (
+              <p
+                key={c.text}
+                className="text-heading text-ink"
+                style={{ filter: "drop-shadow(0 0 20px var(--fx-failed-glow))" }}
+              >
+                “{c.text}”
+              </p>
+            ))}
+          </div>
+        </Overlay>
+
+        {/* ── Act One: unresolved ── */}
+        <Overlay on={s.frozen(step)}>
+          <div className="text-center">
+            <p className="text-display text-ink">{scene.unresolved.headline}</p>
+            <p className="mt-3 font-mono text-mono-sm uppercase text-failed">
+              {scene.unresolved.cost}
             </p>
           </div>
-        </div>
+        </Overlay>
 
-        {/* Beams from Delphi out to each party. */}
-        <Beams drawn={showBeams} />
+        {/* ── The turn ── */}
+        <Overlay on={step === TURN}>
+          <p className="text-display text-ink">{acts.turn.line}</p>
+        </Overlay>
 
-        {/* Delphi, rising from below. */}
-        <DelphiPanel
-          label={scene.delphi}
-          visible={showDelphi}
-          stagesLit={stagesLit}
-        />
+        {/* ── Act Two: resolved ── */}
+        <Overlay on={s.resolved(step)}>
+          <p
+            className="max-w-2xl text-center text-display text-ink"
+            style={{ filter: "drop-shadow(0 0 26px var(--fx-verified-glow))" }}
+          >
+            {scene.resolved.headline}
+          </p>
+        </Overlay>
+
+        {/* Act marker, always present, bottom-left */}
+        <p className="absolute bottom-3 left-4 font-mono text-mono-sm uppercase text-ink-muted">
+          {act === 1 ? acts.one.marker : act === 2 ? acts.two.marker : acts.turn.marker}
+          {act !== 0 && (
+            <span className="ml-2 text-ink-secondary">
+              {act === 1 ? acts.one.title : acts.two.title}
+            </span>
+          )}
+        </p>
       </div>
 
-      {/* ── Outcomes ───────────────────────────────────────────────────── */}
+      {/* ── Outcomes ── */}
       <ul className="grid gap-3 sm:grid-cols-3">
-        {scene.outcomes.map((o, i) => (
+        {scene.resolved.outcomes.map((o, i) => (
           <li
             key={o}
             className={cn(
-              "rounded-md border border-line bg-surface-raised p-4 text-body-sm text-ink-secondary shadow-card transition-all",
-              showOutcomes
-                ? "translate-y-0 opacity-100"
-                : "translate-y-2 opacity-0",
+              "rounded-md border border-line bg-surface p-4 text-body-sm text-ink-secondary transition-all",
+              s.resolved(step) ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
             )}
             style={{
               transitionDuration: "var(--duration-normal)",
-              transitionDelay: showOutcomes ? `${i * 110}ms` : "0ms",
+              transitionDelay: s.resolved(step) ? `${i * 110}ms` : "0ms",
             }}
           >
-            <span
-              aria-hidden
-              className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-verified align-middle"
-            />
+            <span aria-hidden className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-verified align-middle" />
             {o}
           </li>
         ))}
       </ul>
 
-      {/* ── Controls / status ──────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-4">
         {reduced ? (
-          <p className="text-body-sm text-ink-muted">
-            {trustEngineCopy.staticNote}
-          </p>
+          <p className="text-body-sm text-ink-muted">{trustEngineCopy.staticNote}</p>
         ) : (
           <button
             type="button"
@@ -255,9 +303,7 @@ export function TrustEngine({
             {trustEngineCopy.replay}
           </button>
         )}
-        <p className="font-mono text-mono-sm uppercase text-ink-muted">
-          {scene.sector}
-        </p>
+        <p className="font-mono text-mono-sm uppercase text-ink-muted">{scene.sector}</p>
       </div>
     </div>
   );
@@ -265,17 +311,61 @@ export function TrustEngine({
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
 
-/** Faint measured grid, echoing the hero. Atmosphere, not information. */
+function ChapterBar({
+  step,
+  onJump,
+  reduced,
+}: {
+  step: number;
+  onJump: (n: number) => void;
+  reduced: boolean;
+}) {
+  /* Thirty-three seconds is a long time to ask for. Chapters let a viewer go
+     straight to the comparison, which is the part that actually argues. */
+  const chapters = [
+    { label: acts.one.marker, at: 0 },
+    { label: acts.turn.marker, at: TURN },
+    { label: acts.two.marker, at: 11 },
+  ];
+  if (reduced) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {chapters.map((c, i) => {
+        const next = chapters[i + 1]?.at ?? REST + 1;
+        const active = step >= c.at && step < next;
+        return (
+          <button
+            key={c.label}
+            type="button"
+            onClick={() => onJump(c.at)}
+            aria-current={active ? "step" : undefined}
+            className={cn(
+              "cursor-pointer rounded-sm border px-2.5 py-1 font-mono text-mono-sm uppercase transition-colors",
+              active
+                ? "border-accent text-ink"
+                : "border-line text-ink-muted hover:text-ink-secondary",
+            )}
+            style={{ transitionDuration: "var(--duration-fast)" }}
+          >
+            {c.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function StageGrid() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 opacity-[0.35]"
+      className="pointer-events-none absolute inset-0 opacity-[0.3]"
       style={{
         backgroundImage:
           "linear-gradient(to right, var(--fx-node-edge) 1px, transparent 1px)," +
           "linear-gradient(to bottom, var(--fx-node-edge) 1px, transparent 1px)",
-        backgroundSize: "56px 56px",
+        backgroundSize: "52px 52px",
         maskImage: "var(--mask-stage-fade)",
         WebkitMaskImage: "var(--mask-stage-fade)",
       }}
@@ -283,102 +373,32 @@ function StageGrid() {
   );
 }
 
-function PartyCard({
-  party,
-  asset,
-  assetAlt,
-  depth,
-}: {
-  party: TrustScene["a"];
-  asset?: string;
-  assetAlt?: string;
-  depth: number;
-}) {
-  return (
-    <div
-      className="relative rounded-md border border-line-strong bg-surface-raised p-5 transition-transform"
-      style={{
-        transform: `translateZ(${depth}px)`,
-        transitionDuration: "var(--duration-slow)",
-        transitionTimingFunction: "var(--ease-out-quart)",
-      }}
-    >
-      {asset && (
-        <div className="mb-4 aspect-video overflow-hidden rounded-sm border border-line">
-          <img
-            src={`/assets/industries/${asset}-560.webp`}
-            srcSet={`/assets/industries/${asset}-560.webp 560w, /assets/industries/${asset}-1120.webp 1120w`}
-            sizes="(min-width: 1024px) 340px, 90vw"
-            alt={assetAlt ?? ""}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        </div>
-      )}
-      <p className="font-mono text-mono-sm uppercase text-ink-muted">
-        {party.label}
-      </p>
-      <p className="mt-1 text-subheading text-ink">{party.roles}</p>
-      <p className="mt-2 text-body-sm text-ink-secondary">{party.holds}</p>
-    </div>
-  );
+/** Panel footprint as a share of the stage, used to work out where a leader
+ *  should leave from. Approximate on purpose — a few tenths is invisible. */
+const PW = 20;
+const PH = 15;
+
+function departure(panel: StagePoint, align: string): StagePoint {
+  const left = align.endsWith("left") ? panel.x : panel.x - PW;
+  const top = align.startsWith("top") ? panel.y : panel.y - PH;
+  return { x: left + PW / 2, y: top + PH / 2 };
 }
 
-function Lane({
-  label,
-  percent,
-  state,
-  shaking,
+function Leaders({
+  links,
+  disputing,
+  resolved,
 }: {
-  label: string;
-  percent: number;
-  state: TokenState;
-  shaking: boolean;
+  links: {
+    from: StagePoint;
+    to: StagePoint;
+    on: boolean;
+    align: string;
+    accent?: boolean;
+  }[];
+  disputing: boolean;
+  resolved: boolean;
 }) {
-  const glow =
-    state === "failed"
-      ? "var(--fx-failed-glow)"
-      : state === "verified"
-        ? "var(--fx-verified-glow)"
-        : "var(--fx-accent-glow)";
-  const fill =
-    state === "failed"
-      ? "bg-failed"
-      : state === "verified"
-        ? "bg-verified"
-        : "bg-accent";
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-3 py-6 lg:min-w-[16rem] lg:py-0 lg:pt-24">
-      <p className="font-mono text-mono-sm uppercase text-ink-muted">{label}</p>
-
-      {/* The lane itself. Horizontal on desktop; the parties stack on mobile
-          and this still reads as the path between them. */}
-      <div
-        className="relative h-px w-full"
-        style={{ backgroundColor: "var(--fx-lane)" }}
-      >
-        <span
-          className={cn(
-            "absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[left,background-color]",
-            fill,
-            shaking && "animate-fx-shake",
-          )}
-          style={{
-            left: `${percent}%`,
-            filter: `drop-shadow(0 0 10px ${glow})`,
-            transitionDuration: "var(--duration-slow)",
-            transitionTimingFunction: "var(--ease-in-out)",
-          }}
-          aria-hidden
-        />
-      </div>
-    </div>
-  );
-}
-
-function Beams({ drawn }: { drawn: boolean }) {
   return (
     <svg
       className="pointer-events-none absolute inset-0 z-10 h-full w-full"
@@ -386,51 +406,144 @@ function Beams({ drawn }: { drawn: boolean }) {
       preserveAspectRatio="none"
       aria-hidden
     >
-      {[
-        { d: "M 50 88 L 20 44" },
-        { d: "M 50 88 L 80 44" },
-      ].map((b, i) => (
-        <path
-          key={b.d}
-          d={b.d}
-          fill="none"
-          stroke="var(--fx-accent-glow)"
-          strokeWidth="1.25"
-          vectorEffect="non-scaling-stroke"
-          pathLength={1}
-          strokeDasharray={1}
-          style={{
-            strokeDashoffset: drawn ? 0 : 1,
-            transition: "stroke-dashoffset var(--duration-slow) var(--ease-out-quart)",
-            transitionDelay: drawn ? `${i * 140}ms` : "0ms",
-          }}
-        />
-      ))}
+      {links.map((l, i) => {
+        const d = departure(l.from, l.align);
+        const stroke = l.accent
+          ? "var(--fx-accent-glow)"
+          : disputing && !l.accent
+            ? "var(--fx-failed-glow)"
+            : resolved
+              ? "var(--fx-verified-glow)"
+              : "var(--callout-line)";
+        return (
+          <g key={i}>
+            {/* Dark halo first — a white hairline vanishes over pale sky. */}
+            <line
+              x1={d.x} y1={d.y} x2={l.to.x} y2={l.to.y}
+              stroke="var(--callout-halo)" strokeWidth="3.5" strokeLinecap="round"
+              vectorEffect="non-scaling-stroke" pathLength={1} strokeDasharray={1}
+              style={{
+                strokeDashoffset: l.on ? 0 : 1,
+                transition: "stroke-dashoffset var(--duration-slow) var(--ease-out-quart)",
+              }}
+            />
+            <line
+              x1={d.x} y1={d.y} x2={l.to.x} y2={l.to.y}
+              stroke={stroke} strokeWidth="1.25" strokeLinecap="round"
+              vectorEffect="non-scaling-stroke" pathLength={1} strokeDasharray={1}
+              style={{
+                strokeDashoffset: l.on ? 0 : 1,
+                transition:
+                  "stroke-dashoffset var(--duration-slow) var(--ease-out-quart), stroke var(--duration-normal)",
+              }}
+            />
+          </g>
+        );
+      })}
     </svg>
   );
 }
 
-function DelphiPanel({
+function PartyPanel({ party, on }: { party: TrustParty; on: boolean }) {
+  return (
+    <div
+      className={cn(
+        "absolute z-20 w-[20%] min-w-[170px] rounded-md border p-3 transition-all",
+        party.align.endsWith("right") && "-translate-x-full",
+        party.align.startsWith("bottom") && "-translate-y-full",
+        on ? "opacity-100" : "opacity-0",
+      )}
+      style={{
+        left: `${party.panel.x}%`,
+        top: `${party.panel.y}%`,
+        backgroundColor: "var(--callout-surface)",
+        borderColor: "var(--callout-border)",
+        transform: on ? undefined : "scale(0.96)",
+        transitionDuration: "var(--duration-slow)",
+        transitionTimingFunction: "var(--ease-out-quart)",
+      }}
+    >
+      <p className="font-mono text-mono-sm uppercase text-callout-ink-muted">
+        {party.label}
+      </p>
+      <p className="mt-0.5 text-body-sm font-semibold text-callout-ink">
+        {party.role}
+      </p>
+      <p className="mt-1 text-caption text-callout-ink-muted">{party.holds}</p>
+    </div>
+  );
+}
+
+function IncidentMark({
+  at,
   label,
-  visible,
-  stagesLit,
+  on,
+  resolved,
 }: {
+  at: StagePoint;
   label: string;
-  visible: boolean;
-  stagesLit: number;
+  on: boolean;
+  resolved: boolean;
 }) {
   return (
     <div
       className={cn(
-        "relative z-20 mx-auto mb-6 w-[min(92%,34rem)] rounded-md border p-5 transition-all md:mb-10",
-        visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+        "absolute z-30 -translate-x-1/2 -translate-y-1/2 transition-all",
+        on ? "opacity-100" : "opacity-0",
       )}
       style={{
-        borderColor: "var(--fx-node-edge)",
-        backgroundColor: "var(--callout-surface)",
-        boxShadow: visible ? "0 0 60px var(--fx-accent-halo)" : "none",
+        left: `${at.x}%`,
+        top: `${at.y}%`,
+        transform: on ? undefined : "translate(-50%,-50%) scale(0.6)",
         transitionDuration: "var(--duration-slow)",
         transitionTimingFunction: "var(--ease-out-quart)",
+      }}
+    >
+      <span
+        className={cn(
+          "block h-3 w-3 rounded-full ring-4 ring-callout-halo",
+          resolved ? "bg-verified" : "bg-failed",
+        )}
+        style={{
+          filter: `drop-shadow(0 0 14px ${resolved ? "var(--fx-verified-glow)" : "var(--fx-failed-glow)"})`,
+        }}
+      />
+      <span
+        className="absolute left-5 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-sm px-2 py-1 font-mono text-mono-sm text-callout-ink"
+        style={{ backgroundColor: "var(--callout-surface)" }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function DelphiPanel({
+  at,
+  label,
+  on,
+  delivery,
+  redelivery,
+}: {
+  at: StagePoint;
+  label: string;
+  on: boolean;
+  delivery?: { label: string; stamp: string; state: string };
+  redelivery?: { label: string; stamp: string; state: string };
+}) {
+  return (
+    <div
+      className={cn(
+        "absolute bottom-0 left-1/2 z-30 w-[min(88%,40rem)] -translate-x-1/2 rounded-t-md border border-b-0 p-4 transition-all",
+        on ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0",
+      )}
+      style={{
+        backgroundColor: "var(--callout-surface)",
+        borderColor: "var(--callout-border)",
+        boxShadow: on ? "0 -10px 60px var(--fx-accent-halo)" : "none",
+        transitionDuration: "var(--duration-slow)",
+        transitionTimingFunction: "var(--ease-out-quart)",
+        marginBottom: `${100 - at.y}%`,
       }}
     >
       <div className="flex items-center gap-3">
@@ -451,30 +564,63 @@ function DelphiPanel({
         <p className="text-body-sm text-callout-ink">{label}</p>
       </div>
 
-      <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {trustStages.map((s, i) => {
-          const lit = i < stagesLit;
-          return (
-            <li
-              key={s.n}
-              className="rounded-sm border px-2.5 py-2 transition-all"
-              style={{
-                borderColor: lit ? "var(--fx-accent-glow)" : "var(--fx-node-edge)",
-                boxShadow: lit ? "0 0 18px var(--fx-accent-halo)" : "none",
-                opacity: lit ? 1 : 0.4,
-                transitionDuration: "var(--duration-normal)",
-              }}
-            >
-              <span className="block font-mono text-mono-sm text-callout-ink-muted">
-                {s.n}
-              </span>
-              <span className="block text-caption text-callout-ink">
-                {s.title}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <Certificate cert={delivery} tone="verified" />
+        <Certificate cert={redelivery} tone="failed" />
+      </div>
+    </div>
+  );
+}
+
+function Certificate({
+  cert,
+  tone,
+}: {
+  cert?: { label: string; stamp: string; state: string };
+  tone: "verified" | "failed";
+}) {
+  return (
+    <div
+      className="rounded-sm border p-2.5 transition-opacity"
+      style={{
+        borderColor: cert ? "var(--fx-accent-glow)" : "var(--callout-border)",
+        opacity: cert ? 1 : 0.25,
+        transitionDuration: "var(--duration-normal)",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className={cn(
+            "h-1.5 w-1.5 rounded-full",
+            tone === "verified" ? "bg-verified" : "bg-failed",
+          )}
+          aria-hidden
+        />
+        <span className="font-mono text-mono-sm text-callout-ink">
+          {cert?.label ?? "—"}
+        </span>
+      </div>
+      <p className="mt-1 font-mono text-mono-sm text-callout-ink-muted">
+        {cert?.stamp ?? " "}
+      </p>
+      <p className="font-mono text-mono-sm text-callout-ink-muted">
+        {cert?.state ?? " "}
+      </p>
+    </div>
+  );
+}
+
+function Overlay({ on, children }: { on: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 top-[42%] z-40 flex -translate-y-1/2 justify-center px-6 transition-opacity",
+        on ? "opacity-100" : "opacity-0",
+      )}
+      style={{ transitionDuration: "var(--duration-normal)" }}
+      aria-hidden
+    >
+      {children}
     </div>
   );
 }

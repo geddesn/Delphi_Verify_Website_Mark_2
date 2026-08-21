@@ -12,15 +12,40 @@ function RouteChangeHandler() {
   const { pathname, hash } = useLocation();
 
   useEffect(() => {
-    if (hash) {
+    if (!hash) {
+      window.scrollTo(0, 0);
+      document.getElementById("main")?.focus({ preventScroll: true });
+      return;
+    }
+
+    /* The anchor is usually NOT in the document yet. Every route is lazily
+       imported (see routes.ts), so a link from one page to an anchor on
+       another changes the location while the target page is still a Suspense
+       fallback — one querySelector here finds nothing and the reader lands at
+       the top of a page they asked to be dropped into the middle of. The
+       homepage's industry tiles are all of this shape.
+
+       So: look on each frame until it appears, and give up after a beat
+       rather than leaving an observer running. Same-page fragments resolve on
+       the first attempt and never reach the second frame. */
+    let frame = 0;
+    let raf = 0;
+    const LIMIT = 60; // frames — about a second
+
+    const settle = () => {
       const target = document.querySelector(hash);
       if (target) {
         target.scrollIntoView({ block: "start" });
         return;
       }
-    }
-    window.scrollTo(0, 0);
-    document.getElementById("main")?.focus({ preventScroll: true });
+      if (frame++ < LIMIT) {
+        raf = requestAnimationFrame(settle);
+        return;
+      }
+      window.scrollTo(0, 0);
+    };
+    settle();
+    return () => cancelAnimationFrame(raf);
   }, [pathname, hash]);
 
   return null;

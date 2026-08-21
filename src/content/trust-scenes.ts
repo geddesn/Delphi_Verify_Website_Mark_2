@@ -355,10 +355,29 @@ export const trustEngineCopy = {
   /* The title card. Brand-level, so it does not change with the sector — the
      whole argument of the piece is that the platform does not either. */
   intro: "Enhancing Trust",
-  eyebrow: "How the value is created",
-  headline: "The same charter, run twice.",
+  /* Section copy. Generic on purpose now that this is the whole of the
+     homepage below the hero: the yacht is the worked example, not the subject,
+     and the title card inside the piece already says which sector it is. A
+     headline naming charters told a reader arriving cold that this page was
+     about boats.
+
+     The invariant survives the rewrite and has to: nothing about the incident
+     differs between the acts, only when the evidence was captured. That
+     sentence is the argument — see the warning at the head of this file. */
+  eyebrow: "A worked example",
+  headline: "Enhancing Trust — Creating Value",
+  /* ⚠️  "SITS BETWEEN THEM", NOT "STEPS IN".
+     Stepping in is remedial — it says the record arrives once there is
+     already an argument, which is the opposite of what the piece then shows:
+     Act Two captures the condition before the other party is anywhere near
+     the asset. The order is the entire point, so the copy above it must not
+     contradict it.
+
+     "Two honest accounts" rather than two claims, for the same reason the
+     piece colours both red: neither side is lying, and a buyer who recognises
+     themselves in this should not be told they are the dishonest one. */
   standfirst:
-    "One yacht, two counterparties and one accident — played through without a record, then again with one. Nothing about the accident changes. Only when the evidence was captured.",
+    "Two or more counterparties, one asset, and two honest accounts of the same thing. Delphi Verify sits between them as an impartial third party — a record neither side owns, and either can check. Disagreements are resolved, or avoided altogether. Value is protected rather than argued away.",
   replay: "Replay",
   staticNote:
     "Shown as a comparison rather than an animation, because your system asks for reduced motion.",

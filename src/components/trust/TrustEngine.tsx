@@ -415,8 +415,6 @@ export function TrustEngine({
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>
-      <ChapterBar step={step} onJump={playFrom} reduced={reduced} />
-
       {/* The FRAME holds the shape and the border; the STAGE inside it is a
           fixed canvas scaled to fit. Nothing below this line knows what size
           it is being drawn at — see DESIGN_W. */}
@@ -793,55 +791,6 @@ export function TrustEngine({
 }
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
-
-function ChapterBar({
-  step,
-  onJump,
-  reduced,
-}: {
-  step: number;
-  onJump: (n: number) => void;
-  reduced: boolean;
-}) {
-  /* Thirty-three seconds is a long time to ask for. Chapters let a viewer go
-     straight to the comparison, which is the part that actually argues. */
-  /* By id, like every other reference to a beat. This was `at: 11` and adding
-     the title card silently re-pointed it into the middle of Act One — the
-     exact failure the gates were moved off indices to avoid, left behind here
-     because a chapter button looks like configuration rather than code. */
-  const chapters = [
-    { label: acts.one.marker, at: at("intro-logo") },
-    { label: acts.turn.marker, at: at("turn") },
-    { label: acts.two.marker, at: at("a2-asset") },
-  ];
-  if (reduced) return null;
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {chapters.map((c, i) => {
-        const next = chapters[i + 1]?.at ?? REST + 1;
-        const active = step >= c.at && step < next;
-        return (
-          <button
-            key={c.label}
-            type="button"
-            onClick={() => onJump(c.at)}
-            aria-current={active ? "step" : undefined}
-            className={cn(
-              "cursor-pointer rounded-sm border px-2.5 py-1 font-mono text-mono-sm uppercase transition-colors",
-              active
-                ? "border-accent text-ink"
-                : "border-line text-ink-muted hover:text-ink-secondary",
-            )}
-            style={{ transitionDuration: "var(--duration-fast)" }}
-          >
-            {c.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 /** The ground the asset stands on.
  *

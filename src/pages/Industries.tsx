@@ -9,13 +9,13 @@ import { ButtonLink, ArrowRight } from "@/components/ui/Button";
 import { EvidenceChip } from "@/components/evidence/Evidence";
 import { IndustryShot } from "@/components/product/IndustryShot";
 import { ExpandableFigure } from "@/components/product/ExpandableFigure";
+import { IndustryTiles } from "@/components/industries/IndustryTiles";
 import { featureFigures } from "@/content/features";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
 import {
   industries,
   industriesPage,
   industryBackdrops,
-  industryShortcuts,
   outcomes,
   families,
   crossIndustry,
@@ -90,42 +90,7 @@ export default function Industries() {
           sectionPadding wins over a className one on CSS source order. */}
       <Section tone="sunken" padding="none" className="py-8 md:py-10">
         <Container>
-          <nav aria-label="Jump to an industry">
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {industryShortcuts.map((s) => (
-                <li key={s.id}>
-                  <a href={`#${s.id}`} className={shortcutTile}>
-                    {/* Decorative: the same picture the card below shows,
-                        dissolved away before it reaches the label. It makes
-                        the tile recognisable at a glance but carries no
-                        information the label does not, so it is hidden from
-                        assistive technology and has an empty alt. Geometry,
-                        opacity and mask all live in .tile-thumb in theme.css. */}
-                    {tileThumbBase(s.id) && (
-                      <img
-                        aria-hidden
-                        alt=""
-                        src={tileThumbBase(s.id) as string}
-                        loading="lazy"
-                        decoding="async"
-                        className="tile-thumb"
-                      />
-                    )}
-                    {/* `relative` so it paints above the thumbnail rather
-                        than being covered by it. */}
-                    <span className="relative">{s.label}</span>
-                  </a>
-                </li>
-              ))}
-              {/* Nine sectors in a ten-cell grid leaves a hole, and an empty
-                  cell reads as a bug. */}
-              <li>
-                <Link to="/contact" className={cn(shortcutTile, "text-ink-accent")}>
-                  Yours? →
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <IndustryTiles className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" />
         </Container>
       </Section>
 
@@ -275,39 +240,6 @@ export default function Industries() {
     </>
   );
 }
-
-/* Which picture a jump tile shows. It has to be the SAME picture as the card
-   it jumps to, or the tile becomes a small lie about what is further down the
-   page — so this mirrors IndustryCard's own precedence exactly: the annotated
-   figure where one exists, the scene photograph otherwise. Both currently
-   resolve for all nine sectors; the fallback is here so adding a sector
-   without a figure degrades quietly rather than 404ing.
-   Returns a basename — the caller appends the width. */
-function tileThumbBase(id: string): string | null {
-  const figure = featureFigures[id as keyof typeof featureFigures];
-  if (figure) return `${figure.image.base}-240.webp`;
-  const industry = industries.find((i) => i.id === id);
-  return industry?.image ? `/assets/industries/${industry.image}-560.webp` : null;
-}
-
-/* Shared so the sector tiles and the contact tile cannot drift apart.
-   Reads as a button rather than a table cell.
-
-   The label is centred across the whole tile. An earlier version held it in
-   the right two-thirds to keep it clear of the thumbnail, which worked but
-   read as text pushed aside by the picture. Centred is the right look, and
-   the cost is that the label now sits over a live part of the fade rather
-   than past the end of it — see the note beside --tile-thumb-opacity in
-   theme.css for the measurements. */
-const shortcutTile = cn(
-  /* `relative overflow-hidden` so the sector thumbnail can be absolutely
-     positioned inside and is clipped by the rounded corners. */
-  "relative overflow-hidden",
-  "flex h-full items-center justify-center rounded-md border border-line",
-  "bg-tile-surface px-4 py-4 text-center shadow-raised",
-  "text-body-sm font-semibold text-ink",
-  "transition-colors hover:border-line-strong hover:text-ink-accent",
-);
 
 /* Outcome tags. Muted and small — they orient the reader, they are not the
    argument. Never coloured: evidence colours mean verification state. */

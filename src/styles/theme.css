@@ -169,6 +169,29 @@
   );
   --backdrop-opacity: 0.45;
 
+  /* ── Trust engine effects ──────────────────────────────────────────────
+     Glow colours for the animated trust diagram. Separate from the evidence
+     signals because these are ATMOSPHERE, not state — but they are derived
+     from the same hues so a verified glow and a verified chip agree.
+
+     Composed into filters in the component as
+     drop-shadow(0 0 Npx var(--fx-…)), which is compositor-level. Do NOT
+     reach for SVG feGaussianBlur here: it re-rasterises every frame and is
+     the fastest way to make this stutter on a mid-range phone. */
+  --fx-accent-glow:   oklch(56.0% 0.158 275 / 0.55);
+  --fx-accent-halo:   oklch(56.0% 0.158 275 / 0.22);
+  --fx-verified-glow: oklch(62.4% 0.148 152 / 0.55);
+  --fx-failed-glow:   oklch(58.6% 0.196 25 / 0.55);
+  --fx-node-edge:     oklch(100% 0 0 / 0.10);
+  --fx-lane:          oklch(100% 0 0 / 0.14);
+  /* Structural (alpha-only) mask for the trust stage grid, kept here so no
+     raw value appears in a component — same rule as --mask-hero-fade. */
+  --mask-stage-fade: radial-gradient(
+    90% 70% at 50% 40%,
+    rgb(0 0 0) 30%,
+    transparent 100%
+  );
+
   /* How much of the hero the backdrop occupies on desktop, and which part of
      the photograph is shown inside it.
 
@@ -195,6 +218,55 @@
     oklch(0% 0 0 / 0.35) 64%,
     oklch(0% 0 0 / 0) 92%
   );
+
+  /* Jump-tile thumbnail. The mirror of --backdrop-fade: the hero photograph
+     sits on the right and dissolves leftward, these sit on the LEFT of a jump
+     tile and dissolve before they reach the label. Same technique — an alpha
+     mask, not a dark scrim — so the tile keeps its own surface colour in both
+     themes and the label stays on flat ground.
+     Only the alpha of these stops matters; the hues are inert. */
+  /* Front-loaded on purpose: a quick drop off the solid left edge, then a long
+     faint tail that carries almost to the tile's right edge. Ending the fade
+     abruptly — even far to the right — reads as the picture being cut off; a
+     tail that thins to nothing does not. The tail is what lets the fade travel
+     past the label without fighting it. */
+  --tile-thumb-fade: linear-gradient(
+    to right,
+    oklch(0% 0 0 / 1) 0%,
+    oklch(0% 0 0 / 1.0) 18%,
+    oklch(0% 0 0 / 0.8) 30%,
+    oklch(0% 0 0 / 0.60) 40%,
+    oklch(0% 0 0 / 0.5) 50%,
+    oklch(0% 0 0 / 0.3) 68%,
+    oklch(0% 0 0 / 0.0) 95%
+  );
+  /* How far the picture reaches before the mask has finished with it. This is
+     a genuine trade-off, not a free dial: the tile is only ~56px tall, so a
+     wider box means object-fit: cover scales the 16:9 master up and crops more
+     off the top and bottom. 88% is the compromise — the fade runs to roughly
+     84% of the tile, and the master is enlarged about 1.9x rather than the
+     2.1x that spanning the full width would cost. */
+  --tile-thumb-width: 88%;
+  /* Opacity at the LEFT EDGE, where the mask is still fully opaque. At 1 the
+     picture starts fully solid and the mask alone dissolves it — earlier
+     values of 0.26 and 0.45 held it back everywhere at once, which on pale
+     interiors sitting on a pale raised surface read as a smudge rather than
+     as a photograph.
+
+     Full strength is safe here only because the MASK clears the label — which
+     is measured, not assumed. The labels are centred, so the LONGEST one
+     starts furthest left and sets the constraint: "Construction" is the word
+     to check.
+
+     The binding constraint is absolute pixels, not proportions. The fade has
+     to be finished before that word begins — about 98px from the tile's left
+     edge now that the label is centred in the right two-thirds, against 55px
+     when it was centred across the whole tile. Widening --tile-thumb-width
+     does NOT by itself buy room: it moves the stops further right in pixels
+     while the label stays put, so width and stops have to move together.
+     Add a longer sector name and this needs re-measuring.
+     Single value for both themes, as --backdrop-opacity is. */
+  --tile-thumb-opacity: 1;
 
   /* ── Callout panels ────────────────────────────────────────────────────
      Annotation panels sit ON TOP of photography, so unlike everything else
@@ -582,6 +654,23 @@
     mask-image: var(--backdrop-fade);
     -webkit-mask-image: var(--backdrop-fade);
   }
+}
+
+/* Jump-tile thumbnail. Lives here rather than as utilities for the same two
+   reasons .scene-backdrop does: the mask needs a -webkit- prefix for Safari,
+   and expressing the gradient inline would put a raw colour outside this
+   file. The tile itself supplies `relative overflow-hidden`, so the rounded
+   corners clip this. */
+.tile-thumb {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--tile-thumb-width);
+  height: 100%;
+  object-fit: cover;
+  opacity: var(--tile-thumb-opacity);
+  mask-image: var(--tile-thumb-fade);
+  -webkit-mask-image: var(--tile-thumb-fade);
 }
 
 /* ============================================================================

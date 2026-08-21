@@ -95,7 +95,28 @@ export default function Industries() {
               {industryShortcuts.map((s) => (
                 <li key={s.id}>
                   <a href={`#${s.id}`} className={shortcutTile}>
-                    {s.label}
+                    {/* Decorative: the same picture the card below shows,
+                        dissolved away before it reaches the label. It makes
+                        the tile recognisable at a glance but carries no
+                        information the label does not, so it is hidden from
+                        assistive technology and has an empty alt. Geometry,
+                        opacity and mask all live in .tile-thumb in theme.css. */}
+                    {tileThumbBase(s.id) && (
+                      <img
+                        aria-hidden
+                        alt=""
+                        src={tileThumbBase(s.id) as string}
+                        loading="lazy"
+                        decoding="async"
+                        className="tile-thumb"
+                      />
+                    )}
+                    {/* Right two-thirds, so the left third belongs to the
+                        picture. `relative` so it paints above the thumbnail
+                        rather than being covered by it. */}
+                    <span className="relative col-span-2 col-start-2">
+                      {s.label}
+                    </span>
                   </a>
                 </li>
               ))}
@@ -103,7 +124,10 @@ export default function Industries() {
                   cell reads as a bug. */}
               <li>
                 <Link to="/contact" className={cn(shortcutTile, "text-ink-accent")}>
-                  Yours? →
+                  {/* Full width, not the right two-thirds: there is no picture
+                      to make room for here, and a label held off-centre with
+                      nothing beside it reads as a mistake. */}
+                  <span className="col-span-3">Yours? →</span>
                 </Link>
               </li>
             </ul>
@@ -258,10 +282,36 @@ export default function Industries() {
   );
 }
 
+/* Which picture a jump tile shows. It has to be the SAME picture as the card
+   it jumps to, or the tile becomes a small lie about what is further down the
+   page — so this mirrors IndustryCard's own precedence exactly: the annotated
+   figure where one exists, the scene photograph otherwise. Both currently
+   resolve for all nine sectors; the fallback is here so adding a sector
+   without a figure degrades quietly rather than 404ing.
+   Returns a basename — the caller appends the width. */
+function tileThumbBase(id: string): string | null {
+  const figure = featureFigures[id as keyof typeof featureFigures];
+  if (figure) return `${figure.image.base}-240.webp`;
+  const industry = industries.find((i) => i.id === id);
+  return industry?.image ? `/assets/industries/${industry.image}-560.webp` : null;
+}
+
 /* Shared so the sector tiles and the contact tile cannot drift apart.
-   Reads as a button rather than a table cell. */
+   Reads as a button rather than a table cell.
+
+   Thirds rather than a centred flex row. The thumbnail is absolutely
+   positioned and so takes no part in the grid, but the grid is what decides
+   where the LABEL starts — and the label is the only thing the picture has to
+   stay clear of. Centring the text across the whole tile put the longest word
+   barely 55px from the left edge, which left the fade nowhere to go and made
+   the picture look chopped off rather than dissolved. Centred in the right
+   two-thirds instead, the same word starts around 98px out, which is close to
+   double the runway. */
 const shortcutTile = cn(
-  "flex h-full items-center justify-center rounded-md border border-line",
+  /* `relative overflow-hidden` so the sector thumbnail can be absolutely
+     positioned inside and is clipped by the rounded corners. */
+  "relative overflow-hidden",
+  "grid h-full grid-cols-3 items-center rounded-md border border-line",
   "bg-surface-raised px-4 py-4 text-center shadow-raised",
   "text-body-sm font-semibold text-ink",
   "transition-colors hover:border-line-strong hover:text-ink-accent",
@@ -393,7 +443,14 @@ function IndustryCard({
           <ul className="flex flex-col gap-1.5 pl-5">
             {industry.value.map((v) => (
               <li key={v} className="flex gap-2 text-body-sm text-ink-secondary">
-                <span aria-hidden className="mt-2 h-px w-3 shrink-0 bg-accent" />
+                {/* Centred on the first line, not nudged with a margin.
+                    `mt-2` was 8px against a 23.7px line box (0.9375rem × 1.58),
+                    so the rule sat ~4px above the optical centre. A box one
+                    line tall with the rule centred inside it stays correct if
+                    the type scale ever changes. */}
+                <span aria-hidden className="flex h-[1lh] w-3 shrink-0 items-center">
+                  <span className="h-px w-full bg-accent" />
+                </span>
                 {v}
               </li>
             ))}

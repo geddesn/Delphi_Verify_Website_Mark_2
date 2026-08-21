@@ -37,8 +37,13 @@ const GROUPS = [
     src: join(process.cwd(), "assets-src", "features"),
     out: join(process.cwd(), "public", "assets", "features"),
     /* 480 exists for the phone case: the figure renders ~270px wide in a
-       stacked card, so without it a mobile visitor downloaded the 960. */
-    widths: [480, 960, 1920],
+       stacked card, so without it a mobile visitor downloaded the 960.
+
+       240 is for the jump tiles at the top of the industries page, which show
+       the SAME picture as the card they jump to, about 130 CSS px wide behind
+       the label. Served flat with no srcSet — behind a mask that has already
+       dissolved most of it, softness at 2x is invisible. */
+    widths: [240, 480, 960, 1920],
     webp: { quality: 80, effort: 6 },
     sources: [
       { file: "yacht-handover.png", name: "yacht-handover" },
@@ -79,7 +84,9 @@ const GROUPS = [
     out: join(process.cwd(), "public", "assets", "industries"),
     /* The panel renders at roughly 500 CSS px on a wide screen, so 1x ≈ 560
        and 2x ≈ 1120. Eight of these eventually load on one page, so the
-       ceiling stays low on purpose. */
+       ceiling stays low on purpose. The jump tiles do NOT come from here —
+       they show the annotated figure the card shows, so their 240 lives in
+       the features group above. */
     widths: [560, 1120],
     /* Opaque photographs — no alpha to preserve, and quality drops a little
        further than the screenshots because photographic noise hides it. */

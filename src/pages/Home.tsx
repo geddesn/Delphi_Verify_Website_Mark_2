@@ -7,6 +7,8 @@ import {
   Card,
 } from "@/components/ui/primitives";
 import { ButtonLink, ArrowRight } from "@/components/ui/Button";
+import { TrustEngine } from "@/components/trust/TrustEngine";
+import { yachtsScene, trustEngineCopy } from "@/content/trust-scenes";
 import {
   CertificatePanel,
   IllustrativeNote,
@@ -242,6 +244,26 @@ export default function Home() {
               <ArrowRight />
             </ButtonLink>
           </div>
+        </Container>
+      </Section>
+
+      {/* ── TRUST ENGINE ──────────────────────────────────────────────────
+          The animated counterpart to the static "Neither side holds the pen"
+          diagram further up. That one states the position; this one
+          demonstrates it. Deliberately near the bottom: by this point a
+          reader has the argument, and this is the payoff rather than the
+          introduction.
+
+          Prototype — Yachts only. The narrative is fixed in the component and
+          the sector is data, so adding Property is a content change. */}
+      <Section tone="inverse">
+        <Container>
+          <SectionHeader
+            eyebrow={trustEngineCopy.eyebrow}
+            headline={trustEngineCopy.headline}
+            standfirst={trustEngineCopy.standfirst}
+          />
+          <TrustEngine scene={yachtsScene} className="mt-14" />
         </Container>
       </Section>
 

@@ -213,6 +213,31 @@
     transparent 100%
   );
 
+  /* The trust stage's asset photograph carries no frame. A hard-edged
+     rectangle in the middle of the stage reads as a picture pasted onto the
+     scene rather than as the thing everyone is standing around, so all four
+     edges dissolve into the ground instead.
+
+     TWO CROSSED GRADIENTS, INTERSECTED — not one radial. A radial cannot do
+     this: to reach zero alpha at the left and right edges its ending shape has
+     to be no wider than half the box, by which point it has eaten the bow and
+     the stern as well. Crossing a horizontal and a vertical fade leaves the
+     middle completely untouched and only softens the border. */
+  --mask-asset-x: linear-gradient(
+    to right,
+    transparent 0%,
+    rgb(0 0 0) 15%,
+    rgb(0 0 0) 85%,
+    transparent 100%
+  );
+  --mask-asset-y: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgb(0 0 0) 13%,
+    rgb(0 0 0) 87%,
+    transparent 100%
+  );
+
   /* How much of the hero the backdrop occupies on desktop, and which part of
      the photograph is shown inside it.
 
@@ -254,10 +279,10 @@
     to right,
     oklch(0% 0 0 / 1) 0%,
     oklch(0% 0 0 / 1.0) 18%,
-    oklch(0% 0 0 / 0.8) 30%,
-    oklch(0% 0 0 / 0.60) 40%,
-    oklch(0% 0 0 / 0.5) 50%,
-    oklch(0% 0 0 / 0.3) 68%,
+    oklch(0% 0 0 / 0.9) 30%,
+    oklch(0% 0 0 / 0.75) 40%,
+    oklch(0% 0 0 / 0.45) 50%,
+    oklch(0% 0 0 / 0.2) 68%,
     oklch(0% 0 0 / 0.0) 95%
   );
   /* How far the picture reaches before the mask has finished with it. This is
@@ -274,18 +299,20 @@
      as a photograph.
 
      Note what this means for the labels, because it is a deliberate choice
-     and not an oversight: the ramp above does NOT clear them. The labels are
-     centred across the tile, so on a 214px tile with a 187px thumbnail the
-     text begins between about 62px and 83px from the left edge, putting every
-     label over roughly 0.56 to 0.74 alpha — "Construction" worst, because it
-     is the longest word and so starts furthest left.
+     and not an oversight: the ramp above does NOT clear them, and is no
+     longer really trying to. The labels are centred across the tile, so on a
+     214px tile with a 187px thumbnail the text begins between about 62px and
+     83px from the left edge, putting every label over roughly 0.63 to 0.86
+     alpha — "Construction" worst, because it is the longest word and so
+     starts furthest left.
 
-     That is the highest this has been. Holding the labels in the right
-     two-thirds put them at 0.38-0.51, but the text read as pushed aside by
-     the picture, so the centred version was chosen and the fade left alone.
-     Legibility rests entirely on the type now: semibold ink over pale
-     interiors. Add a darker or busier photograph and this is where it shows
-     up first — check the Construction tile.
+     Successive passes have gone the same way: 0.38-0.51 when the labels were
+     held in the right two-thirds, 0.56-0.74 once they were centred, and this.
+     The picture won each time. So legibility here rests entirely on the type
+     — semibold ink over pale interiors — and there is no headroom left in the
+     mask. Add a darker or busier photograph to the set and it will fail on
+     the Construction tile first; the fix at that point is the photograph, or
+     --tile-thumb-width, not another gradient stop.
 
      (Positions computed from measured glyph widths at the 5-column desktop
      layout, not re-measured in a browser.)
@@ -700,6 +727,18 @@
    and expressing the gradient inline would put a raw colour outside this
    file. The tile itself supplies `relative overflow-hidden`, so the rounded
    corners clip this. */
+/* Dissolves a photograph's four edges into whatever it is sitting on. Needs a
+   class rather than inline style because mask-composite has no Tailwind
+   utility and the -webkit- form uses different keywords — expressing it in a
+   component would put two vendor-prefixed pairs in the markup and one of them
+   would eventually be dropped. */
+.asset-fade {
+  mask-image: var(--mask-asset-x), var(--mask-asset-y);
+  -webkit-mask-image: var(--mask-asset-x), var(--mask-asset-y);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
 .tile-thumb {
   position: absolute;
   inset-block: 0;

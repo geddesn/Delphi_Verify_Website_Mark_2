@@ -1,0 +1,72 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  e977c68b-aab0-4a49-b8d3-1279845478d9
+
+Photorealistic close-up detail photograph: a torn leather seat cushion in the
+saloon of a motor yacht, with nobody present.
+
+WHY THIS IMAGE EXISTS
+It is the evidence photograph in a charter dispute - the single frame both
+sides would argue over. It must look like something a captain actually shot on
+a handheld camera during redelivery, not like a styled interiors feature.
+
+SCENE
+The main saloon of a well-kept forty-five metre motor yacht. A built-in settee
+upholstered in soft cream-tan leather runs along the side of the room beneath
+a long window. The camera is close and slightly above, filling most of the
+frame with one seat panel and the piped seam that borders it.
+
+THE DAMAGE - THE SUBJECT OF THE PICTURE
+A single clean tear roughly fifteen centimetres long across the leather, near
+the front edge of the seat where it meets the piped seam. The lips of the cut
+have parted a little and lifted, showing a paler underside and a hint of dark
+foam beneath. The leather around it is faintly stretched and creased where it
+has pulled away from the seam. Recent, sharp-edged, unmistakable, not a worn
+patch and not a stain.
+
+The tear is the brightest point of interest and sits clearly off-centre, in
+the middle-left of the frame, in sharp focus.
+
+SURROUNDINGS
+Behind and around the settee: a sliver of high-gloss walnut joinery, a plain
+scatter cushion pushed aside, pale headlining, the bottom of a window with
+calm water and a soft blown-out horizon far outside. All of it secondary,
+softly out of focus, none of it competing with the tear.
+
+STRICTLY NOT
+No people anywhere - no hands, no fingers pointing at the damage, no arms, no
+figures reflected in the window or the gloss joinery. No tools, no repair kit,
+no tape, no measuring tape or ruler, no coin or phone placed for scale. No
+blood, no liquid, no spill, no burn mark, no cigarette. No clutter, no
+glassware, no bottles, no flowers, no laptop. Not gold, not leopard print, not
+a nightclub interior.
+
+COMPOSITION
+16:9 landscape, but composed to survive a heavy crop: the tear must stay well
+inside the middle of the frame so it is still the subject when the picture is
+shown small, roughly two hundred pixels wide, inside a panel on a web page.
+Shallow but not extreme depth of field - the tear and the seam sharp, the
+background falling away gently. Verticals true, no converging distortion, no
+fisheye.
+
+LIGHT AND COLOUR
+Soft daylight from the window, raking slightly across the leather so the grain
+and the lifted edges of the tear cast real micro-shadow. Warm neutral palette:
+cream, tan, walnut, pale stone, muted navy. Restrained and slightly
+desaturated. No flash, no hard specular hotspot, no orange-and-teal, no HDR
+flatness, no sunset.
+
+STYLE
+Documentary evidence photography with premium production values - honest,
+plain, well lit, no styling. High resolution, accurate leather grain and
+stitching, correct yacht joinery and proportion, believable upholstery
+construction.
+
+AVOID
+Any person, hand, figure, silhouette or human reflection. Text, lettering,
+numbers or logos of any kind anywhere. Any user interface, panel, label,
+callout, marker, pin, badge, arrow, circle or annotation - these are added
+afterwards and must not be drawn. Holograms, floating panels, glowing dots,
+light trails, network lines, connecting lines. Blockchain, padlock, shield or
+fingerprint symbols. Visible third-party brands. Watermarks. Anything that
+reads as a render, a 3D model or CGI.

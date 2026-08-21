@@ -47,6 +47,21 @@ const GROUPS = [
     webp: { quality: 80, effort: 6 },
     sources: [
       { file: "yacht-handover.png", name: "yacht-handover" },
+      /* Transparent. The trust stage sits it on a dark ground with nothing
+         behind it, so the master must carry a real alpha channel — sharp
+         preserves it into WebP, but it cannot invent one. */
+      { file: "yacht-cutout.png", name: "yacht-cutout" },
+      /* The pair the trust engine argues over: one saloon, one angle, two
+         dates. They must stay a matched pair — the whole argument is that
+         nothing changed except the damage, so a reshoot means reshooting
+         BOTH. Shown small, inside callout and certificate boxes, so 240/480
+         are the sizes that actually get served.
+
+         Supersedes saloon-damage.png, which was a lone detail shot with
+         nothing to compare it against. Its master and prompt stay in
+         assets-src as a record of the take. */
+      { file: "saloon-delivery.png", name: "saloon-delivery" },
+      { file: "saloon-redelivery.png", name: "saloon-redelivery" },
       { file: "villa-listing.png", name: "villa-listing" },
       { file: "villa-checkout.png", name: "villa-checkout" },
       { file: "construction-milestone.png", name: "construction-milestone" },

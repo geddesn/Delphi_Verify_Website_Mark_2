@@ -1,0 +1,106 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  310de473-9e19-4833-8a51-a1dba6c62f54
+
+GENERATED AS ONE IMAGE, THEN SPLIT
+2720x1530 master -> saloon-delivery.png (intact) and saloon-redelivery.png
+(torn), each 1358x1530. The frames butt at x=1360 with no gutter; 2px was
+trimmed off each inner edge so no seam pixel survives into either half.
+
+WHY A PAIR IN ONE GENERATION RATHER THAN TWO
+The Trust Engine argument is that the SAME seat was undamaged at delivery and
+damaged at redelivery. Two independent generations would have produced two
+different saloons — different leather, different joinery, different window
+line — and a viewer reading them as two boats destroys the point. Asking one
+generation for both frames is what holds the room, the settee and the cushions
+identical between them.
+
+The viewpoints are deliberately similar-but-not-identical: these should read as
+two handheld captures weeks apart, not as one photograph retouched.
+
+See the two warnings at the top of src/content/trust-scenes.ts — the damage
+must be identical across acts, and Delphi does not decide liability. Neither
+frame may imply an adjudication, so no ticks, crosses or before/after labels
+were requested, and none appear.
+
+Note: re-running the generator on this file rewrites it and drops everything
+above the separator. Keep a copy of this block if you reshoot.
+
+---
+
+Photorealistic medium-format photography presented as TWO SEPARATE FRAMES SIDE
+BY SIDE in one image: the same yacht saloon seating photographed twice, weeks
+apart, with nobody in either frame.
+
+THE PAIR
+Left frame and right frame show THE SAME saloon — the same settee, the same
+cushions, the same joinery, the same window line, the same leather colour and
+stitching. They are two records of one object.
+
+The two photographs meet edge to edge at the exact vertical centre. No border,
+no gutter, no white strip, no dividing line, no frame, no rounded corners, no
+drop shadow. Each half is a complete photograph filling its own half of the
+image to all four edges.
+
+LEFT FRAME — the seating is intact. Cream leather in good order throughout,
+unbroken across every cushion.
+
+RIGHT FRAME — the same seat, now with a single clean tear roughly 20cm long
+across the leather of one seat cushion, its edges parted slightly. Plainly the
+same cushion that is undamaged in the left frame. Nothing else has changed.
+
+The two viewpoints are SIMILAR BUT NOT IDENTICAL — as if one person stood in
+roughly the same place on two different days: the right frame a half step
+closer and a few degrees round, so the framing sits a little tighter and the
+angle a little more oblique. Not a copy, not a mirror, not a crop of one
+photograph.
+
+SCENE
+A modern motor yacht saloon. A low cream leather settee running along one
+side, plain scatter cushions squared off, a low dark timber table, pale
+joinery, a run of long low windows with daylight and open water beyond.
+Restrained and well kept — expensive without ornament.
+
+THE MOMENT
+Nobody is aboard. Both frames are quiet and still, made to record what state
+the seating is in. The emptiness is deliberate.
+
+STRICTLY NOT
+No people anywhere in either frame — no crew, no guests, no figures beyond the
+windows, no reflections of people. No before/after labels, no arrows, no
+circles, no ticks or crosses, no captions, no numbering. Not a brochure
+spread. No squalor, no rubbish, no other damage anywhere — ONE tear, in the
+right frame only. Not a burst seam, not a burn, not a stain, not a wide gash.
+
+CRITICAL — TWO PLAIN PHOTOGRAPHS ONLY
+Both halves are straight photographs. Do not add graphic elements of any kind:
+no panels, cards, boxes, banners, labels, captions, callouts, annotations,
+user interface, diagrams, dots, markers, arrows or lines drawn over either
+picture. Nothing is superimposed on either half.
+
+COMPOSITION
+16:9 landscape overall, so each half is close to square. Eye level or just
+above, the settee running across the lower two thirds of each half. The torn
+cushion sits well inside the right half, away from its edges — the tear must
+never cross or touch the centre join.
+
+Keep the upper part of each half calm: plain headlining and plain upper
+joinery, no downlights, no ducting, no artwork, no bright hotspots.
+
+Verticals true and corrected, no converging distortion, no fisheye.
+
+LIGHT AND COLOUR
+Cool neutral daylight in both frames, from the windows. The right frame may
+read very slightly later in the day, but palette, leather colour and exposure
+must match closely enough that the two read as the same room. Neutral filmic
+grade, no saturation push, no orange-and-teal, no HDR glow.
+
+STYLE
+Premium commercial interior photography — calm, factual, precise. High
+resolution, accurate proportion, believable leather grain and stitching.
+
+AVOID
+Text, lettering, numbers, logos or writing of any kind anywhere. People of any
+kind. Overlays, graphics, panels, user interface, holograms. Visible
+third-party brands. Watermarks. Distorted or impossible geometry. Any visible
+seam, frame or gap between the two halves.

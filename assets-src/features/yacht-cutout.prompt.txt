@@ -1,0 +1,81 @@
+source: ChatGPT web interface (GPT image), asked for a PNG with a transparent
+        background
+ratio:  landscape, 16:9 or thereabouts
+task:   n/a — not generated through scripts/generate-image.mjs
+
+WHY THIS ONE IS NOT MADE BY THE SCRIPT
+Runway cannot return an alpha channel. The parameter exists — gpt_image_2
+accepts `background`, unlike every other model on the account — but Runway
+exposes only "opaque" | "auto", never OpenAI's "transparent". With "auto" the
+model decides, and it decided to PAINT the grey chequerboard that image
+editors use to display transparency: a regular 19px grid alternating 235/255,
+inside an opaque RGB PNG (colour type 2). It imitated the look of transparency
+instead of producing it. Task 89f682b9-b8f4-4783-a1fa-2be317281767.
+
+Asking harder makes it worse. That attempt said "transparent" a dozen times
+and then listed "checkerboard" under AVOID, and naming a thing in a prompt
+tends to summon it. Both words are gone from the brief below.
+
+The web interface has the real setting, so this one is generated there by hand
+and dropped into this folder. Verify before use — hasAlpha must be true:
+  node -e "require('sharp')('assets-src/features/yacht-cutout.png').metadata().then(m=>console.log(m.channels, m.hasAlpha))"
+
+FALLBACK
+yacht-key-magenta.png is the same subject on a flat magenta field
+(seedream5_pro, 2720:1530, task 3082bc1b-afd7-4dc0-b2a8-026537032216). Magenta
+because nothing in a yacht palette comes near it, so a key cannot eat the
+subject — and because green spills into white topsides and leaves them pink.
+Use it if a real alpha channel ever stops being available.
+
+---
+
+A large luxury motor yacht, on its own, with nobody aboard.
+
+THE VESSEL
+A well-kept white motor yacht of perhaps forty-five metres, seen from a low
+three-quarter angle from forward, roughly at the level of the waterline: the
+bow and flare lead the eye and the full run of the topsides and superstructure
+falls away toward the stern. The complete vessel is in frame, bow toward the
+left of centre, with clear space around every edge — nothing touching or
+running off the sides.
+
+Sharp sheerline, raked bow, dark glazing set flush into white composite
+superstructure, oiled teak decks, stainless rails and cleats. A tender stowed
+and covered on the aft deck. Fenders in. Sunpads bare — no cushions arranged,
+no towels, no table laid.
+
+The hull ends cleanly at the waterline, the way a builder's rendering does,
+with nothing below it. No sea, no water, no ground, no cradle, no boat stands.
+
+LIGHT AND FORM
+Soft, even, neutral light with real shadow structure along the topsides and
+under the overhangs, so the vessel reads as a photograph of a solid object
+rather than as a flat sticker. Warm neutral palette — bone white, teak,
+stainless grey. Restrained and slightly desaturated. Neutral filmic grade, no
+saturation push, no orange-and-teal, no HDR flatness.
+
+Shadow on the vessel itself is wanted. There is no surface for it to fall onto,
+so there is no shadow beneath the hull.
+
+THE OUTLINE
+The silhouette is the important part, so keep every edge crisp and cleanly
+resolved: no motion blur, no haze, no bloom, no soft focus, no feathering and
+no bright halo anywhere along it. Resolve the thin parts properly — the
+stanchions, the handrails, the radar mast and its aerials — rather than
+letting them dissolve.
+
+STRICTLY NOT
+No people anywhere — not on deck, not on the flybridge, not in a tender, no
+figures, no silhouettes, no reflections of people. No guests, no crew, no
+champagne, no glassware, no swimwear. No gold fittings, no leopard print. No
+sky, cloud, coastline, marina or dock. No sunset, no lens flare. No drone or
+high aerial view — the camera is low.
+
+AVOID
+Any person, figure or human reflection. Text, lettering, numbers or logos of
+any kind anywhere, including vessel names, hailing ports and registration
+marks. Any user interface, panel, label, callout, marker, pin, badge or
+annotation — these are added afterwards and must not be drawn. Holograms,
+floating panels, glowing dots, light trails, network lines, connecting lines.
+Blockchain, padlock, shield or fingerprint symbols. Visible third-party brands.
+Watermarks. Anything that reads as a scale model, a toy or untextured CGI.

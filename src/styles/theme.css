@@ -205,38 +205,17 @@
   --fx-failed-glow:   oklch(58.6% 0.196 25 / 0.55);
   --fx-node-edge:     oklch(100% 0 0 / 0.10);
   --fx-lane:          oklch(100% 0 0 / 0.14);
-  /* Structural (alpha-only) mask for the trust stage grid, kept here so no
-     raw value appears in a component — same rule as --mask-hero-fade. */
-  --mask-stage-fade: radial-gradient(
-    90% 70% at 50% 40%,
-    rgb(0 0 0) 30%,
-    transparent 100%
-  );
-
-  /* The trust stage's asset photograph carries no frame. A hard-edged
-     rectangle in the middle of the stage reads as a picture pasted onto the
-     scene rather than as the thing everyone is standing around, so all four
-     edges dissolve into the ground instead.
-
-     TWO CROSSED GRADIENTS, INTERSECTED — not one radial. A radial cannot do
-     this: to reach zero alpha at the left and right edges its ending shape has
-     to be no wider than half the box, by which point it has eaten the bow and
-     the stern as well. Crossing a horizontal and a vertical fade leaves the
-     middle completely untouched and only softens the border. */
-  --mask-asset-x: linear-gradient(
-    to right,
-    transparent 0%,
-    rgb(0 0 0) 15%,
-    rgb(0 0 0) 85%,
-    transparent 100%
-  );
-  --mask-asset-y: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgb(0 0 0) 13%,
-    rgb(0 0 0) 87%,
-    transparent 100%
-  );
+  /* The trust stage's ground. One colour for both the plane and its grid —
+     the render carries the two as different alpha levels, so the surface comes
+     out at roughly a quarter of the line strength and the lines still read as
+     markings ON something rather than as a wireframe in a void. */
+  --fx-ground-ink:    oklch(100% 0 0 / 0.15);
+  /* The standing link between a record and the parties holding a copy of it.
+     Accent, and glowing, because it is NOT a leader: a leader points at a
+     thing and then it has pointed. This says a channel is open, so it wants to
+     look like current rather than like ink. */
+  --fx-link:          oklch(72% 0.13 275 / 0.90);
+  --fx-link-halo:     oklch(62% 0.16 275 / 0.26);
 
   /* How much of the hero the backdrop occupies on desktop, and which part of
      the photograph is shown inside it.
@@ -335,6 +314,11 @@
      white on top — the same trick that keeps map labels legible over
      arbitrary terrain. */
   --callout-halo:      oklch(17.5% 0.068 275 / 0.45);
+  /* Caption plate for text sitting ON a photograph. Black rather than the
+     navy above, because a photograph brings its own colour and a tinted plate
+     fights it — black just takes light away. Theme-invariant for the same
+     reason as the rest of this group. */
+  --callout-caption:   oklch(0% 0 0 / 0.62);
 
   /* Watermark on scene photography. Like the callout tokens this is
      theme-invariant: it sits on a photograph, which does not change between
@@ -570,6 +554,14 @@
   --text-mono-sm--line-height: 1.5;
   --text-mono-sm--letter-spacing: 0.01em;
 
+  /* One step smaller again, for metadata burned onto a photograph. It has to
+     stay out of the way of the thing the photograph is evidence OF — a plate
+     that covers the damage is worse than no plate at all. Not for use in
+     running text: at this size it is a label, not something to read. */
+  --text-mono-xs: 0.625rem;
+  --text-mono-xs--line-height: 1.42;
+  --text-mono-xs--letter-spacing: 0.012em;
+
   /* ── Radii ─────────────────────────────────────────────────────────────
      Deliberately tighter than the old 0.625rem shadcn default. Precision,
      not friendliness — the single most effective lever for moving away
@@ -601,6 +593,15 @@
   --duration-fast:   140ms;
   --duration-normal: 220ms;
   --duration-slow:   420ms;
+  /* Leader draw. Its own token because it is not a UI transition: it is the
+     length of a gesture the eye follows from a caption to the thing it names,
+     and it wants to be a touch slower than --duration-slow to read as one. */
+  --duration-draw:   500ms;
+
+  /* A certificate crossing the stage to the party it is issued to. Slower
+     again: it travels a real distance and the eye has to be able to follow
+     where it came FROM, which is the whole content of the gesture. */
+  --duration-fly:    1100ms;
 }
 
 /* ============================================================================
@@ -727,16 +728,95 @@
    and expressing the gradient inline would put a raw colour outside this
    file. The tile itself supplies `relative overflow-hidden`, so the rounded
    corners clip this. */
-/* Dissolves a photograph's four edges into whatever it is sitting on. Needs a
-   class rather than inline style because mask-composite has no Tailwind
-   utility and the -webkit- form uses different keywords — expressing it in a
-   component would put two vendor-prefixed pairs in the markup and one of them
-   would eventually be dropped. */
-.asset-fade {
-  mask-image: var(--mask-asset-x), var(--mask-asset-y);
-  -webkit-mask-image: var(--mask-asset-x), var(--mask-asset-y);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
+/* Marching dashes for the access links on the trust stage.
+
+   A LOOP, not a transition, and that is the whole meaning: a line that runs
+   once and settles says "this was sent". One that keeps moving says "this is
+   available", which is the claim actually being made — the parties can go and
+   check the record at any point, not only at the moment it was issued.
+
+   No filter for the glow. A wider, softer line underneath does the same job
+   and stays cheap; drop-shadow on an element whose stroke animates re-
+   rasterises it every frame, which is the one thing this stage cannot afford.
+
+   Reduced motion stops it: the global rule in the accessibility block below
+   collapses every animation-duration, leaving a plain dashed line — still
+   legible as a connection, just not a moving one. */
+@keyframes trust-link-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+
+.trust-link {
+  stroke-dasharray: 5 6;
+  animation: trust-link-flow 1.1s linear infinite;
+}
+
+/* The same current, arriving. A code sitting at the end of a live channel
+   should look like it is on, and the cheapest honest way to say that is to
+   let the channel's own colour breathe behind it.
+
+   OPACITY ONLY, deliberately. The glow is a blurred element, and blur is
+   rasterised once and then composited — animate its transform and the engine
+   has to blur it again on every frame. */
+@keyframes trust-held-pulse {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.trust-held-glow {
+  animation: trust-held-pulse 2.4s ease-in-out infinite;
+}
+
+/* ── Trust stage ground ──────────────────────────────────────────────────
+   The floor the asset stands on, and the haze above it. Both come from a
+   single mask rendered offline by scripts/render-ground.mjs — a real ray-cast
+   of a grid plane, not a CSS approximation of one.
+
+   WHY A MASK RATHER THAN A PICTURE
+   The render is white with a varying alpha channel: geometry only, no colour.
+   Filling it here with a token keeps the ground themed with everything else,
+   keeps every colour value inside this file, and compresses far better than a
+   coloured render of the same thing would.
+
+   WHAT THIS REPLACED, AND WHY
+   A plane pitched with rotateX under a perspective container. It gave
+   one-point perspective — the receding family converged, the crossing family
+   stayed parallel to the horizon forever — while the asset is drawn in
+   two-point, so the two never agreed. And a CSS grid's lines are a fixed
+   number of screen pixels wide at every depth; a painted line on a real floor
+   thins as it recedes. In the render the width is in world units, so it does.
+
+   ATMOSPHERE IS THE RENDER'S JOB TOO. There was a CSS glow pooling at the
+   vanishing point; it has gone. Light in a scene belongs to the scene, and a
+   radial gradient laid over a rendered plane never quite sits on it — it hangs
+   in front, at its own angle, and reads as a smudge on the glass.            */
+
+.stage-ground {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.stage-floor {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fx-ground-ink);
+  mask-image: var(--ground-render);
+  -webkit-mask-image: var(--ground-render);
+  mask-size: cover;
+  -webkit-mask-size: cover;
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  opacity: var(--ground-opacity, 0.55);
 }
 
 .tile-thumb {
@@ -762,6 +842,8 @@
     --duration-fast:   0ms;
     --duration-normal: 0ms;
     --duration-slow:   0ms;
+    --duration-draw:   0ms;
+    --duration-fly:    0ms;
   }
 
   html {

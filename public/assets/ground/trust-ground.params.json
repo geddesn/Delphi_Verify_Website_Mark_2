@@ -1,0 +1,23 @@
+{
+  "name": "trust-ground",
+  "width": 2048,
+  "height": 1152,
+  "horizon": 50,
+  "vanishX": 103,
+  "fov": 36,
+  "eye": 2.6,
+  "fill": 0.28,
+  "line": 0.024,
+  "major": 5,
+  "majorLine": 0.045,
+  "fogNear": 6,
+  "fogFar": 70,
+  "haze": 0.16,
+  "hazeFall": 0.22,
+  "ss": 4,
+  "derived": {
+    "yawDeg": -31.47884878298132,
+    "pitchDeg": 0,
+    "aspect": 1.7777777777777777
+  }
+}

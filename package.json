@@ -13,6 +13,7 @@
     "build:ssr": "vite build --ssr src/entry-server.tsx --outDir dist-ssr",
     "prerender": "node scripts/prerender.mjs",
     "images": "node scripts/optimise-images.mjs",
+    "ground": "node scripts/render-ground.mjs",
     "pdf": "node scripts/pdf.mjs",
     "og": "node scripts/generate-og.mjs"
   },

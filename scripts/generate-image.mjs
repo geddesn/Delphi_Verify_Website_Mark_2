@@ -44,6 +44,28 @@ const DEFAULTS = {
   out: "assets-src/industries",
 };
 
+/* Per-model extras. The request body is a discriminated union on `model`, so
+   a key that is valid for one model is an "unrecognized key" error on another
+   — send these only where they belong.
+
+   TRANSPARENCY. Only gpt_image_2 can return an alpha channel, and only
+   indirectly: Runway exposes OpenAI's `background` as "opaque" | "auto"
+   (never "transparent"), so `auto` plus a prompt that actually asks for a
+   transparent background is the whole mechanism.
+
+   Note which model takes which key — it is not the intuitive split.
+   gpt_image_2 takes `background` and REJECTS `outputFormat`; the seedream
+   models are the other way round. Runway picks the container itself for
+   gpt_image_2, and picks PNG when there is alpha to preserve.
+
+   Discovered by probing rather than from the docs: send a bogus value and the
+   400 enumerates every accepted one, which costs nothing. */
+const MODEL_KEYS = {
+  gpt_image_2: ["background"],
+  seedream5_pro: ["outputFormat"],
+  seedream5_lite: ["outputFormat"],
+};
+
 /* ── args ─────────────────────────────────────────────────────────────────── */
 
 const argv = process.argv.slice(2);
@@ -57,12 +79,17 @@ const inlinePrompt = arg("--prompt");
 const name = arg("--name");
 const model = arg("--model", DEFAULTS.model);
 const ratio = arg("--ratio", DEFAULTS.ratio);
+const background = arg("--background");
+const outputFormat = arg("--output-format");
 const outDir = resolve(process.cwd(), arg("--out", DEFAULTS.out));
 
 if (!name || (!promptFile && !inlinePrompt)) {
   console.error(
     "Usage: node scripts/generate-image.mjs --prompt-file <file> --name <slug>\n" +
-      "       [--model seedream5_pro] [--ratio 1920:1080] [--out dir]",
+      "       [--model seedream5_pro] [--ratio 1920:1080] [--out dir]\n" +
+      "       [--background auto|opaque] [--output-format png|jpeg]\n\n" +
+      "  Transparency: --model gpt_image_2 --background auto --output-format png,\n" +
+      "  and ask for it in the prompt. No other model returns an alpha channel.",
   );
   process.exit(1);
 }
@@ -122,10 +149,24 @@ console.log(`Model:  ${model}`);
 console.log(`Ratio:  ${ratio}`);
 console.log(`Prompt: ${promptText.length} chars`);
 
+const extras = {};
+for (const [flag, value] of [
+  ["background", background],
+  ["outputFormat", outputFormat],
+]) {
+  if (value === undefined) continue;
+  if (!MODEL_KEYS[model]?.includes(flag)) {
+    console.error(`✗ --${flag} is not accepted by ${model}.`);
+    process.exit(1);
+  }
+  extras[flag] = value;
+}
+if (Object.keys(extras).length) console.log(`Extras: ${JSON.stringify(extras)}`);
+
 const create = await fetch(`${API}/v1/text_to_image`, {
   method: "POST",
   headers,
-  body: JSON.stringify({ promptText, model, ratio }),
+  body: JSON.stringify({ promptText, model, ratio, ...extras }),
 });
 
 if (!create.ok) {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { acts, trustEngineCopy } from "@/content/trust-scenes";
 import type {
@@ -143,6 +143,63 @@ const s = {
   resolved: (n: number) => n >= REST,
 };
 
+/* ── THE DESIGN CANVAS ────────────────────────────────────────────────────
+   Everything inside the stage is laid out against a FIXED 1120x630 canvas
+   which is then scaled to whatever size the stage actually is.
+
+   The stage was a mix of two coordinate systems: percentages, which scale
+   with the frame, and pixels — panel min-widths, type sizes, certificate
+   tiles, padding — which do not. At the size it was tuned at that looked
+   deliberate. Render the same markup at 1920 and every fixed thing stays put
+   while the frame grows around it, so the panels shrink into the corners and
+   the middle empties out.
+
+   One transform fixes all of it at once, and it means the piece looks
+   identical at 900px, in a 1080p recording, and on whatever comes next —
+   there is only ever one layout to reason about.
+
+   1120x630 rather than a rounder number because that is the width the stage
+   renders at on a desktop page, which is where every position in this file
+   was judged by eye. */
+const DESIGN_W = 1120;
+const DESIGN_H = 630;
+
+/* useLayoutEffect warns when React renders on the server, where there is
+   nothing to measure — the fallback scale of 1 is the server's answer. */
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+/** How much to scale the canvas by, and how tall it has to be in canvas units
+ *  to fill the frame. Height is derived rather than fixed because the frame is
+ *  16:10 on a phone and 16:9 above it — the canvas stretches to match instead
+ *  of letterboxing. */
+function useStageScale(ref: React.RefObject<HTMLElement | null>) {
+  const [box, setBox] = useState({ scale: 1, height: DESIGN_H });
+
+  useIsomorphicLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const read = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (!w || !h) return;
+      const scale = w / DESIGN_W;
+      const height = h / scale;
+      setBox((prev) =>
+        Math.abs(prev.scale - scale) < 0.0005 && Math.abs(prev.height - height) < 0.5
+          ? prev
+          : { scale, height },
+      );
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+
+  return box;
+}
+
 /* The counterparty columns. Panels on a side are stacked and centred on the
    middle of the stage, so nothing here is a position — only how wide a column
    is, how far in it sits, and how far apart its panels stand.
@@ -209,13 +266,15 @@ export function TrustEngine({
      under someone who had just asked for Act two. A ref is current at the
      moment the callback actually runs. */
   const played = useRef(false);
+  const frameRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const { scale, height: canvasH } = useStageScale(frameRef);
   const timer = useRef<number | undefined>(undefined);
 
   /* The panels report their own footprint, so a leader starts on the real
      edge of its box. Matters most for the counterparties, which grow when
      their claim surfaces during the dispute. */
-  const { boxes, size, register, measure } = useBoxes(stageRef);
+  const { boxes, register, measure } = useBoxes(stageRef);
 
   const stop = useCallback(() => {
     if (timer.current) window.clearTimeout(timer.current);
@@ -286,6 +345,10 @@ export function TrustEngine({
   const showRecord = s.delphi(step);
   const showOwnerPhoto = s.ownerPhoto(step);
 
+  /* The canvas's own dimensions, for anything expressing a distance in pixels
+     rather than as a percentage. */
+  const CANVAS = { w: DESIGN_W, h: canvasH };
+
   /* Reading order down each column. Also the stacking order, so the panel on
      top is the one whose anchor sits highest on the vessel — otherwise their
      leaders cross on the way out. */
@@ -354,13 +417,25 @@ export function TrustEngine({
     <div className={cn("flex flex-col gap-6", className)}>
       <ChapterBar step={step} onJump={playFrom} reduced={reduced} />
 
+      {/* The FRAME holds the shape and the border; the STAGE inside it is a
+          fixed canvas scaled to fit. Nothing below this line knows what size
+          it is being drawn at — see DESIGN_W. */}
       <div
-        ref={stageRef}
-        className="relative isolate aspect-[16/10] w-full overflow-hidden rounded-lg border border-line-strong transition-[filter] md:aspect-[16/9]"
+        ref={frameRef}
+        className="relative aspect-[16/10] w-full overflow-hidden rounded-lg border border-line-strong transition-[filter] md:aspect-[16/9]"
         style={{
           /* Act One ends drained of colour. The freeze is the point. */
           filter: s.frozen(step) ? "grayscale(0.85)" : "none",
           transitionDuration: "var(--duration-slow)",
+        }}
+      >
+      <div
+        ref={stageRef}
+        className="absolute left-0 top-0 isolate origin-top-left"
+        style={{
+          width: `${DESIGN_W}px`,
+          height: `${canvasH}px`,
+          transform: `scale(${scale})`,
         }}
       >
         <StageGrid ground={scene.ground} />
@@ -464,14 +539,17 @@ export function TrustEngine({
           on={s.deliveryShared(step)}
           links={scene.parties.flatMap((p) => {
             const rr = boxes["record-verified"];
-            if (!rr || !size.w) return [];
+            if (!rr) return [];
             const pr = rectOf(p);
             const left = p.side === "left";
             /* Percentages everywhere else on this stage, but a path's `d` only
                accepts user units — and with no viewBox those are CSS pixels.
                Hence the conversion here rather than in the component. */
-            const px = (x: number) => (x / 100) * size.w;
-            const py = (y: number) => (y / 100) * size.h;
+            /* Canvas units, not screen pixels — the path is drawn inside the
+               scaled canvas, so a screen measurement would be multiplied by
+               the scale a second time. */
+            const px = (x: number) => (x / 100) * DESIGN_W;
+            const py = (y: number) => (y / 100) * canvasH;
             return [
               {
                 id: p.id,
@@ -531,8 +609,8 @@ export function TrustEngine({
                        the frame it certifies, so the two arrive from visibly
                        different places rather than along one shared path. */
                     from={[
-                      flightOrigin(boxes["code-delivery"], r, size),
-                      flightOrigin(boxes["code-redelivery"], r, size),
+                      flightOrigin(boxes["code-delivery"], r, CANVAS),
+                      flightOrigin(boxes["code-redelivery"], r, CANVAS),
                     ]}
                   />
                 </div>
@@ -691,6 +769,7 @@ export function TrustEngine({
           </p>
           <p className="text-body-sm text-ink-secondary">{title?.sub ?? " "}</p>
         </div>
+      </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-4">

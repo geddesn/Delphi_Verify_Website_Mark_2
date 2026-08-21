@@ -36,8 +36,9 @@
    PowerPoint, which wants MP4 and would need a real ffmpeg installed.
 
    Run:  node scripts/capture-trust.mjs [--url …] [--fps 12] [--width 1200]
-         [--colours 256] [--seconds 38] [--out <file>]
-         [--video]                       WebM instead of GIF
+         [--colours 256] [--seconds 44] [--out <file>]
+         [--video]        WebM instead of GIF, 1920x1080 by default
+         [--video --mp4]  H.264 MP4 — needs the ffmpeg-static devDependency
    ========================================================================= */
 
 import { chromium } from "playwright";
@@ -61,8 +62,24 @@ import {
    into a buffer dump of its own banner, so let it through. */
 const FF_IO = { stdio: ["ignore", "ignore", "inherit"] };
 
-/* Playwright keeps a static ffmpeg beside its browsers — VP8 and PNG only,
-   no H.264 and no image2 demuxer, but enough to cut a WebM. */
+/* TWO ffmpegs, and the difference matters.
+
+   Playwright ships one beside its browsers to encode its own screencasts:
+   VP8 and PNG only, no H.264, and no image2 demuxer to read a frame
+   sequence. ffmpeg-static is a full build — it is what makes MP4 possible,
+   and it is a devDependency rather than a system install so nothing outside
+   this folder has to change.
+
+   Prefer the full one wherever it is present; fall back to Playwright's so
+   the script still works from a bare checkout that has not run `npm i`. */
+async function fullFfmpeg() {
+  try {
+    const mod = await import("ffmpeg-static");
+    return mod.default ?? null;
+  } catch {
+    return null;
+  }
+}
 function findFfmpeg() {
   const root = join(
     process.env.LOCALAPPDATA ?? process.env.HOME ?? "",
@@ -88,13 +105,20 @@ const FPS = Number(arg("fps", 12));
    the note by the quantiser before reaching for it — on type over a flat
    ground it costs more than it saves. */
 const COLOURS = Number(arg("colours", 256));
-const WIDTH = Number(arg("width", 1200));
+const VIDEO = argv.includes("--video");
+/* MP4 needs H.264, which only the full ffmpeg has — see fullFfmpeg below. */
+const MP4 = argv.includes("--mp4");
+
+/* Video defaults to 1920 wide because YouTube buckets by HEIGHT: at 900 it
+   will never offer a 1080p option however clean the source is. */
+const WIDTH = Number(arg("width", VIDEO ? 1920 : 1200));
 /* The whole piece: five seconds of title card, then roughly seventeen each
    for the two acts and a beat for the turn, plus a little to rest on the
    final frame. */
 const SECONDS = Number(arg("seconds", 44));
-const VIDEO = argv.includes("--video");
-const OUT = resolve(arg("out", VIDEO ? "trust-engine.webm" : "trust-engine.gif"));
+const OUT = resolve(
+  arg("out", VIDEO ? (MP4 ? "trust-engine.mp4" : "trust-engine.webm") : "trust-engine.gif"),
+);
 
 /* Recording the viewport means the stage has to BE the viewport. Everything
    else on the page is hidden rather than scrolled away, because a fixed
@@ -145,7 +169,12 @@ const browser = await chromium.launch();
 /* 16:9 for video, matching the stage's own aspect so nothing is letterboxed.
    The GIF path keeps a taller viewport because it clips the stage out of a
    normal page rather than making the stage the page. */
-const VIDEO_SIZE = { width: 1600, height: 900 };
+/* 1920x1080, because YouTube buckets by HEIGHT: at 900 it will never offer a
+   1080p option however clean the source is. --width overrides. */
+const VIDEO_SIZE = {
+  width: VIDEO ? WIDTH : 1600,
+  height: VIDEO ? Math.round((WIDTH * 9) / 16) : 900,
+};
 /* Recording begins the moment the context exists, which is before the page
    has even loaded — so the lead-in is measured and trimmed off at the end
    rather than left as several seconds of a still frame. */
@@ -272,13 +301,31 @@ if (VIDEO) {
      Re-encoding makes the cut exact. At 2 Mbps against an 0.9 Mbps source the
      loss is not visible, and it is the only way to be certain what the first
      frame is. */
-  const ffmpeg = findFfmpeg();
+  const full = await fullFfmpeg();
+  const ffmpeg = full ?? findFfmpeg();
+
+  if (MP4 && !full) {
+    console.error("\n✗ MP4 needs the full ffmpeg: npm i -D ffmpeg-static");
+    process.exit(1);
+  }
+
   if (ffmpeg && leadIn > 0.5) {
+    /* One pass: seek, trim and encode together. H.264 where it is available,
+       VP8 where it is not.
+
+       yuv420p and +faststart are not optional for anything that will be
+       uploaded or embedded — 4:2:0 is what every player and every platform
+       decodes, and faststart moves the index to the front so a browser can
+       begin playing before the file has finished arriving. */
+    const codec = MP4
+      ? ["-c:v", "libx264", "-crf", "18", "-preset", "slow",
+         "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
+      : ["-c:v", "libvpx", "-b:v", "2M", "-deadline", "good",
+         "-cpu-used", "2", "-auto-alt-ref", "0"];
+
     execFileSync(
       ffmpeg,
-      ["-y", "-ss", leadIn.toFixed(2), "-i", raw,
-       "-c:v", "libvpx", "-b:v", "2M", "-deadline", "good", "-cpu-used", "2",
-       "-auto-alt-ref", "0", OUT],
+      ["-y", "-ss", leadIn.toFixed(2), "-i", raw, ...codec, OUT],
       FF_IO,
     );
     console.log(`

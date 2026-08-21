@@ -50,10 +50,6 @@ function unchanged(a: Record<string, Rect>, b: Record<string, Rect>) {
 
 export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
   const [boxes, setBoxes] = useState<Record<string, Rect>>({});
-  /* The stage's pixel size, so callers can turn a distance between two rects
-     into a CSS translate. Percentages cannot: a transform percentage is a
-     share of the ELEMENT, not of the stage it is crossing. */
-  const [size, setSize] = useState({ w: 0, h: 0 });
   const nodes = useRef(new Map<string, HTMLElement>());
   const callbacks = useRef(new Map<string, (el: HTMLElement | null) => void>());
   const observer = useRef<ResizeObserver | null>(null);
@@ -76,11 +72,6 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
       };
     });
     setBoxes((prev) => (unchanged(prev, next) ? prev : next));
-    setSize((prev) =>
-      Math.abs(prev.w - s.width) < 1 && Math.abs(prev.h - s.height) < 1
-        ? prev
-        : { w: s.width, h: s.height },
-    );
   }, [stageRef]);
 
   /* The observer's path through here is DEBOUNCED; the direct one is not.
@@ -134,5 +125,5 @@ export function useBoxes(stageRef: React.RefObject<HTMLElement | null>) {
     };
   }, [measure, scheduleMeasure, stageRef]);
 
-  return { boxes, size, register, measure };
+  return { boxes, register, measure };
 }

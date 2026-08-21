@@ -225,11 +225,10 @@
      mask, not a dark scrim — so the tile keeps its own surface colour in both
      themes and the label stays on flat ground.
      Only the alpha of these stops matters; the hues are inert. */
-  /* Front-loaded on purpose: a quick drop off the solid left edge, then a long
-     faint tail that carries almost to the tile's right edge. Ending the fade
-     abruptly — even far to the right — reads as the picture being cut off; a
-     tail that thins to nothing does not. The tail is what lets the fade travel
-     past the label without fighting it. */
+  /* A near-linear ramp, deliberately, rather than a fast drop and a faint
+     tail. It holds the picture at real strength most of the way across the
+     tile and only lets go near the right edge, so the thumbnail reads as a
+     photograph that dissolves rather than as a sliver that stops. */
   --tile-thumb-fade: linear-gradient(
     to right,
     oklch(0% 0 0 / 1) 0%,
@@ -253,18 +252,16 @@
      interiors sitting on a pale raised surface read as a smudge rather than
      as a photograph.
 
-     Full strength is safe here only because the MASK clears the label — which
-     is measured, not assumed. The labels are centred, so the LONGEST one
-     starts furthest left and sets the constraint: "Construction" is the word
-     to check.
+     Note what this means for the labels, because it is a deliberate choice
+     and not an oversight: the ramp above does NOT clear them. On a 214px tile
+     with a 187px thumbnail, the label text begins between 92px and 113px from
+     the left edge — "Construction" earliest, because the labels are centred
+     and it is the longest word — which puts every label over roughly 0.38 to
+     0.51 alpha. Legibility here rests on the type, not on the mask: the
+     labels are semibold ink and the photographs are pale interiors.
 
-     The binding constraint is absolute pixels, not proportions. The fade has
-     to be finished before that word begins — about 98px from the tile's left
-     edge now that the label is centred in the right two-thirds, against 55px
-     when it was centred across the whole tile. Widening --tile-thumb-width
-     does NOT by itself buy room: it moves the stops further right in pixels
-     while the label stays put, so width and stops have to move together.
-     Add a longer sector name and this needs re-measuring.
+     So if a darker or busier photograph is ever added to the set, this is
+     where it will show up first, and "Construction" is the tile to look at.
      Single value for both themes, as --backdrop-opacity is. */
   --tile-thumb-opacity: 1;
 

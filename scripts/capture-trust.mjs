@@ -150,21 +150,39 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-await page.goto(URL, { waitUntil: "networkidle" });
+/* "load", not "networkidle". A Vite dev server holds an HMR websocket open
+   for the life of the page, so the network never goes idle and goto can sit
+   there until it times out — silently, because nothing has been logged yet.
+   Everything this needs is present at load; the explicit waits below cover
+   the rest. */
+page.setDefaultTimeout(20_000);
+await page.goto(URL, { waitUntil: "load", timeout: 30_000 });
 
 const stage = page.locator(".isolate").first();
-await stage.waitFor();
+await stage.waitFor({ state: "attached" });
+/* One image is enough to know the assets are being served. */
+await page
+  .locator('img[src*="yacht-cutout"]')
+  .first()
+  .waitFor({ state: "attached" });
+console.log("  page ready");
+
+/* Pin the stage BEFORE anything else touches the page.
+   Recording it while it is still an element on a scrolling page means the
+   scroll into view is in the footage, and trimming that off afterwards does
+   not work reliably: the cut is a stream copy, so it snaps back to the
+   nearest keyframe and lands somewhere in the middle of the movement. Once
+   the stage is fixed to the viewport there is nothing to scroll to. */
+if (VIDEO) await page.evaluate(fillViewport);
 
 /* Everything decoded before the first frame: an image popping in halfway
    through is the one artefact a viewer will notice every time. */
-await page.evaluate(async () => {
-  const el = document.querySelector(".isolate");
-  el?.scrollIntoView({ block: "center" });
+await page.evaluate(async (scroll) => {
+  if (scroll) document.querySelector(".isolate")?.scrollIntoView({ block: "center" });
   await Promise.all(
     [...document.querySelectorAll("img")].map((i) => i.decode().catch(() => {})),
   );
-});
-if (VIDEO) await page.evaluate(fillViewport);
+}, !VIDEO);
 await page.waitForTimeout(1200);
 
 /* Start from the top rather than wherever the scroll trigger left it. */
@@ -184,7 +202,7 @@ if (VIDEO) {
      compositor produces, which is the point — no screenshot loop can keep up
      with a CSS transition, and the ones it misses are exactly the frames a
      draw or a flight is made of. */
-  process.stdout.write(`  recording ${SECONDS}s…`);
+  console.log(`  recording ${SECONDS}s…`);
   await page.waitForTimeout(SECONDS * 1000);
 
   /* Order matters. Closing the context is what finalises the file, but the

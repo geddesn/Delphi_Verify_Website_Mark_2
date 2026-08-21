@@ -200,7 +200,7 @@ export const yachtsScene: TrustScene = {
       holds: "Conducts delivery and redelivery — and holds the phone.",
       side: "left",
       /* The wheelhouse — the captain is the person conning the vessel. */
-      anchor: { x: 54, y: 57 },
+      anchor: { x: 54, y: 50.5 },
       claim: "She was perfect at delivery.",
       enters: { one: "a1-captain", two: "a2-captain" },
     },
@@ -211,14 +211,14 @@ export const yachtsScene: TrustScene = {
       holds: "Takes her for two weeks, and carries the cost if the account is wrong.",
       side: "right",
       /* The aft deck, where a charter party actually boards. */
-      anchor: { x: 68, y: 66 },
+      anchor: { x: 68, y: 59.5 },
       claim: "That was already there.",
       enters: { one: "a1-charterer", two: "a2-charterer" },
     },
   ],
 
   incident: {
-    anchor: { x: 48, y: 67 },
+    anchor: { x: 48, y: 60.5 },
     label: "Saloon · leather seating, torn",
   },
 

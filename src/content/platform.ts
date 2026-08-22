@@ -594,7 +594,19 @@ export const technicalLink = {
   href: "/platform/technical",
 } as const;
 
-/* Real app screenshots cross-fading over the backdrop in the hero.
+/* NO LONGER RENDERED. Both heroes — this page's and the homepage's — now
+   cycle the interface renderings inside a device frame instead, and
+   AppScreenCycle, which was the only thing that read this list, has gone
+   with them. See components/renderings/mobileScreens.tsx.
+
+   Kept because it is not really a list of hero slides: it is the record of
+   which product masters exist and, more usefully, which three were left out
+   and why. That second part took a look at every screenshot in the Assets
+   folder and would have to be redone from scratch. The masters themselves
+   are still very much in use — PhoneShot serves them on /verify and in the
+   three stages of `howItWorks` above.
+
+   Real app screenshots cross-fading over the backdrop in the hero.
 
    Only the five curated product shots. The Assets folder also holds
    screenshots_splash, screenshots_settings and screenshots_login — all three

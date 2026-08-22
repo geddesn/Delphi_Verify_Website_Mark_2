@@ -5,11 +5,20 @@ import { PhoneShot } from "@/components/product/PhoneShot";
 
 /* The public verification entry point. Codes are eight characters (see
    PRODUCT_TECHNICAL_DESCRIPTION §4.3). This page validates and normalises
-   locally, then hands off to the verification report.
+   locally, then hands off to the real verification report.
 
-   NOTE: VERIFY_REPORT_BASE must point at wherever the report is served.
-   Left as a relative path so it works once the report route exists. */
-const VERIFY_REPORT_BASE = "/verify";
+   ABSOLUTE, NOT RELATIVE, and deliberately. `/v/CODE` is served by the
+   verification app rather than by this static site, so a relative path
+   resolves against whatever host the page happens to be on — and every host
+   this site runs on except production would answer it with the SPA's own
+   404. A preview build, a local dev server and a staging deploy would each
+   swallow a real certificate lookup. The one destination that is always
+   correct is the live one.
+
+   The report takes the code UNHYPHENATED — /v/W1MQE4ML, not /v/W1MQ-E4ML —
+   which is what `normalise` already produces. The hyphen exists only in how
+   a certificate prints its reference; see `format` below. */
+const VERIFY_REPORT_BASE = "https://delphiverify.com/v";
 const CODE_LENGTH = 8;
 
 /** Strips formatting down to the eight significant characters. */

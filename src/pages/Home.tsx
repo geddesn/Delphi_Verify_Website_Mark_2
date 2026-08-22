@@ -8,9 +8,10 @@ import {
 import { ButtonLink, ArrowRight } from "@/components/ui/Button";
 import { TrustEngine } from "@/components/trust/TrustEngine";
 import { yachtsScene, trustEngineCopy } from "@/content/trust-scenes";
-import { hero, heroScreens, closing } from "@/content/home";
+import { hero, closing } from "@/content/home";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
-import { AppScreenCycle } from "@/components/product/AppScreenCycle";
+import { HeroDevices } from "@/components/product/HeroDevices";
+import { heroPairs } from "@/components/renderings/heroScreens";
 import { industryBackdrops } from "@/content/industries";
 import { IndustryTiles } from "@/components/industries/IndustryTiles";
 import { ctas } from "@/content/site";
@@ -47,10 +48,12 @@ export default function Home() {
           phone makes the same point without asking anyone to read a panel of
           example data, and the stage below proves it properly.
 
-          z-10 and NO overflow-hidden, both load-bearing: the phone is taller
-          than the section and is meant to stand in front of the page rather
-          than be cropped by it. The backdrop clips itself, so the section does
-          not have to clip both. */}
+          z-10 and NO overflow-hidden: the backdrop clips itself, so the
+          section does not have to clip both, and a device that ever grows
+          past the section can stand in front of the page rather than being
+          cut off by it. An earlier version of the device block ran off the
+          right edge and did need the clip — see the size note in
+          HeroDevices for why it does not any more. */}
       {/* padding="none" so the pt/pb below are unopposed — a base py-* from
           sectionPadding beats a className one on source order, not intent.
           The top is the top of the page and keeps its full measure; the
@@ -63,7 +66,7 @@ export default function Home() {
       >
         <GridBackdrop />
         <SceneBackdrop frames={industryBackdrops} />
-        <AppScreenCycle shots={heroScreens} />
+        <HeroDevices pairs={heroPairs} />
         <Container className="relative z-10">
           <div className="flex max-w-3xl flex-col gap-7">
             <Eyebrow>{hero.eyebrow}</Eyebrow>

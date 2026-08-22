@@ -85,11 +85,17 @@ export const pattern = {
     "When these conditions are present, disagreement about physical reality becomes expensive. Delphi Verify gives both sides a stronger shared record of what was observed — in a form either can check independently.",
 } as const;
 
-/* The hero's phone. Three screens rather than the platform page's five: the
-   homepage is making one point — capture it, seal it, check it — and a longer
-   cycle starts to read as a product tour before the reader has been told what
-   the product is for. */
-export const heroScreens = ["capture", "certificate", "scan"] as const;
+/* The hero's phone.
+   Was three flat screenshots of the iOS app — capture, certificate, scan —
+   and is now the interface renderings, drawn as real DOM inside the same
+   device frame /platform/renderings uses. Which screens appear is decided in
+   the page rather than here, because they are components rather than content.
+
+   ⚠️  THEY ARE RENDERINGS. The homepage now shows the product as designed
+   rather than as shipped, and nothing on this page says so. See the warning
+   at the top of content/renderings.ts — it is the one dishonesty a company
+   selling provenance cannot afford, and if the hero keeps them it wants a
+   marker. */
 
 /* ── Closing CTA ──────────────────────────────────────────────────────────
    The previous homepage ended at the footer with no closing call to action —

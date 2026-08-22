@@ -121,7 +121,9 @@ product changes, re-check `src/content/platform.ts` first.
       used as proof (deferred — see `docs/DESIGN-DECISIONS.md` §7).
 - [ ] Fill in or keep hidden the company placeholders.
 - [ ] **Legal review of `/privacy` and `/terms`** — they render draft content with visible reviewer notes and must not ship in that state.
-- [ ] Point `/verify` at the real certificate report route.
+- [x] ~~Point `/verify` at the real certificate report route.~~ The form now
+      hands off to `https://delphiverify.com/v/<CODE>` — absolute, because that
+      route is served by the verification app and not by this site.
 - [ ] Replace the `mailto:` on `/contact` if a form endpoint exists.
 - [ ] Decide the localisation plan (see `docs/DESIGN-DECISIONS.md` §7).
 

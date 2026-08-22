@@ -12,7 +12,8 @@ import { PanelLogo } from "@/components/annotation/Panel";
 import { EventIcon, type EventName } from "@/components/product/EventIcon";
 import { PhoneShot, type ShotName } from "@/components/product/PhoneShot";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
-import { AppScreenCycle } from "@/components/product/AppScreenCycle";
+import { HeroDevices } from "@/components/product/HeroDevices";
+import { heroPairs } from "@/components/renderings/heroScreens";
 import {
   platformHero,
   howItWorks,
@@ -20,7 +21,6 @@ import {
   moments,
   signals,
   corroboration,
-  platformScreens,
 } from "@/content/platform";
 import { industryBackdrops, outcomes } from "@/content/industries";
 
@@ -52,15 +52,15 @@ import { industryBackdrops, outcomes } from "@/content/industries";
 export default function Platform() {
   return (
     <>
-      {/* `isolate` gives the backdrop a stacking context to sit behind without
-          escaping the section; `overflow-hidden` keeps the masked image inside
-          it when the viewport is narrower than the image.
+      {/* The backdrop masks and clips itself, so this section does not have
+          to — which is what lets the device block stand in front of the page
+          if it ever grows past the section rather than being cut off.
 
           TEMPORARY: borrowing the industries frames. Platform should get its
           own set — see platformBackdrops in content/platform.ts. */}
       <Section tone="inverse" className="relative z-10">
         <SceneBackdrop frames={industryBackdrops} />
-        <AppScreenCycle shots={platformScreens} />
+        <HeroDevices pairs={heroPairs} />
         <Container className="relative z-10">
           <div className="flex max-w-3xl flex-col gap-6">
             <Eyebrow>{platformHero.eyebrow}</Eyebrow>

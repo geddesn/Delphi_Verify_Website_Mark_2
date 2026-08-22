@@ -31,21 +31,59 @@ const NOTCH_HEIGHT = 31;
    shows a sequence being worked through, which is the thing being claimed. */
 const PROGRESS = { done: 4, of: 12 };
 
+/* WHAT IS BEING CAPTURED. The screen itself is generic — the workflow supplies
+   the subject, the plan and the requirements, which is the actual architecture
+   of guided capture and not a convenience for this file. The property below is
+   the default because it is what /platform/renderings shows; the trust engine
+   passes a yacht through the same component. */
+export type CaptureSubject = {
+  asset: string;
+  /** Workflow and stage, one line: "Listing Evidence Capture · Property Sale". */
+  job: string;
+  /** The single item due right now. */
+  subject: string;
+  instruction: string;
+  /** The viewfinder picture, already sized. */
+  image: string;
+  imageSrcSet?: string;
+  imageSizes?: string;
+  /** The ordered plan. The item at `done` is the one in the viewfinder. */
+  plan: readonly string[];
+  done: number;
+  /** Required captures in total, which may be more than `plan` shows. */
+  total: number;
+};
+
 /* The plan, in the order it is walked. Two things are load-bearing here: the
    completed items are named rooms rather than ticks, so a reader sees that
    Delphi decided what was required; and the current item is not first, so the
    list obviously continues above and below. */
 const PLAN = [
-  { label: "Property entrance", state: "done" as const },
-  { label: "Address / number", state: "done" as const },
-  { label: "Entrance hall", state: "done" as const },
-  { label: "Reception room", state: "done" as const },
-  { label: "Front elevation", state: "current" as const },
-  { label: "Kitchen", state: "todo" as const },
-  { label: "Principal bedroom", state: "todo" as const },
-  { label: "Garden", state: "todo" as const },
-  { label: "Rear elevation", state: "todo" as const },
+  "Property entrance",
+  "Address / number",
+  "Entrance hall",
+  "Reception room",
+  "Front elevation",
+  "Kitchen",
+  "Principal bedroom",
+  "Garden",
+  "Rear elevation",
 ];
+
+const PROPERTY: CaptureSubject = {
+  asset: "14 Berkeley Square",
+  job: "Listing Evidence Capture · Property Sale",
+  subject: "Front Elevation",
+  instruction:
+    "Capture the full front of the property from across the street, with the main entrance in frame.",
+  image: "/assets/renderings/townhouse-facade-736.webp",
+  imageSrcSet:
+    "/assets/renderings/townhouse-facade-368.webp 368w, /assets/renderings/townhouse-facade-736.webp 736w",
+  imageSizes: "300px",
+  plan: PLAN,
+  done: PROGRESS.done,
+  total: PROGRESS.of,
+};
 
 /* Four, compact, and never more than a word or two. The brief is explicit
    that this must not become a technical panel — the reader should register
@@ -58,17 +96,22 @@ const CHECKS = [
   { label: "Integrity", ok: true },
 ];
 
-export function MobileCapture() {
+export function MobileCapture({
+  subject = PROPERTY,
+}: {
+  subject?: CaptureSubject;
+} = {}) {
+  const s = subject;
   return (
     <div
       data-theme="light"
       className="flex h-full w-full flex-col overflow-hidden bg-surface text-ink"
     >
       <StatusBar />
-      <TaskHeader />
-      <Instruction />
-      <Viewfinder />
-      <CapturePlan />
+      <TaskHeader s={s} />
+      <Instruction s={s} />
+      <Viewfinder s={s} />
+      <CapturePlan s={s} />
     </div>
   );
 }
@@ -126,18 +169,18 @@ function StatusBar() {
 /* Where the reader is, and in what. The progress bar is the only chrome the
    brief asks to be "very visible" — it is what says this is a sequence with
    an end rather than an open-ended camera roll. */
-function TaskHeader() {
-  const pct = (PROGRESS.done / PROGRESS.of) * 100;
+function TaskHeader({ s }: { s: CaptureSubject }) {
+  const pct = (s.done / s.total) * 100;
   return (
     <div className="shrink-0 px-[20px] pb-[11px]">
       <div className="flex items-center gap-[10px]">
         <Icon name="back" className="h-[19px] w-[19px] shrink-0 text-ink-secondary" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[16px] font-bold leading-tight tracking-[-0.015em]">
-            14 Berkeley Square
+            {s.asset}
           </span>
           <span className="block truncate text-[11.5px] leading-tight text-ink-secondary">
-            Listing Evidence Capture · Property Sale
+            {s.job}
           </span>
         </span>
       </div>
@@ -150,7 +193,7 @@ function TaskHeader() {
           />
         </span>
         <span className="shrink-0 text-[11px] font-semibold tabular-nums text-ink-secondary">
-          {PROGRESS.done} of {PROGRESS.of}
+          {s.done} of {s.total}
         </span>
       </div>
     </div>
@@ -159,15 +202,14 @@ function TaskHeader() {
 
 /* What the person does. Prose, not parameters — and short enough to be read
    standing on a pavement holding a phone. */
-function Instruction() {
+function Instruction({ s }: { s: CaptureSubject }) {
   return (
     <div className="shrink-0 px-[20px] pb-[8px]">
       <h1 className="text-[19px] font-bold leading-tight tracking-[-0.02em]">
-        Front Elevation
+        {s.subject}
       </h1>
       <p className="mt-[3px] text-[12.5px] leading-[1.35] text-ink-secondary">
-        Capture the full front of the property from across the street, with the
-        main entrance in frame.
+        {s.instruction}
       </p>
     </div>
   );
@@ -176,16 +218,17 @@ function Instruction() {
 /* The live camera. A still photograph asked to read as a viewfinder, which it
    only does if it moves — see the cam-drift / cam-shake note in theme.css.
    Two nested elements because the two motions must not share a transform. */
-function Viewfinder() {
+function Viewfinder({ s }: { s: CaptureSubject }) {
   return (
     <div className="relative mx-[20px] shrink-0 overflow-hidden rounded-[18px] bg-ink">
       <div className="relative aspect-[358/340] w-full overflow-hidden">
         <div className="cam-drift absolute inset-0">
           <div className="cam-shake absolute inset-0">
             <img
-              src="/assets/renderings/townhouse-facade-736.webp"
-              srcSet="/assets/renderings/townhouse-facade-368.webp 368w, /assets/renderings/townhouse-facade-736.webp 736w"
-              sizes="300px"
+              key={s.image}
+              src={s.image}
+              srcSet={s.imageSrcSet}
+              sizes={s.imageSizes}
               alt=""
               aria-hidden
               loading="lazy"
@@ -214,7 +257,7 @@ function Viewfinder() {
         {/* Subject label, top left. The one overlay that says what Delphi
             believes it is looking at. */}
         <span className="absolute left-[14px] top-[13px] rounded-full bg-ink/55 px-[10px] py-[4px] text-[10.5px] font-semibold uppercase tracking-[0.07em] text-ink-inverse backdrop-blur-sm">
-          Front elevation
+          {s.subject}
         </span>
 
         {/* The quality hint — one line, present tense, and green because it
@@ -245,7 +288,7 @@ function Viewfinder() {
 
 /* The shutter sits IN the plan block rather than floating over the camera, so
    the eye goes picture -> button -> what is left. */
-function CapturePlan() {
+function CapturePlan({ s }: { s: CaptureSubject }) {
   return (
     <div className="mt-[9px] flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center justify-center pb-[9px]">
@@ -260,40 +303,48 @@ function CapturePlan() {
             Capture plan
           </h2>
           <span className="text-[11px] text-ink-muted">
-            {PROGRESS.of - PROGRESS.done} remaining
+            {s.total - s.done} remaining
           </span>
         </div>
 
         <ul className="mt-[9px] flex flex-col gap-[7px]">
-          {PLAN.map((p) => (
-            <li
-              key={p.label}
-              className={cn(
-                "flex items-center gap-[9px] text-[12.5px]",
-                p.state === "current" && "font-semibold text-ink",
-                p.state === "done" && "text-ink-muted",
-                p.state === "todo" && "text-ink-secondary",
-              )}
-            >
-              {p.state === "done" && (
-                <Icon name="check" className="h-[13px] w-[13px] shrink-0 text-verified" />
-              )}
-              {p.state === "current" && (
-                <span className="flex h-[13px] w-[13px] shrink-0 items-center justify-center">
-                  <span className="h-[9px] w-[9px] rounded-full border-[3px] border-accent" />
-                </span>
-              )}
-              {p.state === "todo" && (
-                <span className="h-[13px] w-[13px] shrink-0 rounded-full border border-line-strong" />
-              )}
-              <span className="truncate">{p.label}</span>
-              {p.state === "current" && (
-                <span className="ml-auto shrink-0 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-accent">
-                  Now
-                </span>
-              )}
-            </li>
-          ))}
+          {/* State is derived from position rather than stored beside each
+              label: anything before `done` is finished, the item AT it is in
+              the viewfinder, the rest are waiting. One number moves the whole
+              list, which is what lets the trust engine step it. */}
+          {s.plan.map((label, i) => {
+            const state =
+              i < s.done ? "done" : i === s.done ? "current" : "todo";
+            return (
+              <li
+                key={label}
+                className={cn(
+                  "flex items-center gap-[9px] text-[12.5px]",
+                  state === "current" && "font-semibold text-ink",
+                  state === "done" && "text-ink-muted",
+                  state === "todo" && "text-ink-secondary",
+                )}
+              >
+                {state === "done" && (
+                  <Icon name="check" className="h-[13px] w-[13px] shrink-0 text-verified" />
+                )}
+                {state === "current" && (
+                  <span className="flex h-[13px] w-[13px] shrink-0 items-center justify-center">
+                    <span className="h-[9px] w-[9px] rounded-full border-[3px] border-accent" />
+                  </span>
+                )}
+                {state === "todo" && (
+                  <span className="h-[13px] w-[13px] shrink-0 rounded-full border border-line-strong" />
+                )}
+                <span className="truncate">{label}</span>
+                {state === "current" && (
+                  <span className="ml-auto shrink-0 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-ink-accent">
+                    Now
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

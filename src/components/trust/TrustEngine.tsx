@@ -11,6 +11,11 @@ import type {
 } from "@/content/trust-scenes";
 import { AnchorDot, Leaders, type LeaderSpec } from "@/components/annotation/Leaders";
 import { AnnotationPanel, PanelImage, PanelLogo } from "@/components/annotation/Panel";
+import { PhoneFrame } from "@/components/renderings/PhoneFrame";
+import {
+  MobileCapture,
+  type CaptureSubject,
+} from "@/components/renderings/MobileCapture";
 import type { Align, Box, Rect } from "@/components/annotation/geometry";
 import { useBoxes } from "@/components/annotation/useBoxes";
 
@@ -67,6 +72,19 @@ const STEPS = [
   /* ── ACT TWO — with a record ── */
   { id: "a2-asset", ms: 1100 },
   { id: "a2-captain", ms: 1100 }, // the person who will do the capturing
+  /* The phone comes up ALONE, and before the record exists. Both of those
+     matter. Alone, because it is the only new object in Act Two and a viewer
+     needs a beat to notice it arrive; before the record, because the order is
+     the argument — somebody starts capturing, and THEN there is a record for
+     it to go into. Reverse the two and the record looks like it was waiting
+     to be filled, which is the passive version of the same picture.
+
+     1500ms because the reveal itself is 1200 (see revealDuration on the
+     survey card). The beat has to outlast the fade or the phone is still
+     arriving when the next thing happens, which is what made this jerky. */
+  { id: "a2-phone", ms: 1500 },
+  /* …and now the empty record opens, with somewhere for the captures to go. */
+  { id: "a2-record", ms: 1200 },
   /* ⭐ THE ONE DIFFERENCE, and it gets eight beats rather than one.
      "Her condition is recorded first" used to be a single step in which a
      finished certificate simply appeared, which asked a viewer to take the
@@ -165,19 +183,29 @@ const s = {
   shotFiled: (n: number, i: number) => n >= SHOT_STEPS[i],
   /** The record shows its empty grid from the moment it opens until it
    *  resolves to the frame the argument is actually about. */
-  collecting: (n: number) => n >= at("a2-captain") && n < at("a2-capture"),
+  collecting: (n: number) => n >= at("a2-record") && n < at("a2-capture"),
+
+  /* The phone is on the stage for the WHOLE survey — from its own beat, all
+     the way through the filing, and out only once the record is what is
+     left. It used to be on exactly the eight beats a capture was being taken,
+     which meant a 420ms reveal inside a 520ms beat: it popped in, changed
+     picture eight times and popped out. Nothing was wrong with the fade, it
+     was never given long enough to be one. */
+  surveyPhone: (n: number) => n >= at("a2-phone") && n < at("a2-capture"),
 
   /* Act One's occupant of the top slot: the photograph one side happens to
      have. Never in Act Two, where the record has the slot instead — the two
      are mutually exclusive by construction, which is the point. */
   ownerPhoto: (n: number) => n >= at("a1-photo") && n < TURN,
-  /* OPEN AND EMPTY from the moment the captain arrives, which is a beat
-     before the first capture. The captures have to have somewhere to go: a
-     photograph flying to a point on a bare stage is a photograph flying into
-     nothing, and the viewer has to be told afterwards that a record was
-     being made. An empty certificate sitting there says it in advance, and
-     then the survey visibly fills it. */
-  delphi: (n: number) => n >= at("a2-captain"),
+  /* OPEN AND EMPTY before the first capture, so the captures have somewhere
+     to go: a photograph flying to a point on a bare stage is a photograph
+     flying into nothing, and the viewer has to be told afterwards that a
+     record was being made. An empty certificate sitting there says it in
+     advance, and then the survey visibly fills it.
+
+     It opens AFTER the phone rather than with the captain, so the sequence
+     reads phone, record, fill — see the note on the a2-phone beat. */
+  delphi: (n: number) => n >= at("a2-record"),
 
   /* Made, then handed out. The gap between these two is the beat. */
   deliveryCert: (n: number) => n >= at("a2-capture"),
@@ -398,7 +426,26 @@ export function TrustEngine({
      narrative has beats simply never shows the extra ones — SHOT_STEPS is
      undefined past SURVEY_SHOTS and every comparison against it is false. */
   const liveShot = scene.survey.findIndex((_, i) => s.shotLive(step, i));
-  const shot = liveShot >= 0 ? scene.survey[liveShot] : undefined;
+  /* The phone outlives the eight capture beats, so it needs something on it
+     before the first and after the last: the first item of the plan waiting
+     at 0 of 8, and the finished list at 8 of 8. Between, it is whichever
+     capture is live. */
+  const phoneOn = s.surveyPhone(step);
+  const beforeSurvey = step < SHOT_STEPS[0];
+  /* ALWAYS a shot, never undefined — the phone's visibility is `phoneOn` and
+     nothing else. Gating the CONTENT on it as well unmounted the device the
+     instant it was told to leave, so the panel spent its 1200ms fading an
+     empty box and the phone simply vanished. A thing cannot fade out after it
+     has already gone. */
+  const shot =
+    scene.survey[
+      liveShot >= 0 ? liveShot : beforeSurvey ? 0 : scene.survey.length - 1
+    ];
+  /* The COUNT, which is not the index: mid-survey the live capture is the one
+     being taken and is not finished yet, but once the survey is over all of
+     them are. */
+  const shotsDone =
+    liveShot >= 0 ? liveShot : beforeSurvey ? 0 : scene.survey.length;
   const showRecord = s.delphi(step);
   const showOwnerPhoto = s.ownerPhoto(step);
 
@@ -466,10 +513,20 @@ export function TrustEngine({
       id: "survey-card",
       panel: SURVEY_CARD.panel,
       align: SURVEY_CARD.align,
-      anchor: (shot ?? scene.survey[scene.survey.length - 1]).anchor,
+      anchor: shot.anchor,
       box: SURVEY_CARD.box,
       from: "left",
-      on: !!shot,
+      /* The SURVEY, not the phone. The two used to be the same span and are
+         not any more: the device is on stage from its own beat until the
+         record resolves, while this line should only exist while captures are
+         actually being taken. Left tied to the phone it drew from an idle
+         device to the hull before anything had been captured, and retracted
+         on the same frame the phone began to leave — which is the flicker.
+
+         `liveShot >= 0` is true on each of the eight beats and nowhere else,
+         so it still draws once at the first capture and retracts once after
+         the last, exactly as before. */
+      on: liveShot >= 0,
     },
     {
       /* One leader for the top slot, its id following whichever panel is in
@@ -838,9 +895,9 @@ export function TrustEngine({
             eight that anybody ever has cause to look at again. */}
         <SurveyCard
           shot={shot}
-          index={liveShot}
-          count={scene.survey.length}
-          on={!!shot}
+          index={shotsDone}
+          plan={scene.survey.map((v) => v.label)}
+          on={phoneOn}
           boxRef={register("survey-card")}
           frameRef={register("survey-frame")}
         />
@@ -1112,9 +1169,14 @@ const SURVEY_CARD = {
      filling up opposite it: taken on the right, filed on the left. */
   panel: { x: 96, y: 4 } as StagePoint,
   align: "top-right" as Align,
-  width: "w-[30%] min-w-[264px]",
+  /* Narrower and much taller than the landscape card it replaced, because it
+     is now a phone. 22% of the 1120 stage is ~246px, which leaves the capture
+     screen legible at stage scale while the whole device still clears the
+     630 the stage has to give it. Widen this and the phone runs off the
+     bottom; the two are locked together by the frame's own 928:1824. */
+  width: "w-[22%] min-w-[212px]",
   /* Fallback footprint only — the card is measured. */
-  box: { w: 30, h: 33 } as Box,
+  box: { w: 22, h: 78 } as Box,
 };
 
 /* The waiting certificate's contents: a grid of empty frames that the survey
@@ -1462,17 +1524,62 @@ function HeldCertificates({
  *  The counter is not decoration. It says the survey is systematic and
  *  finite: a viewer who sees "3 / 8" knows there are five more coming and
  *  reads the sequence as a procedure rather than as a slideshow. */
+/* The survey, as the person aboard sees it.
+ *
+ *  This was a photograph in a bordered card — the shot, its room and its
+ *  stamp. It is now the actual capture screen, in the actual device, running
+ *  the actual plan: the same MobileCapture the platform pages show, handed a
+ *  yacht instead of a house.
+ *
+ *  That is a claim about the product rather than a decoration. The old card
+ *  said "a photograph was taken and labelled"; this says "somebody was walked
+ *  through a defined list, and this is the item they are on". The eight beats
+ *  of the survey step `done` through the plan, so the checklist ticks off and
+ *  the viewfinder changes together — which is the argument Act Two is making.
+ *
+ *  The images are the survey's own, so the phone and the pile filling up
+ *  opposite it are showing one set of captures rather than two. */
+function surveySubject(
+  shot: TrustSurveyShot,
+  index: number,
+  plan: readonly string[],
+): CaptureSubject {
+  return {
+    asset: "MY Aurora",
+    job: "Condition Survey · Charter Delivery",
+    subject: shot.label,
+    /* Written for the person holding the phone, in the sector's own words —
+       see the note on user instructions versus system checks in
+       components/renderings/MobileCapture.tsx. */
+    instruction: `Record the ${shot.label.toLowerCase()} as found, before the charter party board.`,
+    /* 960 rather than 480: the viewfinder is the largest thing on the card
+       and these masters top out at 878 anyway, so this is the whole picture
+       rather than a stretched half of it. */
+    image: `/assets/features/${shot.image}-960.webp`,
+    imageSrcSet: `/assets/features/${shot.image}-480.webp 480w, /assets/features/${shot.image}-960.webp 878w`,
+    imageSizes: "220px",
+    plan,
+    /* The item in the viewfinder is the one at `done` — so the count of
+       finished captures is the index itself. */
+    done: index,
+    total: plan.length,
+  };
+}
+
 function SurveyCard({
   shot,
   index,
-  count,
+  plan,
   on,
   boxRef,
   frameRef,
 }: {
   shot?: TrustSurveyShot;
   index: number;
-  count: number;
+  /* The plan IS the count — the screen renders its own "n of 8" from the
+     length of it, so a separate total would be a second source for one
+     number. */
+  plan: readonly string[];
   on: boolean;
   boxRef?: (el: HTMLElement | null) => void;
   /** Reports the frame itself, not the card around it — the flight into the
@@ -1486,74 +1593,26 @@ function SurveyCard({
       on={on}
       width={SURVEY_CARD.width}
       boxRef={boxRef}
+      /* No panel chrome. The phone is already an object with its own edges,
+         and a tinted rounded rectangle around it turned it back into a
+         picture of a phone pinned to a card. The mark and the survey title
+         went with it: the screen states its own asset, job and progress, so
+         the header was captioning something that captions itself. */
+      chrome={false}
+      /* Slower than a callout, because it is not one. This is the device the
+         whole act is about arriving on the stage, and it gets long enough to
+         be watched doing it — see revealDuration on AnnotationPanel. */
+      revealDuration="var(--duration-cross)"
       className="z-20"
     >
-      <div className="p-2">
-        <div className="flex items-center gap-2 px-0.5">
-          <PanelLogo className="h-3.5 w-[50px] shrink-0" />
-          <p className="min-w-0 flex-1 text-caption text-callout-ink">
-            {trustEngineCopy.survey}
-          </p>
-        </div>
-
-        {/* The accent border is the same one the verified evidence cards
-            carry. These ARE that evidence — it is simply being made rather
-            than being quoted, and a different treatment here would suggest
-            something changed between the taking and the keeping. */}
-        <div
-          ref={frameRef}
-          className="relative mt-2 overflow-hidden rounded-sm border"
-          style={{ borderColor: "var(--fx-accent-glow)" }}
-        >
-          {shot && (
-            <div key={shot.image} className="trust-shot-in">
-              <PanelImage
-                name={shot.image}
-                alt={shot.imageAlt}
-                width={882}
-                height={496}
-                /* CERT_RATIO, like every other view of a survey frame. The
-                   preview, the cell it flies into and the record card it may
-                   become are the same photograph cropped the same way — a
-                   frame that changes shape on the way in is a different
-                   frame, and this piece is careful about that everywhere
-                   else. */
-                ratio={CERT_RATIO}
-                sizes="(min-width: 640px) 320px, 45vw"
-              />
-              {/* Top left, like every other frame on this stage, and for the
-                  same reason: the caption is a property of the photograph. */}
-              <div
-                className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1"
-                style={{ backgroundColor: "var(--callout-caption)" }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <span
-                    aria-hidden
-                    className="h-2.5 w-0.5 shrink-0 rounded-xs bg-verified"
-                  />
-                  <span className="font-mono text-mono-xs text-callout-ink">
-                    {shot.label}
-                  </span>
-                </div>
-                <p className="font-mono text-mono-xs text-callout-ink-muted">
-                  {shot.stamp}
-                </p>
-              </div>
-              {/* On the frame, opposite the caption. It was in the header row
-                  beside the mark, where the three of them did not fit and the
-                  title truncated to "Conditio…" — and it belongs here anyway:
-                  a frame number is a property of the shot, like the room and
-                  the time, not of the panel holding it. */}
-              <p
-                className="absolute bottom-1.5 right-1.5 rounded-sm px-1.5 py-0.5 font-mono text-mono-xs text-callout-ink"
-                style={{ backgroundColor: "var(--callout-caption)" }}
-              >
-                {Math.min(index + 1, count)} / {count}
-              </p>
-            </div>
-          )}
-        </div>
+      {/* `frameRef` reports the device, so the capture that flies out towards
+          the record leaves the phone rather than a rectangle beside it. */}
+      <div ref={frameRef}>
+        {shot && (
+          <PhoneFrame>
+            <MobileCapture subject={surveySubject(shot, index, plan)} />
+          </PhoneFrame>
+        )}
       </div>
     </AnnotationPanel>
   );

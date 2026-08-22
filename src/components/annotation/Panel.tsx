@@ -24,8 +24,10 @@ export function AnnotationPanel({
   on,
   width = "w-[21%] min-w-[210px]",
   boxRef,
+  chrome = true,
   className,
   style,
+  revealDuration = "var(--duration-slow)",
   children,
 }: {
   /** Where to put it. Omit to render in flow instead, letting a parent lay it
@@ -40,10 +42,21 @@ export function AnnotationPanel({
   /** Reports this panel's footprint so its leader lands on the real edge
    *  rather than on a guessed one — see useBoxes. */
   boxRef?: (el: HTMLElement | null) => void;
+  /** Draw the panel's own surface, border and blur. Turn it OFF when the
+   *  child already is an object — a device, say. A phone inside a tinted
+   *  rounded rectangle reads as a picture of a phone pinned to a card, and
+   *  the point of putting a device on the stage is that it is the thing
+   *  itself. Position, reveal and measurement are unaffected. */
+  chrome?: boolean;
   className?: string;
   /** Merged onto the positioned element. For anything that has to be a
    *  transitionable value rather than a class — a width that animates, say. */
   style?: React.CSSProperties;
+  /** How long the reveal takes. Defaults to the panel rhythm every other
+   *  callout uses; override where a panel is the SUBJECT of a beat rather
+   *  than an annotation on one — a device coming up on the stage wants to be
+   *  watched arriving, and 420ms reads as a pop at that size. */
+  revealDuration?: string;
   children: React.ReactNode;
 }) {
   const animated = on !== undefined;
@@ -70,16 +83,22 @@ export function AnnotationPanel({
     >
       <div
         className={cn(
-          "overflow-hidden rounded-md border border-callout-border backdrop-blur-sm",
+          chrome &&
+            "overflow-hidden rounded-md border border-callout-border backdrop-blur-sm",
           animated && "transition-all",
-          animated && !on && "opacity-0",
+          /* pointer-events-none as well as invisible. A hidden panel is still
+             a rectangle on the stage, and one that has faded out — or has not
+             faded in yet — would otherwise go on swallowing clicks meant for
+             whatever is behind it. Latent until the survey card began staying
+             mounted for the whole piece rather than only while it was on. */
+          animated && !on && "pointer-events-none opacity-0",
         )}
         style={{
-          backgroundColor: "var(--callout-surface)",
+          ...(chrome ? { backgroundColor: "var(--callout-surface)" } : {}),
           ...(animated
             ? {
                 transform: on ? "scale(1)" : "scale(0.96)",
-                transitionDuration: "var(--duration-slow)",
+                transitionDuration: revealDuration,
                 transitionTimingFunction: "var(--ease-out-quart)",
               }
             : {}),

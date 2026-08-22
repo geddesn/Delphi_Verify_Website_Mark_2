@@ -10,7 +10,7 @@ import type {
   TrustSurveyShot,
 } from "@/content/trust-scenes";
 import { AnchorDot, Leaders, type LeaderSpec } from "@/components/annotation/Leaders";
-import { AnnotationPanel, PanelImage, PanelLogo } from "@/components/annotation/Panel";
+import { AnnotationPanel, PanelLogo } from "@/components/annotation/Panel";
 import { PhoneFrame } from "@/components/renderings/PhoneFrame";
 import {
   MobileCapture,
@@ -109,6 +109,21 @@ const STEPS = [
   { id: "a2-share", ms: 2000 },
   { id: "a2-charter", ms: 1000 },
   { id: "a2-incident", ms: 1700 }, // identical to a1-incident
+  /* ⭐ THE SECOND SURVEY, and it is the same eight beats as the first on
+     purpose. The argument is that redelivery is not a special event — the
+     same walk, the same rooms, the same order — and the ONLY thing that comes
+     back different is the saloon. Summarise it as a single beat and the
+     viewer has to take that on trust; walk it again and they watch seven
+     rooms come back identical before the eighth does not. */
+  { id: "a2-rephone", ms: 1500 },
+  { id: "a2-reshot-1", ms: 520 },
+  { id: "a2-reshot-2", ms: 520 },
+  { id: "a2-reshot-3", ms: 520 },
+  { id: "a2-reshot-4", ms: 520 },
+  { id: "a2-reshot-5", ms: 520 },
+  { id: "a2-reshot-6", ms: 520 },
+  { id: "a2-reshot-7", ms: 520 },
+  { id: "a2-reshot-8", ms: 1100 }, // the saloon again, and it is torn
   { id: "a2-recapture", ms: 1800 },
   { id: "a2-reshare", ms: 1800 }, // the same again, at the other end
   { id: "a2-compare", ms: 2400 },
@@ -137,6 +152,10 @@ const TURN = at("turn");
 const SURVEY_SHOTS = 8;
 const SHOT_STEPS = Array.from({ length: SURVEY_SHOTS }, (_, i) =>
   at(`a2-shot-${i + 1}`),
+);
+/* The same eight, at the other end of the charter. */
+const RESHOT_STEPS = Array.from({ length: SURVEY_SHOTS }, (_, i) =>
+  at(`a2-reshot-${i + 1}`),
 );
 
 /* ── Derived state — every visual is one of these ──────────────────────── */
@@ -191,7 +210,29 @@ const s = {
      which meant a 420ms reveal inside a 520ms beat: it popped in, changed
      picture eight times and popped out. Nothing was wrong with the fade, it
      was never given long enough to be one. */
-  surveyPhone: (n: number) => n >= at("a2-phone") && n < at("a2-capture"),
+  surveyPhone: (n: number) =>
+    (n >= at("a2-phone") && n < at("a2-capture")) ||
+    (n >= at("a2-rephone") && n < at("a2-recapture")),
+  /* Which of the two surveys is running. The phone shows delivery shots in
+     the first and redelivery shots in the second, and everything downstream
+     of it — the leader's anchor, the flight's origin — follows from this. */
+  resurveying: (n: number) => n >= at("a2-rephone"),
+
+  reshotLive: (n: number, i: number) => n === RESHOT_STEPS[i],
+  reshotFiled: (n: number, i: number) => n >= RESHOT_STEPS[i],
+
+  /* The captures STAY in the record once they land. They used to fade out at
+     a2-capture and be replaced by a single saloon photograph, which is the
+     cross-fade that read as a glitch — and it also threw away the thing the
+     survey had just spent eight beats building. */
+  deliveryImages: (n: number) => n >= SHOT_STEPS[0],
+  redeliveryImages: (n: number) => n >= RESHOT_STEPS[0],
+
+  /* The second certificate OPENS, empty, when the captain comes back aboard
+     — a beat before the first redelivery capture, for the same reason the
+     first one did: the photographs need somewhere to go. Distinct from
+     redeliveryCert below, which is when it is issued. */
+  redeliveryOpen: (n: number) => n >= at("a2-rephone"),
 
   /* Act One's occupant of the top slot: the photograph one side happens to
      have. Never in Act Two, where the record has the slot instead — the two
@@ -425,27 +466,50 @@ export function TrustEngine({
      rather than searched for by id, so a scene carrying more shots than the
      narrative has beats simply never shows the extra ones — SHOT_STEPS is
      undefined past SURVEY_SHOTS and every comparison against it is false. */
-  const liveShot = scene.survey.findIndex((_, i) => s.shotLive(step, i));
+  /* The redelivery survey: the SAME eight rooms, and only the saloon comes
+     back different. Derived rather than authored so the two can never drift
+     into being two different walks — which would quietly destroy the claim
+     that nothing changed except the one thing that did. The saloon's own
+     replacement is the record's redelivery capture, so that cannot drift
+     either. */
+  const resurvey = scene.survey.map((shot, i) =>
+    i === scene.survey.length - 1
+      ? {
+          ...shot,
+          image: scene.record.verified.redelivery.image,
+          imageAlt: scene.record.verified.redelivery.imageAlt,
+          stamp: scene.record.verified.redelivery.stamp,
+        }
+      : shot,
+  );
+  const resurveying = s.resurveying(step);
+  const activeSurvey = resurveying ? resurvey : scene.survey;
+
+  const liveShot = resurveying
+    ? resurvey.findIndex((_, i) => s.reshotLive(step, i))
+    : scene.survey.findIndex((_, i) => s.shotLive(step, i));
   /* The phone outlives the eight capture beats, so it needs something on it
      before the first and after the last: the first item of the plan waiting
      at 0 of 8, and the finished list at 8 of 8. Between, it is whichever
      capture is live. */
   const phoneOn = s.surveyPhone(step);
-  const beforeSurvey = step < SHOT_STEPS[0];
+  const beforeSurvey = resurveying
+    ? step < RESHOT_STEPS[0]
+    : step < SHOT_STEPS[0];
   /* ALWAYS a shot, never undefined — the phone's visibility is `phoneOn` and
      nothing else. Gating the CONTENT on it as well unmounted the device the
      instant it was told to leave, so the panel spent its 1200ms fading an
      empty box and the phone simply vanished. A thing cannot fade out after it
      has already gone. */
   const shot =
-    scene.survey[
-      liveShot >= 0 ? liveShot : beforeSurvey ? 0 : scene.survey.length - 1
+    activeSurvey[
+      liveShot >= 0 ? liveShot : beforeSurvey ? 0 : activeSurvey.length - 1
     ];
   /* The COUNT, which is not the index: mid-survey the live capture is the one
      being taken and is not finished yet, but once the survey is over all of
      them are. */
   const shotsDone =
-    liveShot >= 0 ? liveShot : beforeSurvey ? 0 : scene.survey.length;
+    liveShot >= 0 ? liveShot : beforeSurvey ? 0 : activeSurvey.length;
   const showRecord = s.delphi(step);
   const showOwnerPhoto = s.ownerPhoto(step);
 
@@ -818,7 +882,7 @@ export function TrustEngine({
           on={showRecord}
           width=""
           style={{
-            width: s.redeliveryCert(step) ? "min(52%, 34rem)" : "min(27%, 17.5rem)",
+            width: s.redeliveryOpen(step) ? "min(52%, 34rem)" : "min(27%, 17.5rem)",
             transition: "width var(--duration-cross) var(--ease-out-quart)",
           }}
           boxRef={register("record-verified")}
@@ -839,10 +903,15 @@ export function TrustEngine({
               height, while a full-width 3x3 is not. The panel ended up twice
               as tall as its contents, with a band of empty navy under them. */}
           <div className="relative min-w-0 flex-1">
+            {/* Visible from the moment the record opens, not from when the
+                certificate is issued: the sheet has to be on the stage empty
+                for the captures to fly into. `cert` is what arrives at
+                a2-capture, and it is what turns an open slot into a
+                certificate. */}
             <div
               className="flex gap-2 transition-opacity"
               style={{
-                opacity: s.deliveryCert(step) ? 1 : 0,
+                opacity: showRecord ? 1 : 0,
                 transitionDuration: "var(--duration-slow)",
               }}
             >
@@ -852,6 +921,7 @@ export function TrustEngine({
                   tone="verified"
                   trusted
                   codeRef={register("code-delivery")}
+                  gridRef={register("record-grid")}
                 />
               </div>
               {/* Always mounted, so its code has a position for the held
@@ -861,30 +931,24 @@ export function TrustEngine({
               <div
                 className="min-w-0 overflow-hidden"
                 style={{
-                  flex: s.redeliveryCert(step) ? "1 1 0%" : "0 0 0%",
-                  opacity: s.redeliveryCert(step) ? 1 : 0,
+                  flex: s.redeliveryOpen(step) ? "1 1 0%" : "0 0 0%",
+                  opacity: s.redeliveryOpen(step) ? 1 : 0,
                   transition:
                     "flex var(--duration-cross) var(--ease-out-quart), opacity var(--duration-slow) linear",
                 }}
               >
                 <EvidenceCard
-                  cert={record.verified.redelivery}
+                  cert={
+                    s.redeliveryCert(step) ? record.verified.redelivery : undefined
+                  }
                   tone="failed"
                   trusted
                   codeRef={register("code-redelivery")}
+                  gridRef={register("record-grid-2")}
                 />
               </div>
             </div>
 
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 transition-opacity"
-              style={{
-                opacity: s.collecting(step) ? 1 : 0,
-                transitionDuration: "var(--duration-slow)",
-              }}
-            >
-              <RecordGrid gridRef={register("record-grid")} />
-            </div>
           </div>
         </RecordPanel>
 
@@ -896,17 +960,28 @@ export function TrustEngine({
         <SurveyCard
           shot={shot}
           index={shotsDone}
-          plan={scene.survey.map((v) => v.label)}
+          plan={activeSurvey.map((v) => v.label)}
           on={phoneOn}
           boxRef={register("survey-card")}
           frameRef={register("survey-frame")}
         />
+        {/* One flight per certificate. Both stay on once they have landed:
+            the record IS the two contact sheets, so emptying them again to
+            show something else would be undoing the argument. */}
         <SurveyFlight
           shots={scene.survey}
           taken={(i) => s.shotFiled(step, i)}
-          on={s.collecting(step)}
+          on={s.deliveryImages(step)}
           frameRect={boxes["survey-frame"]}
           gridRect={boxes["record-grid"]}
+          canvas={CANVAS}
+        />
+        <SurveyFlight
+          shots={resurvey}
+          taken={(i) => s.reshotFiled(step, i)}
+          on={s.redeliveryImages(step)}
+          frameRect={boxes["survey-frame"]}
+          gridRect={boxes["record-grid-2"]}
           canvas={CANVAS}
         />
 
@@ -1192,8 +1267,12 @@ const SURVEY_CARD = {
    is worth leaving: a record with room in it reads as open, and this one is —
    redelivery is two weeks away and nobody yet knows there will be anything
    else to put in it. */
-const GRID_COLS = 3;
-const GRID_CELLS = 9;
+/* EIGHT, in four columns — one cell per capture in the survey, not a
+   generic nine. The record is a contact sheet of a specific walk round the
+   vessel, and a ninth empty cell sitting under it for the whole piece is a
+   promise of something that never arrives. */
+const GRID_COLS = 4;
+const GRID_CELLS = 8;
 const GRID_GAP = 4; // canvas px
 
 /** One cell of the record's grid, in stage percentages, derived from the
@@ -1221,17 +1300,6 @@ function cellRect(grid: Rect, i: number, canvas: { w: number; h: number }) {
    codes start covering the copy. */
 const CERT_OVERLAP = "0.7rem";
 
-/* One crop for every view of the saloon — the callout and both certificates.
-   The pair only proves anything if the two frames are identical apart from
-   the damage, and a crop is part of the frame.
-
-   It used to do far more work than it does now. The old masters were 1358×1530
-   and this threw away most of them to reach 2:1; the current pair is 882×496,
-   near enough 2:1 already that the crop trims about a ninth of the height. The
-   value is kept rather than reset to centre because the bias is still the
-   right one — it holds the ceiling cove, which is what reads as "yacht
-   interior" at 300px, and keeps the torn cushion clear of the bottom edge. */
-const SALOON_CROP = "50% 66%";
 
 /* The record is the photograph, so the photograph gets the whole card and the
    metadata sits on it. Short enough that two of these plus the panel around
@@ -1624,7 +1692,11 @@ function SurveyCard({
  *  exactly where each cell is; the flight itself happens on a layer above the
  *  stage, because this panel clips its contents and a capture crossing the
  *  stage inside it would be invisible until the instant it landed. */
-function RecordGrid({ gridRef }: { gridRef?: (el: HTMLElement | null) => void }) {
+function RecordGrid({
+  gridRef,
+}: {
+  gridRef?: (el: HTMLElement | null) => void;
+}) {
   return (
     <div
       ref={gridRef}
@@ -1804,6 +1876,7 @@ function EvidenceCard({
   tone,
   trusted,
   codeRef,
+  gridRef,
 }: {
   cert?: TrustCapture;
   tone: "verified" | "failed";
@@ -1811,6 +1884,11 @@ function EvidenceCard({
   /** Reports where this card's code sits, so the copies handed to the
    *  parties can fly out of it. */
   codeRef?: (el: HTMLElement | null) => void;
+  /** Reports this card's contact sheet, so the captures know which cells to
+   *  fly into. The photographs themselves live on a layer above the stage —
+   *  see SurveyFlight — because this card clips its contents and a capture
+   *  crossing the stage inside it would be invisible until it landed. */
+  gridRef?: (el: HTMLElement | null) => void;
 }) {
   return (
     <div
@@ -1832,45 +1910,17 @@ function EvidenceCard({
         transitionDuration: "var(--duration-normal)",
       }}
     >
-      {/* The frame the record holds, not a description of it. The empty box is
-          always rendered so the panel does not change height when the second
-          capture lands — the comparison should slide into place beside the
-          first, not shove it upward. */}
-      {cert ? (
-        <PanelImage
-          name={cert.image}
-          alt={cert.imageAlt}
-          width={882}
-          height={496}
-          position={SALOON_CROP}
-          sizes="(min-width: 640px) 300px, 45vw"
-          ratio={CERT_RATIO}
-        />
-      ) : (
-        <div
-          aria-hidden
-          className="w-full bg-callout-halo"
-          style={{ aspectRatio: CERT_RATIO }}
-        />
-      )}
+      {/* A HEADER, A CONTACT SHEET AND A CODE — in that order, and none of
+          them on top of another.
 
-      {/* The metadata belongs ON the photograph, the way a timestamp burned
-          into a frame does — it is a property of that image, not a caption
-          filed beneath it.
-
-          TOP left, not bottom. The saloon's seating runs along the lower half
-          of the frame and the tear is on a seat cushion, so a caption in the
-          bottom corner sat on the one detail the whole piece is about. The
-          top-left of this crop is sea and window mullion — nothing to lose,
-          and a dark plate reads well against it. */}
-      {/* Only where there is something to caption. Empty, this rendered a
-          bar and an em-dash on a plate — a label for a photograph that does
-          not exist. */}
-      {cert && (
-      <div
-        className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1"
-        style={{ backgroundColor: "var(--callout-caption)" }}
-      >
+          This card used to be one photograph with its label burned into the
+          top-left corner and its code into the bottom-right, which worked
+          while the record held a single frame. It now holds the whole survey,
+          and the captures land on a layer ABOVE this card: anything sitting
+          over a cell would be covered by the photograph that flies into it.
+          So the sheet gets the middle, and the two pieces of text get a strip
+          each. */}
+      <div className="flex flex-col gap-1.5 p-1.5">
         <div className="flex items-center gap-1.5">
           {/* A bar, not a dot. Round markers on this stage mean "the end of a
               connector"; a small circle sitting in a caption with no line
@@ -1882,60 +1932,65 @@ function EvidenceCard({
             )}
             aria-hidden
           />
-          <span className="font-mono text-mono-xs text-callout-ink">
-            {cert.label}
+          {/* The EVENT, not the label. The label names one frame — "Saloon ·
+              torn" — and this is a sheet of eight, of which the saloon is one.
+              Captioning the set with the name of a single member of it was
+              accurate when the set had one member and is not any more. */}
+          <span className="truncate font-mono text-mono-xs text-callout-ink">
+            {cert ? cert.event : ""}
+          </span>
+          <span
+            className={cn(
+              "ml-auto shrink-0 font-mono text-mono-xs",
+              trusted ? "text-callout-ink-muted" : "text-failed",
+            )}
+          >
+            {cert ? cert.stamp : ""}
           </span>
         </div>
-        <p
-          className={cn(
-            "font-mono text-mono-xs",
-            trusted ? "text-callout-ink-muted" : "text-failed",
-          )}
-        >
-          {cert.stamp}
-        </p>
-      </div>
-      )}
 
-      {/* The code on the frame it certifies — the same code the parties are
-          each handed a copy of. Only on a verified card: a photograph with
-          nothing standing behind it has no certificate to carry, and putting
-          one there would say it did. */}
-      {trusted && (
-        <span
-          ref={codeRef}
-          /* Mounted from the start, not from when the certificate is issued:
-             the held copies fly FROM here, and a source that does not exist
-             until the moment of departure has no position to depart from. */
-          className="absolute bottom-1.5 right-1.5 transition-opacity"
-          style={{
-            opacity: cert ? 1 : 0,
-            transitionDuration: "var(--duration-normal)",
-          }}
-        >
-          {/* Lit the same way as the copies it issues — same token, same
-              pulse. It is the source of the channel, so it should not look
-              like a colder version of what came out of it. */}
-          <span className="relative block">
-            <span
-              aria-hidden
-              className="trust-held-glow absolute -inset-1.5 rounded-sm"
-              style={{ backgroundColor: "var(--fx-link)", filter: "blur(7px)" }}
-            />
-            <span className="relative block rounded-xs bg-callout-ink p-0.5">
-              <img
-                src="/assets/certificate-code.webp"
-                alt=""
-                width={128}
-                height={128}
-                loading="lazy"
-                decoding="async"
-                className="block h-8 w-8"
+        <RecordGrid gridRef={gridRef} />
+
+        {/* The code on the sheet it certifies — the same code the parties are
+            each handed a copy of. Only on a verified card: a photograph with
+            nothing standing behind it has no certificate to carry, and putting
+            one there would say it did. */}
+        {trusted && (
+          <span
+            ref={codeRef}
+            /* Mounted from the start, not from when the certificate is issued:
+               the held copies fly FROM here, and a source that does not exist
+               until the moment of departure has no position to depart from. */
+            className="ml-auto block w-fit transition-opacity"
+            style={{
+              opacity: cert ? 1 : 0,
+              transitionDuration: "var(--duration-normal)",
+            }}
+          >
+            {/* Lit the same way as the copies it issues — same token, same
+                pulse. It is the source of the channel, so it should not look
+                like a colder version of what came out of it. */}
+            <span className="relative block">
+              <span
+                aria-hidden
+                className="trust-held-glow absolute -inset-1.5 rounded-sm"
+                style={{ backgroundColor: "var(--fx-link)", filter: "blur(7px)" }}
               />
+              <span className="relative block rounded-xs bg-callout-ink p-0.5">
+                <img
+                  src="/assets/certificate-code.webp"
+                  alt=""
+                  width={128}
+                  height={128}
+                  loading="lazy"
+                  decoding="async"
+                  className="block h-8 w-8"
+                />
+              </span>
             </span>
           </span>
-        </span>
-      )}
+        )}
+      </div>
     </div>
   );
 }

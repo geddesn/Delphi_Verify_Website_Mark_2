@@ -57,10 +57,19 @@ import { WebFrame } from "@/components/renderings/WebFrame";
    one that drifts. Reduced motion still wins: the global rule zeroes
    transition-duration with !important, and the cycle does not run at all.
 
-   The desktop can leave entirely. Guided Capture has no web counterpart, so
-   it simply does not come back on that state. Its BOX stays in the layout
-   either way, which is what stops the phone jumping: the phone is positioned
-   against that box, not against the card inside it.
+   EITHER DEVICE CAN LEAVE. Guided Capture has no web counterpart and the
+   asset history has no mobile one, so on those states the other device simply
+   does not come back. Whichever is left takes the middle of the block and
+   grows, because a lone device hanging off the corner of nothing reads as a
+   layout that lost something.
+
+   The desktop's BOX still exists whenever any state has a desktop, which is
+   what stops the phone jumping between paired states: the phone is positioned
+   against this block in cqw, not against the card.
+
+   A desktop-alone state is also the one case where the card shows below xl.
+   It is normally held back to xl for room, but at lg it is the only thing
+   there — and an empty hero for ten seconds is worse than a small card.
 
    ── SIZE ──
    Both are deliberately small. Bigger, the desktop is a bright white
@@ -203,7 +212,13 @@ export function HeroDevices({
      everything else. Key the phone's POSITION to this one and it slides
      across the hero every time the fade begins, in full view. */
   const activeHasWeb = Boolean(pairs[active]?.web);
+  const activeHasMobile = Boolean(pairs[active]?.mobile);
   const desktopShown = shown && activeHasWeb;
+  const phoneShown = shown && activeHasMobile;
+  /* Alone on screen: take the middle and grow. */
+  const soloDesktop = activeHasWeb && !activeHasMobile;
+  const soloPhone = activeHasMobile && !activeHasWeb;
+  const hasPhone = pairs.some((p) => p.mobile);
 
   return (
     <div
@@ -235,8 +250,15 @@ export function HeroDevices({
            The alternative was a second copy of the phone for the lg case, and
            two phones that must be kept in step is exactly the kind of pair
            that drifts. */
-        <div className="absolute right-[9%] top-[5rem] aspect-[1440/900] w-[60%]">
-          <div className="hidden h-full xl:block">
+        <div
+          className={cn(
+            "absolute aspect-[1440/900]",
+            soloDesktop
+              ? "right-[6%] top-1/2 w-[88%] -translate-y-1/2"
+              : "right-[9%] top-[5rem] w-[60%]",
+          )}
+        >
+          <div className={cn("h-full", soloDesktop ? "block" : "hidden xl:block")}>
             <Device shown={desktopShown}>
               <WebFrame>
                 {pairs.map((p, i) =>
@@ -253,7 +275,7 @@ export function HeroDevices({
         </div>
       ) : null}
 
-      {hasDesktop ? (
+      {hasPhone ? (
         /* PAIRED: the phone's middle sits on the desktop card's bottom-left
            corner, so a quarter of it overlaps the card, a quarter hangs left
            and half hangs below — two devices at different distances rather
@@ -274,21 +296,23 @@ export function HeroDevices({
         <div
           className={cn(
             "absolute -translate-x-1/2 -translate-y-1/2",
-            activeHasWeb
-              ? "left-[31%] top-[calc(5rem+37.5cqw)] w-[198px] xl:w-[222px]"
-              : "left-1/2 top-1/2 w-[248px] xl:w-[286px]",
+            soloPhone
+              ? "left-1/2 top-1/2 w-[248px] xl:w-[286px]"
+              : "left-[31%] top-[calc(5rem+37.5cqw)] w-[198px] xl:w-[222px]",
           )}
         >
           {/* eager, not lazy. The bezel is above the fold and it is the shape
               the screen is positioned against — arriving late would leave the
               rendering floating unframed for a beat. */}
-          <Device shown={shown}>
+          <Device shown={phoneShown}>
             <PhoneFrame loading="eager">
-              {pairs.map((p, i) => (
-                <Layer key={p.id} show={i === active}>
-                  {p.mobile()}
-                </Layer>
-              ))}
+              {pairs.map((p, i) =>
+                p.mobile ? (
+                  <Layer key={p.id} show={i === active}>
+                    {p.mobile()}
+                  </Layer>
+                ) : null,
+              )}
             </PhoneFrame>
           </Device>
         </div>
@@ -296,13 +320,15 @@ export function HeroDevices({
         /* No desktop behind it, so nothing to anchor to: the phone is the
            whole composition and keeps its own place. */
         <div className="absolute right-[14%] top-20 w-[240px] xl:right-[20%] xl:w-[272px]">
-          <Device shown={shown}>
+          <Device shown={phoneShown}>
             <PhoneFrame loading="eager">
-              {pairs.map((p, i) => (
-                <Layer key={p.id} show={i === active}>
-                  {p.mobile()}
-                </Layer>
-              ))}
+              {pairs.map((p, i) =>
+                p.mobile ? (
+                  <Layer key={p.id} show={i === active}>
+                    {p.mobile()}
+                  </Layer>
+                ) : null,
+              )}
             </PhoneFrame>
           </Device>
         </div>

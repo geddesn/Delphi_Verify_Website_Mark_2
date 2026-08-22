@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
 import { EvidenceChip } from "@/components/evidence/Evidence";
-import { PhoneShot } from "@/components/product/PhoneShot";
+import { PhoneRendering } from "@/components/renderings/mobileScreens";
 import {
   technicalHero,
   stages,
@@ -158,9 +158,13 @@ export default function PlatformTechnical() {
                 {locationPrivacy.note}
               </p>
             </div>
-            <PhoneShot
-              name="certificate-location"
-              alt="A certificate's capture location on a map, with coordinates, an accuracy reading in metres and the resolved address"
+            {/* The record carries its capture location on a real map with
+                coordinates and an accuracy reading — which is exactly what the
+                certificate-location screenshot showed, drawn rather than
+                photographed. */}
+            <PhoneRendering
+              shot="certificate-location"
+              width="340px"
               className="mx-auto lg:mx-0"
             />
           </div>

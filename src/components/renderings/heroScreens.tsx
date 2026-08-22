@@ -4,6 +4,7 @@ import { WebEvidenceRecord } from "@/components/renderings/WebEvidenceRecord";
 import { MobileTasks } from "@/components/renderings/MobileTasks";
 import { MobileCapture } from "@/components/renderings/MobileCapture";
 import { WebDashboard } from "@/components/renderings/WebDashboard";
+import { WebAssetHistory } from "@/components/renderings/WebAssetHistory";
 
 /* ============================================================================
    THE TWO SCREENS THE HEROES SHOW
@@ -40,14 +41,20 @@ import { WebDashboard } from "@/components/renderings/WebDashboard";
    entry without one is a statement, not a gap to be filled later.
 
    The order is the order the work happens: the job is assigned, it is
-   captured, it becomes a record.
+   captured, it becomes a record, and the records accumulate against the
+   asset. Every rendering on /platform/renderings appears in exactly one of
+   those four states — if a screen is added there, add it here too or the
+   hero quietly stops being a tour of the product.
    ========================================================================= */
 
+/* A state, not a pair — two of the four have only one surface, and that is
+   the honest shape rather than a hole. At least one of the two is required in
+   practice; a state with neither would show an empty hero. */
 export type HeroPair = {
   id: string;
-  mobile: () => ReactNode;
-  /** Omit where there is no honest desktop counterpart. The hero then shows
-   *  the phone alone for that state rather than an unrelated card. */
+  /** Omit where the screen is desktop-only. */
+  mobile?: () => ReactNode;
+  /** Omit where there is no honest desktop counterpart. */
   web?: () => ReactNode;
 };
 
@@ -71,5 +78,13 @@ export const heroPairs: HeroPair[] = [
     id: "record",
     mobile: () => <MobileEvidenceRecord />,
     web: () => <WebEvidenceRecord />,
+  },
+  {
+    /* Desktop alone, and the mirror of capture: a history of one asset across
+       many jobs is a reading task, and nobody reads it on a phone in a
+       doorway. So the phone leaves rather than showing something unrelated —
+       the same rule, applied the other way round. */
+    id: "history",
+    web: () => <WebAssetHistory />,
   },
 ];

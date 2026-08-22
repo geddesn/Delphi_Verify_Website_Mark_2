@@ -11,6 +11,10 @@ import { EvidenceChip } from "@/components/evidence/Evidence";
 import { PanelLogo } from "@/components/annotation/Panel";
 import { EventIcon, type EventName } from "@/components/product/EventIcon";
 import { PhoneShot, type ShotName } from "@/components/product/PhoneShot";
+import {
+  PhoneRendering,
+  hasRendering,
+} from "@/components/renderings/mobileScreens";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
 import { HeroDevices } from "@/components/product/HeroDevices";
 import { heroPairs } from "@/components/renderings/heroScreens";
@@ -133,7 +137,16 @@ export default function Platform() {
                       <ArrowRight />
                     </span>
                   )}
-                  <PhoneShot name={stage.shot as ShotName} alt={stage.shotAlt} />
+                  {/* The drawn screen where one exists, the photograph
+                      otherwise. Capture and the certificate are rendered;
+                      the scan is still a screenshot, because no rendering of
+                      it exists and substituting a different screen would
+                      illustrate the wrong step. */}
+                  {hasRendering(stage.shot) ? (
+                    <PhoneRendering shot={stage.shot} />
+                  ) : (
+                    <PhoneShot name={stage.shot as ShotName} alt={stage.shotAlt} />
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2.5">

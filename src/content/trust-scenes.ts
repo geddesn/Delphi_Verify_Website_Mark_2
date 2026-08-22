@@ -27,6 +27,11 @@ export type StagePoint = { x: number; y: number };
 export type TrustCapture = {
   label: string;
   stamp: string;
+  /** The reference a holder quotes to open this certificate — the same shape
+   *  as a real one, four and four. Each certificate has its OWN: two records
+   *  of one charter are two documents, and giving them one code between them
+   *  would say they were one. */
+  code?: string;
   /** One word, for the copy of this certificate each party holds. */
   event: string;
   /** Basename under public/assets/features. */
@@ -441,6 +446,7 @@ export const yachtsScene: TrustScene = {
       delivery: {
         label: "Saloon · undamaged",
         stamp: "6 Aug 2026, 09:14 UTC",
+        code: "7KQ2-M4XD",
         event: "Delivery",
         image: "yacht-saloon-delivery",
         imageAlt: "The yacht's saloon at delivery, the leather seating undamaged",
@@ -450,6 +456,7 @@ export const yachtsScene: TrustScene = {
            frame does not improve — only what can be said about it does. */
         label: "Saloon · torn",
         stamp: "20 Aug 2026, 16:40 UTC",
+        code: "9RT8-B2VC",
         event: "Redelivery",
         image: "yacht-saloon-redelivery",
         imageAlt: "The same saloon at redelivery, the leather seating torn",

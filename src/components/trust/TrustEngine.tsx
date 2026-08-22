@@ -124,9 +124,23 @@ const STEPS = [
   { id: "a2-reshot-6", ms: 520 },
   { id: "a2-reshot-7", ms: 520 },
   { id: "a2-reshot-8", ms: 1100 }, // the saloon again, and it is torn
+  /* The second certificate's turn on the chain. a2-file is the first's —
+     both exist so that publishing is something a viewer WAITS for rather
+     than something that has already happened by the time they look. */
+  { id: "a2-refile", ms: 1500 },
   { id: "a2-recapture", ms: 1800 },
   { id: "a2-reshare", ms: 1800 }, // the same again, at the other end
+  /* Picked out before they are opened. The whole act has been building two
+     sheets of eight; going straight to a full-size pair would show a viewer
+     the answer without showing them where it came from. This beat rings the
+     one cell in each sheet that matters, so the enlargement that follows
+     reads as THOSE two frames rather than as two new pictures. */
+  { id: "a2-select", ms: 1400 },
   { id: "a2-compare", ms: 2400 },
+  /* And only THEN the marks. The pair gets a beat to be looked at before
+     anything is drawn on it — a viewer who is shown where to look before they
+     have looked has been told the answer rather than shown the evidence. */
+  { id: "a2-spot", ms: 2600 },
   { id: "a2-resolved", ms: 0 }, // REST
 ] as const;
 
@@ -249,6 +263,15 @@ const s = {
   delphi: (n: number) => n >= at("a2-record"),
 
   /* Made, then handed out. The gap between these two is the beat. */
+  /* Between the last capture and the certificate: the record is complete
+     and the chain has not confirmed it yet. It is a real gap in the product
+     and showing it is worth more than hiding it — a certificate that simply
+     appears is a claim, and one a viewer watched being written is not. */
+  publishingDelivery: (n: number) =>
+    n >= at("a2-file") && n < at("a2-capture"),
+  publishingRedelivery: (n: number) =>
+    n >= at("a2-refile") && n < at("a2-recapture"),
+
   deliveryCert: (n: number) => n >= at("a2-capture"),
   deliveryShared: (n: number) => n >= at("a2-share"),
   redeliveryCert: (n: number) => n >= at("a2-recapture"),
@@ -258,7 +281,17 @@ const s = {
     (n >= at("a1-incident") && n < TURN) || n >= at("a2-incident"),
   dispute: (n: number) => n >= at("a1-dispute") && n <= at("a1-unresolved"),
   frozen: (n: number) => n === at("a1-unresolved"),
+  /* Ringed on the sheet, then open at full size. Two gates rather than one
+     because the pair has to be seen being taken OUT OF the record — a
+     comparison that simply appears is a claim, and one that visibly comes
+     from the two sheets is evidence. */
+  /* A WINDOW, not an open end. Everything it hides — the vessel, the
+     counterparties, their connectors, the copies they hold — has to come
+     back for the resolution, which is the beat that says what all of it was
+     for. Left open-ended, the piece would finish on an empty stage. */
+  selecting: (n: number) => n >= at("a2-select") && n < REST,
   compare: (n: number) => n >= at("a2-compare"),
+  spotting: (n: number) => n >= at("a2-spot") && n < REST,
   resolved: (n: number) => n >= REST,
 };
 
@@ -564,7 +597,10 @@ export function TrustEngine({
         id: p.id,
         anchor: p.anchor,
         ...columnFallback(p.side, list.indexOf(p), list.length),
-        on: s.partyLeader(p, step),
+        /* A leader outliving the panel it comes from, or the hull it
+           lands on, is a line drawn between two things that are no longer
+           there. */
+        on: s.partyLeader(p, step) && !s.selecting(step),
       };
     }),
     {
@@ -653,7 +689,18 @@ export function TrustEngine({
         <div
           className="absolute left-1/2 top-[61%] w-[44%] -translate-x-1/2 -translate-y-1/2 transition-opacity"
           style={{
-            opacity: s.intro(step) ? 0 : step === TURN ? 0.35 : 1,
+            /* GONE for the comparison. Two frames of one saloon are the
+               whole point of the act, and they were opening over a vessel,
+               two counterparties and a set of connectors still claiming the
+               stage. The vessel has said what it had to say by then; leaving
+               it under the pair is not context, it is competition. */
+            opacity: s.intro(step)
+              ? 0
+              : s.selecting(step)
+                ? 0
+                : step === TURN
+                  ? 0.35
+                  : 1,
             /* The vessel arriving as the title card leaves is a dissolve
                between two scenes, not a state change within one, so it gets
                the longer duration. Everything later — the dimming at the
@@ -697,7 +744,10 @@ export function TrustEngine({
               <PartyPanel
                 key={p.id}
                 party={p}
-                on={s.party(p, step)}
+                /* Off for the comparison, with the vessel they stand
+                   around. Nobody is being addressed at that moment — the
+                   frames are. */
+                on={s.party(p, step) && !s.selecting(step)}
                 showClaim={s.dispute(step)}
                 boxRef={register(p.id)}
               />
@@ -714,7 +764,15 @@ export function TrustEngine({
                   act === 2 ? scene.resolved.outcomes : scene.unresolved.outcomes
                 }
                 tone={act === 2 ? "verified" : "failed"}
-                on={act === 2 ? s.compare(step) : s.dispute(step)}
+                /* AFTER the comparison in Act Two, not during it. This is
+                   the conclusion drawn from the two frames, and putting it on
+                   the stage while they are still being read answers the
+                   question before the viewer has had it. */
+                on={
+                  act === 2
+                    ? s.compare(step) && !s.selecting(step)
+                    : s.dispute(step)
+                }
                 /* Clearing the certificates, which overlap the panel above
                    without taking any room in the flow — so this margin is the
                    only thing keeping the two apart, and it has to cover the
@@ -732,7 +790,9 @@ export function TrustEngine({
             of the vessel, so it never has to cross something and be drawn
             over it. */}
         <AccessLinks
-          on={s.deliveryShared(step)}
+          /* Off for the comparison. They run from the record to the parties,
+             and both ends of every one of them is hidden by then. */
+          on={s.deliveryShared(step) && !s.selecting(step)}
           links={scene.parties.flatMap((p) => {
             const rr = boxes["record-verified"];
             if (!rr) return [];
@@ -797,9 +857,17 @@ export function TrustEngine({
                   }}
                 >
                   <HeldCertificates
+                    /* Down for the comparison, with the parties holding
+                       them. Two certificate codes glowing under an empty
+                       column are the loudest thing on a stage that is meant
+                       to have two photographs on it and nothing else. */
                     issued={[
-                      s.deliveryShared(step) ? record.verified.delivery : undefined,
-                      s.redeliveryShared(step) ? record.verified.redelivery : undefined,
+                      s.deliveryShared(step) && !s.selecting(step)
+                        ? record.verified.delivery
+                        : undefined,
+                      s.redeliveryShared(step) && !s.selecting(step)
+                        ? record.verified.redelivery
+                        : undefined,
                     ]}
                     /* One origin per certificate: each copy leaves the code on
                        the frame it certifies, so the two arrive from visibly
@@ -827,7 +895,10 @@ export function TrustEngine({
              hull with nothing attached to it is a dot the viewer has to
              explain to themselves. It lands when the record actually holds
              the saloon. */
-          on={s.incident(step) || showOwnerPhoto || s.deliveryCert(step)}
+          on={
+            (s.incident(step) || showOwnerPhoto || s.deliveryCert(step)) &&
+            !s.selecting(step)
+          }
           className={cn(
             "z-30 transition-colors",
             s.compare(step)
@@ -922,6 +993,8 @@ export function TrustEngine({
                   trusted
                   codeRef={register("code-delivery")}
                   gridRef={register("record-grid")}
+                  publishing={s.publishingDelivery(step)}
+                  code={record.verified.delivery.code}
                 />
               </div>
               {/* Always mounted, so its code has a position for the held
@@ -945,6 +1018,8 @@ export function TrustEngine({
                   trusted
                   codeRef={register("code-redelivery")}
                   gridRef={register("record-grid-2")}
+                  publishing={s.publishingRedelivery(step)}
+                  code={record.verified.redelivery.code}
                 />
               </div>
             </div>
@@ -982,6 +1057,21 @@ export function TrustEngine({
           on={s.redeliveryImages(step)}
           frameRect={boxes["survey-frame"]}
           gridRect={boxes["record-grid-2"]}
+          canvas={CANVAS}
+        />
+
+        {/* ── The comparison ──
+            Last, and above everything: the two saloon frames coming out of
+            the record they were filed in. */}
+        <ComparePair
+          delivery={record.verified.delivery}
+          redelivery={record.verified.redelivery}
+          gridA={boxes["record-grid"]}
+          gridB={boxes["record-grid-2"]}
+          index={scene.survey.length - 1}
+          selecting={s.selecting(step)}
+          open={s.compare(step)}
+          spotting={s.spotting(step)}
           canvas={CANVAS}
         />
 
@@ -1803,6 +1893,235 @@ function SurveyFlight({
   );
 }
 
+/* Where the pair opens to. Two frames side by side, low enough on the stage
+   to sit over the vessel rather than over the record they came out of, and
+   sized so the tear is legible — which is the only reason any of this is
+   here. 16:9 to match the masters, so nothing is cropped at the moment a
+   viewer is being asked to compare two things. */
+const COMPARE_W = 29;
+const COMPARE_GAP = 3;
+const COMPARE_Y = 45;
+const COMPARE_H = (COMPARE_W * (496 / 882) * DESIGN_W) / DESIGN_H;
+const COMPARE_X = (100 - (COMPARE_W * 2 + COMPARE_GAP)) / 2;
+
+/* WHERE THE TEAR IS, as a fraction of the frame — measured off the master
+   rather than judged by eye: the gash is the one dark cluster on a cream
+   settee, and it centres at 270,404 of 882x496.
+
+   The same fraction serves both frames. The pair was generated as two views
+   of one room a half step apart, so the cushion is within a few pixels of the
+   same place in each — and the mark is a ring an order of magnitude larger
+   than that difference. Reshoot the pair and this has to be measured again;
+   there is nothing that will fail if it is not, it will simply point at the
+   wrong part of the sofa. */
+const TEAR = { x: 0.306, y: 0.814 };
+
+/** The two saloon frames, taken out of the record and opened.
+ *
+ *  The argument the whole piece has been building arrives here, and it only
+ *  works if a viewer believes these two pictures came out of those two
+ *  sheets. So they are not new elements that appear: each one starts life
+ *  exactly on top of its own cell, at that cell's size, and grows out of it.
+ *  Same technique as SurveyFlight and inverted — the element is positioned at
+ *  its DESTINATION and transformed back to its origin, so one transform
+ *  carries the whole journey and the landing is exact.
+ *
+ *  A layer above the stage rather than inside the record panel, for the same
+ *  reason the captures fly on one: the panel clips, and a frame growing out
+ *  of it would be cut off at its edge for most of the journey.
+ *
+ *  ⚠️  IT SHOWS, IT DOES NOT JUDGE. Two dated photographs side by side, each
+ *  labelled with when it was taken. No verdict, no arrow between them, no
+ *  ring around the tear. The viewer decides what they are looking at, which
+ *  is the entire proposition — see the liability warning at the top of
+ *  content/trust-scenes.ts. */
+function ComparePair({
+  delivery,
+  redelivery,
+  gridA,
+  gridB,
+  index,
+  selecting,
+  open,
+  spotting,
+  canvas,
+}: {
+  delivery: TrustCapture;
+  redelivery: TrustCapture;
+  /** The two contact sheets, measured. Nothing opens until both exist. */
+  gridA?: Rect;
+  gridB?: Rect;
+  /** Which cell of each sheet the saloon is. */
+  index: number;
+  selecting: boolean;
+  open: boolean;
+  /** Draw the two marks and the line between them. */
+  spotting: boolean;
+  canvas: { w: number; h: number };
+}) {
+  if (!gridA || !gridB || !canvas.w) return null;
+
+  /* The two marks, in stage percentages, derived from the frames rather than
+     authored — move the frames and the rings follow them. */
+  const markY = COMPARE_Y + TEAR.y * COMPARE_H;
+  const markX = (i: number) =>
+    COMPARE_X + i * (COMPARE_W + COMPARE_GAP) + TEAR.x * COMPARE_W;
+  const cx = (i: number) => (markX(i) / 100) * canvas.w;
+  const cy = (markY / 100) * canvas.h;
+  /* Big enough to be a mark rather than a dot, small enough that it rings the
+     tear instead of the cushion. */
+  const r = ((COMPARE_W * 0.085) / 100) * canvas.w;
+
+  const pair = [
+    { cert: delivery, grid: gridA, tone: "verified" as const },
+    { cert: redelivery, grid: gridB, tone: "failed" as const },
+  ];
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-40">
+      {pair.map(({ cert, grid, tone }, i) => {
+        const cell = cellRect(grid, index, canvas);
+        const target = {
+          x: COMPARE_X + i * (COMPARE_W + COMPARE_GAP),
+          y: COMPARE_Y,
+          w: COMPARE_W,
+          h: COMPARE_H,
+        };
+        /* Back to the cell it came from: the vector from the target to that
+           cell, and how much smaller the cell is. In the target's own terms,
+           so the transform is one value the whole way. */
+        const origin = {
+          x:
+            ((cell.x + cell.w / 2 - (target.x + target.w / 2)) / 100) * canvas.w,
+          y:
+            ((cell.y + cell.h / 2 - (target.y + target.h / 2)) / 100) * canvas.h,
+          scale: cell.w / target.w,
+        };
+
+        return (
+          <div
+            key={cert.image}
+            className="absolute"
+            style={{
+              left: `${target.x}%`,
+              top: `${target.y}%`,
+              width: `${target.w}%`,
+              height: `${target.h}%`,
+              transform: open
+                ? "none"
+                : `translate(${origin.x}px, ${origin.y}px) scale(${origin.scale})`,
+              opacity: selecting ? 1 : 0,
+              transition:
+                "transform var(--duration-fly) var(--ease-out-quart), opacity var(--duration-slow) linear",
+            }}
+          >
+            {/* The ring is on the frame from the moment it is selected, so it
+                is the thing that grows — a cell is ringed on the sheet, and
+                that ringed cell becomes the picture. Draw it only once open
+                and two frames arrive already framed, from nowhere. */}
+            <div
+              className="h-full w-full overflow-hidden rounded-xs"
+              style={{
+                boxShadow: `0 0 0 2px ${
+                  tone === "verified" ? "var(--fx-verified-glow)" : "var(--fx-failed-glow)"
+                }`,
+              }}
+            >
+              <img
+                src={`/assets/features/${cert.image}-960.webp`}
+                srcSet={`/assets/features/${cert.image}-480.webp 480w, /assets/features/${cert.image}-960.webp 878w`}
+                sizes="340px"
+                alt=""
+                width={882}
+                height={496}
+                loading="lazy"
+                decoding="async"
+                className="block h-full w-full object-cover"
+              />
+            </div>
+
+            {/* WHEN, on each frame. Two photographs of one room prove nothing
+                without their dates — the dates are the entire content of the
+                claim. Only once open: at cell size this is illegible, and an
+                unreadable plate on a thumbnail is just a smudge. */}
+            <div
+              className="absolute left-1.5 top-1.5 rounded-sm px-1.5 py-1 transition-opacity"
+              style={{
+                backgroundColor: "var(--callout-caption)",
+                opacity: open ? 1 : 0,
+                transitionDuration: "var(--duration-slow)",
+              }}
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    "h-2.5 w-0.5 shrink-0 rounded-xs",
+                    tone === "verified" ? "bg-verified" : "bg-failed",
+                  )}
+                />
+                <span className="font-mono text-mono-xs text-callout-ink">
+                  {cert.event}
+                </span>
+              </div>
+              <p className="font-mono text-mono-xs text-callout-ink-muted">
+                {cert.stamp}
+              </p>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* SPOT THE DIFFERENCE — two rings and a line, and nothing else.
+
+          Green on the frame where the cushion is whole, red where it is not,
+          and a live channel between them saying these are the same place in
+          the same room. That is the entire finding, and it is stated without
+          a word of copy.
+
+          ⚠️  IT MARKS, IT DOES NOT CONCLUDE. The rings say "here, and here";
+          they do not say who owes for it. Delphi records that the seat was
+          undamaged on one date and damaged on another — the charter agreement
+          decides the rest. See the liability warning at the top of
+          content/trust-scenes.ts. */}
+      <svg
+        className="absolute inset-0 h-full w-full overflow-visible transition-opacity"
+        style={{
+          opacity: spotting ? 1 : 0,
+          transitionDuration: "var(--duration-slow)",
+        }}
+        aria-hidden
+      >
+        {/* Between the rings, not between the frames: the line is making a
+            claim about two points, and drawing it edge to edge would make it
+            about two pictures. */}
+        <line
+          x1={cx(0) + r}
+          y1={cy}
+          x2={cx(1) - r}
+          y2={cy}
+          className="trust-link"
+          stroke="var(--fx-link)"
+          strokeWidth={2}
+          strokeLinecap="round"
+        />
+        {[0, 1].map((i) => (
+          <circle
+            key={i}
+            cx={cx(i)}
+            cy={cy}
+            r={r}
+            fill="none"
+            strokeWidth={2.5}
+            stroke={
+              i === 0 ? "var(--fx-verified-glow)" : "var(--fx-failed-glow)"
+            }
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 /** The top slot's frame: a title row, then the evidence cards beneath it.
  *
  *  `trusted` is the whole distinction the piece turns on, so it is one prop
@@ -1877,10 +2196,17 @@ function EvidenceCard({
   trusted,
   codeRef,
   gridRef,
+  publishing = false,
+  code,
 }: {
   cert?: TrustCapture;
   tone: "verified" | "failed";
   trusted: boolean;
+  /** Sealed, but not yet confirmed on the chain. */
+  publishing?: boolean;
+  /** Known before the certificate is issued, because the card has to be able
+   *  to name what it is waiting for. */
+  code?: string;
   /** Reports where this card's code sits, so the copies handed to the
    *  parties can fly out of it. */
   codeRef?: (el: HTMLElement | null) => void;
@@ -1956,42 +2282,101 @@ function EvidenceCard({
             nothing standing behind it has no certificate to carry, and putting
             one there would say it did. */}
         {trusted && (
-          <span
-            ref={codeRef}
-            /* Mounted from the start, not from when the certificate is issued:
-               the held copies fly FROM here, and a source that does not exist
-               until the moment of departure has no position to depart from. */
-            className="ml-auto block w-fit transition-opacity"
-            style={{
-              opacity: cert ? 1 : 0,
-              transitionDuration: "var(--duration-normal)",
-            }}
-          >
-            {/* Lit the same way as the copies it issues — same token, same
-                pulse. It is the source of the channel, so it should not look
-                like a colder version of what came out of it. */}
-            <span className="relative block">
-              <span
-                aria-hidden
-                className="trust-held-glow absolute -inset-1.5 rounded-sm"
-                style={{ backgroundColor: "var(--fx-link)", filter: "blur(7px)" }}
-              />
-              <span className="relative block rounded-xs bg-callout-ink p-0.5">
-                <img
-                  src="/assets/certificate-code.webp"
-                  alt=""
-                  width={128}
-                  height={128}
-                  loading="lazy"
-                  decoding="async"
-                  className="block h-8 w-8"
+          <div className="flex items-end gap-2">
+            {/* WHAT IS HAPPENING TO IT, in the two words that matter. The
+                record is sealed the moment the last capture lands, but it is
+                not independently checkable until the chain has it — and those
+                are different claims. Collapsing them would be the one place
+                this piece overstates what the product does. */}
+            <p className="min-w-0 flex-1 font-mono text-mono-xs leading-tight text-callout-ink-muted">
+              {publishing ? (
+                "Publishing certificate on blockchain…"
+              ) : cert ? (
+                <>
+                  Certificate published
+                  <br />
+                  <span className="text-callout-ink">{code}</span>
+                </>
+              ) : (
+                ""
+              )}
+            </p>
+            <span
+              ref={codeRef}
+              /* Mounted from the start, not from when the certificate is
+                 issued: the held copies fly FROM here, and a source that does
+                 not exist until the moment of departure has no position to
+                 depart from. */
+              className="block shrink-0 transition-opacity"
+              style={{
+                opacity: cert || publishing ? 1 : 0,
+                transitionDuration: "var(--duration-normal)",
+              }}
+            >
+              {/* Lit the same way as the copies it issues — same token, same
+                  pulse. It is the source of the channel, so it should not look
+                  like a colder version of what came out of it.
+
+                  Only once published: a glow behind a spinner would say the
+                  channel is live while the thing that makes it live is still
+                  being written. */}
+              <span className="relative block">
+                <span
+                  aria-hidden
+                  className="trust-held-glow absolute -inset-1.5 rounded-sm transition-opacity"
+                  style={{
+                    backgroundColor: "var(--fx-link)",
+                    filter: "blur(7px)",
+                    opacity: cert ? 1 : 0,
+                  }}
                 />
+                {/* The spinner stands exactly where the code will be, so the
+                    one becomes the other rather than the card changing shape
+                    under the reader. */}
+                <span className="relative grid h-9 w-9 place-items-center rounded-xs bg-callout-ink">
+                  {cert ? (
+                    <img
+                      src="/assets/certificate-code.webp"
+                      alt=""
+                      width={128}
+                      height={128}
+                      loading="lazy"
+                      decoding="async"
+                      className="block h-8 w-8"
+                    />
+                  ) : (
+                    <PublishSpinner />
+                  )}
+                </span>
               </span>
             </span>
-          </span>
+          </div>
         )}
       </div>
     </div>
+  );
+}
+
+/** Waiting on the chain. Deliberately a plain indeterminate spinner: a
+ *  progress bar would promise a duration nobody can honour, and a percentage
+ *  would be an invented number on a page about not inventing numbers. */
+function PublishSpinner() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5 animate-spin" fill="none" aria-hidden>
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="var(--fx-link-halo)"
+        strokeWidth="3"
+      />
+      <path
+        d="M21 12a9 9 0 0 0-9-9"
+        stroke="var(--fx-link)"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

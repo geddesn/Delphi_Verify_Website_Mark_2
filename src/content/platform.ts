@@ -299,20 +299,19 @@ export const moreThanAPhotograph = {
   /* The platform idea, in one sentence and one diagram. */
   model: {
     headline: "No single signal is trusted on its own",
-    /* SETS UP the diagram rather than summarising it. This used to say what
-       the line under the certificate now says, which meant the reader was
-       told the answer, shown the six questions, and then told the answer
-       again. The pictures below are six ways an apparently convincing
-       photograph can still be wrong; this sentence has to make a reader
-       willing to look at them. */
+    /* SETS UP the diagram rather than summarising it. The pictures below
+       are six ways an apparently convincing photograph can still be wrong,
+       and this sentence has to make a reader willing to look at them —
+       which is a different job from restating the headline above it.
+
+       The claim that the assurance comes from AGREEMENT between the six now
+       rests entirely on that headline. It used to be said twice more, here
+       and again under the certificate; if it ever needs saying in prose,
+       this is where it goes. */
     body:
       "Any one of these can be misleading, and none of them announces when it is. A timestamp and a location field are claims about the evidence, made by the same device that produced it.",
     signalsLabel: "Core Delphi signals",
     hub: "Delphi certificate",
-    /* The resolution, and it belongs ON the certificate. Six frames of doubt
-       resolve into one object, which is the whole shape of the section. */
-    hubNote:
-      "None of these signals proves anything on its own. Delphi looks for agreement between them.",
   },
 
   asset: {

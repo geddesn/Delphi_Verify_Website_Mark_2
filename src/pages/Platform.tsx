@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/primitives";
 import { ArrowRight } from "@/components/ui/Button";
 import { EvidenceChip } from "@/components/evidence/Evidence";
+import { PanelLogo } from "@/components/annotation/Panel";
 import { EventIcon, type EventName } from "@/components/product/EventIcon";
 import { PhoneShot, type ShotName } from "@/components/product/PhoneShot";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
@@ -312,17 +313,31 @@ export default function Platform() {
               ))}
             </ul>
 
-            {/* Six frames of doubt resolving into one object. The line
-                belongs ON the certificate rather than above the diagram —
-                it is the answer, and an answer printed before the questions
-                is just a summary. */}
+            {/* Six frames of doubt resolving into one object. The bar carries
+                its own name and nothing else: the headline above the diagram
+                already makes the claim, and a sentence here restating it put
+                the answer on the page twice. */}
             <div className="flex flex-col items-center gap-2 rounded-md border-2 border-accent bg-surface-accent px-6 py-5 text-center">
+              {/* The mark, the way it sits on a real certificate: issuer above
+                  document type. The repeated "Delphi" is how every certificate
+                  reads — a bank's logo above STATEMENT OF ACCOUNT — and it is
+                  what turns this from a labelled box in a diagram into the
+                  object the six signals resolve into.
+
+                  --ink rather than PanelLogo's default: that default is the
+                  callout panels' ink, and this sits on the page's accent
+                  surface, not inside a callout.
+
+                  Size stays at PanelLogo's own 26x91. h-/w- utilities passed
+                  through className do NOT override it — cn() joins classes, it
+                  does not merge them (see lib/cn.ts), so both survive and
+                  stylesheet order picks the winner. The same trap the phone
+                  wrapper in section two documents. Wrap it or pass a style if a
+                  different size is ever genuinely needed. */}
+              <PanelLogo className="mb-1" color="var(--ink)" />
               <span className="font-mono text-mono uppercase tracking-wide text-ink">
                 {moreThanAPhotograph.model.hub}
               </span>
-              <p className="max-w-xl text-body-sm text-ink-secondary">
-                {moreThanAPhotograph.model.hubNote}
-              </p>
             </div>
 
             <ul className="grid gap-4 sm:grid-cols-3">

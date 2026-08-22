@@ -240,7 +240,7 @@ function Greeting() {
       {/* Secondary to the greeting, as it should be: the organisation is
           context, not the thing the reader came for. */}
       <p className="text-[10.5px] font-medium uppercase tracking-[0.09em] text-ink-muted">
-        Knight Frank · London Residential
+        Ellerby · London Residential
       </p>
       <h1 className="mt-[5px] text-[23px] font-bold leading-[1.15] tracking-[-0.02em]">
         Good morning, Alex

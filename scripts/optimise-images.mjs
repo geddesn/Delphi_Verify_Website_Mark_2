@@ -158,6 +158,37 @@ const GROUPS = [
     sources: [{ file: "townhouse-facade.png", name: "townhouse-facade" }],
   },
   {
+    name: "captures",
+    src: join(process.cwd(), "assets-src", "renderings"),
+    out: join(process.cwd(), "public", "assets", "captures"),
+    /* The nine captures of 18 Cadogan Square, inside the evidence record on
+       /platform/renderings. Split from one 3x3 generation — see
+       cadogan-grid.prompt.txt for why one, and for the measured gutters the
+       split had to clear.
+
+       Two widths because the screen shows each of these at exactly two sizes
+       and nothing between: 240 for a thumbnail in the strip, and 878 — the
+       cell's own full width — for whichever one is open in the viewer. Only
+       one 878 is ever fetched per view; the srcSet picks it.
+
+       Their own group rather than joining "renderings" above, because that
+       group's master is 736 wide and would write a 736 file under an 878
+       name. A srcSet that misreports a width is worse than an extra group. */
+    widths: [240, 878],
+    webp: { quality: 80, effort: 6 },
+    sources: [
+      { file: "cadogan-front-elevation.png", name: "cadogan-front-elevation" },
+      { file: "cadogan-entrance-hall.png", name: "cadogan-entrance-hall" },
+      { file: "cadogan-reception-room.png", name: "cadogan-reception-room" },
+      { file: "cadogan-kitchen.png", name: "cadogan-kitchen" },
+      { file: "cadogan-principal-bedroom.png", name: "cadogan-principal-bedroom" },
+      { file: "cadogan-bathroom.png", name: "cadogan-bathroom" },
+      { file: "cadogan-study.png", name: "cadogan-study" },
+      { file: "cadogan-garden.png", name: "cadogan-garden" },
+      { file: "cadogan-rear-elevation.png", name: "cadogan-rear-elevation" },
+    ],
+  },
+  {
     name: "device",
     src: join(process.cwd(), "assets-src", "device"),
     out: join(process.cwd(), "public", "assets", "device"),
@@ -166,7 +197,11 @@ const GROUPS = [
        sit under the 928px master, so neither is an upscale and the two files
        genuinely differ — unlike a group whose top tiers collapse onto the
        master's own width. */
-    widths: [384, 768],
+    /* 928 is the master's own width, added when the paired layout on
+       /platform/renderings began drawing the phone at 36rem. At that size a
+       2x display wants 1152 and there is no more picture to give it — 928 is
+       the ceiling, and serving it beats serving 768 stretched. */
+    widths: [384, 768, 928],
     /* Higher quality than the photographic groups. This is a hard-edged
        object on transparency: the bezel highlight is a one-pixel gradient and
        the screen edge is the boundary a rendering is aligned to, so ringing

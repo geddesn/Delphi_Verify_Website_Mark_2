@@ -69,12 +69,12 @@
         ]
       },
       {
-        "comment": "Security headers. The CSP is deliberately strict: this site loads no third-party scripts, fonts or frames. If analytics are added, widen script-src and connect-src for that host ONLY, rather than relaxing the policy.",
+        "comment": "Security headers. The CSP is deliberately strict: no third-party scripts, fonts or connections. The ONE exception is frame-src for Google Maps, which the evidence-record renderings on /platform/renderings embed so the map is the real one the product uses. That embed sends each visitor's IP to Google and is the only third party this site talks to — it was a deliberate call, not an oversight, and it should be removed with those renderings if they go. If analytics are added, widen script-src and connect-src for that host ONLY, rather than relaxing the policy.",
         "source": "**",
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
           },
           {
             "key": "X-Content-Type-Options",

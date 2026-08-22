@@ -9,12 +9,17 @@ import {
   renderings,
   renderingsPage,
   surfaceFrame,
-  phoneFrame,
   type Rendering,
   type RenderingSurface,
 } from "@/content/renderings";
 import { MobileTasks } from "@/components/renderings/MobileTasks";
 import { MobileCapture } from "@/components/renderings/MobileCapture";
+import { PhoneFrame } from "@/components/renderings/PhoneFrame";
+import { WebFrame } from "@/components/renderings/WebFrame";
+import { WebEvidenceRecord } from "@/components/renderings/WebEvidenceRecord";
+import { WebDashboard } from "@/components/renderings/WebDashboard";
+import { WebAssetHistory } from "@/components/renderings/WebAssetHistory";
+import { MobileEvidenceRecord } from "@/components/renderings/MobileEvidenceRecord";
 import { cn } from "@/lib/cn";
 
 /* ============================================================================
@@ -48,23 +53,23 @@ const ANCHOR_CLEARANCE = "scroll-mt-[7.5rem]";
    scripts/optimise-images.mjs. Change this and those widths change with it. */
 const PHONE_WIDTH = "24rem";
 
-/* The canvas a mobile rendering is authored on: true iPhone logical pixels.
-   The screen box is a container, and the canvas inside it is scaled by
-   100cqi / 390px — a length divided by a LENGTH, which yields a number, so
-   the scale is exact at any width with no JavaScript and no ResizeObserver.
-
-   That matters more here than it looks. TrustEngine solves the same problem
-   with useStageScale, but it measures in an effect and returns 1 on the
-   server, so the prerendered HTML is unscaled until React hydrates. This page
-   is prerendered and mostly static; doing it in CSS means the markup is right
-   in the HTML itself. */
-const PHONE_CANVAS = { width: 390, height: 844 };
-
 /* Which rendering fills which slot. Absent ids fall through to the labelled
    placeholder, so the page works with any subset of the five drawn. */
-const SCREENS: Record<string, () => ReactNode> = {
-  "mobile-tasks": () => <MobileTasks />,
-  "mobile-capture": () => <MobileCapture />,
+const SCREENS: Record<
+  string,
+  { web?: () => ReactNode; mobile?: () => ReactNode }
+> = {
+  "mobile-tasks": { mobile: () => <MobileTasks /> },
+  "mobile-capture": { mobile: () => <MobileCapture /> },
+  /* Two frames, one record. Both read the same fixture in
+     content/evidence-record.ts, which is what stops the phone and the desktop
+     quietly disagreeing about how many captures there were. */
+  "evidence-record": {
+    web: () => <WebEvidenceRecord />,
+    mobile: () => <MobileEvidenceRecord />,
+  },
+  "web-dashboard": { web: () => <WebDashboard /> },
+  "web-case": { web: () => <WebAssetHistory /> },
 };
 
 const ordinal = (i: number) => String(i + 1).padStart(2, "0");
@@ -142,11 +147,29 @@ function ScreenSlot({
   index: number;
   tone: "default" | "sunken";
 }) {
-  /* A phone beside its brief; a desktop frame above one. Driven by the
-     artefact's shape rather than by taste — a 390x844 device in a full-width
-     column is a sliver of picture in an acre of page, and 1440x900 in a 24rem
-     one is unreadable. */
-  const beside = r.surface === "mobile";
+  /* Three shapes, all driven by the artefact rather than by taste.
+
+       mobile  the phone beside its brief — a 390x844 device given the full
+               column is a sliver of picture in an acre of page
+       web     the desktop frame above the brief — 1440x900 squeezed into a
+               24rem column is unreadable
+       both    the desktop at full width, then the phone beside the brief
+               below it. The desktop has to keep its width to stay legible,
+               which is the whole reason these are stacked rather than set
+               side by side.
+
+     The phone column is a custom property so the grid template and the frame
+     are reading one number rather than two that must be kept in step. */
+  const screens = SCREENS[r.id];
+  const phoneRow = (
+    <div
+      className="grid gap-10 lg:grid-cols-[var(--phone-w)_1fr] lg:items-start lg:gap-14"
+      style={{ "--phone-w": PHONE_WIDTH } as CSSProperties}
+    >
+      <FrameSlot surface="mobile">{screens?.mobile?.()}</FrameSlot>
+      <Brief rendering={r} />
+    </div>
+  );
 
   return (
     <Section id={r.id} tone={tone} className={ANCHOR_CLEARANCE}>
@@ -163,19 +186,23 @@ function ScreenSlot({
           standfirst={r.purpose}
         />
 
-        <div
-          className={cn(
-            "mt-12 grid gap-10",
-            beside &&
-              "lg:grid-cols-[var(--phone-w)_1fr] lg:items-start lg:gap-14",
-          )}
-          style={
-            beside ? ({ "--phone-w": PHONE_WIDTH } as CSSProperties) : undefined
-          }
-        >
-          <FrameSlot surface={r.surface}>{SCREENS[r.id]?.()}</FrameSlot>
-          <Brief rendering={r} />
-        </div>
+        {r.surface === "both" ? (
+          /* Stacked, and deliberately plain. The hero on / overlaps the two
+             devices to make one picture of a product; this page is a
+             catalogue, and a reviewer here needs to see each screen whole and
+             unobstructed rather than artfully composed. */
+          <div className="mt-12 flex flex-col gap-14">
+            <FrameSlot surface="web">{screens?.web?.()}</FrameSlot>
+            {phoneRow}
+          </div>
+        ) : r.surface === "mobile" ? (
+          <div className="mt-12">{phoneRow}</div>
+        ) : (
+          <div className="mt-12 grid gap-10">
+            <FrameSlot surface="web">{screens?.web?.()}</FrameSlot>
+            <Brief rendering={r} />
+          </div>
+        )}
       </Container>
     </Section>
   );
@@ -184,100 +211,31 @@ function ScreenSlot({
 function FrameSlot({
   surface,
   children,
+  /* PhoneFrame caps itself with an inline max-width, so a wider wrapper alone
+     does nothing — the paired composition has to pass the width down here or
+     the phone stays 24rem inside a 36rem box, and every offset computed from
+     its width lands wrong. */
+  phoneWidth = PHONE_WIDTH,
 }: {
   surface: RenderingSurface;
   children?: ReactNode;
+  phoneWidth?: string;
 }) {
   return surface === "mobile" ? (
-    <PhoneFrame>{children}</PhoneFrame>
+    <PhoneFrame width={phoneWidth}>
+      {children ?? (
+        <SlotLabel label="Mobile rendering" detail={surfaceFrame.mobile.label} />
+      )}
+    </PhoneFrame>
   ) : (
-    <WebFrame>{children}</WebFrame>
-  );
-}
-
-/** A real device frame, with the rendering behind it.
- *
- *  The screen is a plain rectangle on the measured aperture. It needs no
- *  rounded corners and no notch cut-out: the bezel is opaque and paints over
- *  it, so the image does the masking, the way the glass does on a real phone.
- *  See the note beside `phoneFrame` in content/renderings.ts. */
-function PhoneFrame({ children }: { children?: ReactNode }) {
-  return (
-    <div className="relative w-full" style={{ maxWidth: PHONE_WIDTH }}>
-      {/* The screen. First in the DOM so the frame — which is also positioned
-          — paints on top of it. */}
-      <div
-        className="absolute overflow-hidden bg-surface-sunken"
-        style={{
-          left: phoneFrame.screen.left,
-          top: phoneFrame.screen.top,
-          width: phoneFrame.screen.width,
-          height: phoneFrame.screen.height,
-          /* `size`, not `inline-size`: the cover scale below reads cqb as
-             well as cqi, and block-axis units need size containment. */
-          containerType: "size",
-        }}
-      >
-        {/* The canvas. Fixed at device pixels and scaled to the screen, so
-            everything inside is authored at the size it is really held at. */}
-        <div
-          style={{
-            width: PHONE_CANVAS.width,
-            height: PHONE_CANVAS.height,
-            transformOrigin: "top left",
-            /* Cover, not fit. This frame's aperture is 774x1680 — a 0.4607
-               ratio against the iPhone's own 0.4621 — so scaling on width
-               alone leaves the canvas 2px short and a sliver of the wrong
-               colour shows under the tab bar. Taking the larger of the two
-               scales fills the aperture and spills ~1px sideways, which the
-               bezel clips. It also means the next frame's ratio, whatever it
-               is, needs no arithmetic here. */
-            transform: `scale(max(calc(100cqi / ${PHONE_CANVAS.width}px), calc(100cqb / ${PHONE_CANVAS.height}px)))`,
-          }}
-        >
-          {children ?? (
-            <SlotLabel
-              label="Mobile rendering"
-              detail={surfaceFrame.mobile.label}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Decorative: the device is a frame around the rendering, not
-          information, so it is hidden from assistive technology. width and
-          height carry the intrinsic ratio, which is what gives the screen box
-          something to be a percentage of before the image loads. */}
-      <img
-        aria-hidden
-        alt=""
-        src={`${phoneFrame.base}-384.webp`}
-        srcSet={`${phoneFrame.base}-384.webp 384w, ${phoneFrame.base}-768.webp 768w`}
-        sizes={PHONE_WIDTH}
-        width={phoneFrame.width}
-        height={phoneFrame.height}
-        loading="lazy"
-        decoding="async"
-        className="relative block w-full"
-      />
-    </div>
-  );
-}
-
-/** No browser chrome yet — a plain frame at the target viewport's aspect, so
- *  the page's rhythm is already right before anything is drawn. */
-function WebFrame({ children }: { children?: ReactNode }) {
-  return (
-    <div
-      className="w-full overflow-hidden rounded-lg border border-dashed border-line-strong bg-surface"
-      style={{ aspectRatio: surfaceFrame.web.ratio }}
-    >
+    <WebFrame>
       {children ?? (
         <SlotLabel label="Web rendering" detail={surfaceFrame.web.label} />
       )}
-    </div>
+    </WebFrame>
   );
 }
+
 
 /** What the slot is waiting for. An empty box reads as something that failed
  *  to load rather than something not yet made. */

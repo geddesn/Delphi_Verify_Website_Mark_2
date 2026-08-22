@@ -69,6 +69,24 @@ export const routes: RouteDef[] = [
     priority: 0.7,
   },
   {
+    /* Interface renderings of the mobile and web product.
+
+       NOT INDEXABLE, for now. The page is a set of framed, briefed slots with
+       nothing drawn in them yet, and an empty shell is worth nothing to a
+       search result. It is linked from the footer because the people who need
+       to review it have to be able to reach it. Flip this to indexable once
+       the five screens exist — and only if we are content for renderings of
+       unshipped software to be a public entry point. */
+    path: "/platform/renderings",
+    load: () => import("@/pages/PlatformRenderings"),
+    seo: {
+      title: "Platform renderings | Delphi Verify",
+      description:
+        "Interface renderings of the Delphi Verify mobile and web product — field capture, evidence records, enterprise oversight and an asset's evidence timeline.",
+    },
+    indexable: false,
+  },
+  {
     path: "/industries",
     load: () => import("@/pages/Industries"),
     seo: {

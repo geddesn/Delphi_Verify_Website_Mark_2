@@ -120,7 +120,17 @@
    Roles, not values. This is the ONLY layer components reference.
    ========================================================================= */
 
-:root {
+/* [data-theme="light"] makes this symmetric with the dark block below, which
+   has always let a subtree opt INTO dark — that is how inverse sections work.
+   Nothing could opt back out, and a product rendering needs to: a picture of
+   a light application should not invert because the marketing page around it
+   happens to be dark. The mockups on /platform/renderings set it.
+
+   It is a second selector on the same block rather than a copy of the values.
+   The dark layer is duplicated twice already and that is two places to forget;
+   this one cannot drift because there is only one of it. */
+:root,
+[data-theme="light"] {
   /* Surfaces */
   --canvas:          var(--neutral-0);
   --surface:         var(--neutral-0);

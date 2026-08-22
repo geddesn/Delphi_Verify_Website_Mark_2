@@ -1,0 +1,36 @@
+iphone-frame.png — 928 x 1824, RGBA
+
+PROVENANCE
+Supplied by Nick, 22 Aug 2026, as
+Downloads/IPhone-Transparent-Image-No-Background.png. Not generated, so unlike
+every other master in assets-src there is no prompt that rebuilds it — and
+assets-src/**/*.png is gitignored, so the master is NOT in the repository. If
+it is lost, the committed WebPs under public/assets/device are all that remain.
+Keep the original safe.
+
+WHAT IS TRANSPARENT
+The screen as well as the background — alpha 0 in both, 77.7% of the image.
+Only the phone body is opaque (21.3%; the remaining 1.0% is edge
+antialiasing). That is what makes the frame useful: a rendering sits BEHIND
+the image and shows through the screen, and the opaque bezel paints over it.
+
+No CSS rounding or notch mask is therefore needed. The bezel's own rounded
+corners and the notch cover the rectangle behind them, exactly as a physical
+device does. Give the screen a plain rectangle and the frame does the masking.
+
+THE SCREEN APERTURE — MEASURED, NOT EYEBALLED
+Flood-filled the transparent region inwards from the border; whatever stayed
+transparent and unreached is the screen hole.
+
+  bounding box   x 77-850, y 72-1751
+  size           774 x 1680  (97.6% of the bbox — the shortfall is the notch)
+  ratio          0.4607, against the iPhone's own 390/844 = 0.4621
+
+  left    8.297%     top     3.947%
+  width  83.405%     height 92.105%
+
+Those four percentages are in `phoneScreen` in src/content/renderings.ts.
+
+⚠️  REPLACE THIS IMAGE AND THEY MUST BE MEASURED AGAIN. A different frame puts
+the screen somewhere else, and the renderings will sit crooked inside it with
+nothing failing loudly enough to notice.

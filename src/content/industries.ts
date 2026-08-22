@@ -31,39 +31,48 @@
    The company-wide value framework. Sectors tag two or three each.
    Qualitative on purpose: no numbers attach to these until they are real.
 
-   ⚠️  NOTHING RENDERS THIS TODAY. It had a section of its own on /industries
-   and tags on each card; both have gone. The tags went because across nine
-   sectors they resolved to nearly the same three labels and so distinguished
-   nothing, and the section went because four abstract headings asked a reader
-   to map the value back onto their own operation — work the nine scenarios
-   below already do concretely.
+   RENDERED ON /platform, in the section that asks where stronger evidence
+   creates value. It is not rendered on this page any more: it had a section
+   of its own here and tags on each card, and both went — the tags because
+   across nine sectors they resolved to nearly the same three labels and so
+   distinguished nothing, the section because four abstract headings asked a
+   reader to map the value back onto their own operation, which is work the
+   nine scenarios below already do concretely.
 
-   Kept, rather than deleted, because the taxonomy itself is sound and the
-   per-sector tagging is the expensive part: it is the natural spine for a
-   sector page, a pricing page or a sales one-pager. Delete it if none of
-   those arrive. */
+   That it survived the cut is the whole reason it could be reused rather
+   than rewritten. It stays HERE rather than moving to platform.ts because
+   the per-sector `outcomes` tags below are typed against it, and those are
+   the expensive half.
+
+   ⚠️  "SUPPORT asset value", never "increase". See the note on that entry. */
 export const outcomes = [
   {
     id: "revenue",
     label: "Increase revenue",
-    body: "Transactions complete sooner when neither side is waiting for assurance.",
+    body: "Support faster decisions, remote acceptance and higher-trust transactions.",
   },
   {
     id: "profit",
     label: "Increase profit",
-    body: "Less time spent inspecting, re-checking and arguing over what was true.",
+    body: "Reduce repeat inspections, checking, administration and dispute-management cost.",
   },
   {
     id: "risk",
     label: "Reduce risk",
-    body: "Disputes, fraud and unrecoverable liability all fall when the record is independent.",
+    body: "Strengthen evidence and clarify accountability between counterparties.",
   },
   {
     /* "Support", not "Increase". Delphi does not raise what an asset is
        worth; it reduces the information asymmetry that discounts it. */
     id: "asset-value",
     label: "Support asset value",
-    body: "A trusted history reduces information asymmetry for buyers, lenders and insurers.",
+    /* ⚠️  A VALUE STATEMENT, NOT A FEATURE CLAIM. "Build a history" is
+       something a customer does by making certificates over time, and that
+       ships today. It is NOT the persistent asset passport, which is
+       development direction — see the `passports` pillar in platform.ts. If
+       this line ever grows into "Delphi maintains an asset history", it has
+       crossed over and must come back. */
+    body: "Build a more trustworthy history that reduces information asymmetry.",
   },
 ] as const;
 

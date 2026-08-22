@@ -52,9 +52,13 @@ export const footerNav: { heading: string; items: NavItem[] }[] = [
     items: [
       { label: "How Delphi works", href: "/platform" },
       { label: "Trusted capture", href: "/platform#capture" },
-      { label: "Evidence corroboration", href: "/platform#corroborate" },
+      /* #corroboration, not #corroborate. This has pointed at an id that
+         does not exist since the pillar it was aiming at was written, so the
+         link has always landed at the top of /platform. */
+      { label: "Evidence corroboration", href: "/platform#corroboration" },
       { label: "Integrity & verification", href: "/platform#verify" },
       { label: "Verify a certificate", href: "/verify" },
+      { label: "Platform Renderings", href: "/platform/renderings" },
     ],
   },
   {

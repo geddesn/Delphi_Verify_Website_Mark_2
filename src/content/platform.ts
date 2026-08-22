@@ -20,13 +20,447 @@ export const platformHero = {
   eyebrow: "Platform",
   /* Not "Trusted evidence for the physical world" — that is the homepage H1
      and its <title>. Two indexed pages must not share one. */
-  headline: "Evidence counterparties can rely on.",
+  headline: "A trusted evidence layer for physical assets",
   standfirst:
-    "When an important decision depends on the state of a physical asset, Delphi Verify creates a record both sides can trust.",
+    "A hybrid mobile and web platform for capturing, managing and verifying trusted evidence about real-world assets.",
   body:
-    "Rather than trusting a photograph, timestamp or location claim in isolation, Delphi combines multiple signals into a single independently verifiable record.",
+    "Delphi Verify helps organisations create a trusted record of the observed state of a physical asset at an important moment — so counterparties can make decisions using evidence they can independently inspect.",
 } as const;
 
+/* ── How it works ─────────────────────────────────────────────────────────
+   Section two, and the one that makes the product tangible. Everything else
+   on this page describes assurance; this describes a system — a person
+   standing in front of an asset, and a counterparty who later has to rely on
+   what they saw.
+
+   ⚠️  ONE NOUN FOR THE OBJECT, AND IT IS "CERTIFICATE". Not evidence record,
+   not verification record, not report — the app calls it a certificate, the
+   verification page calls it a certificate, and /trust and
+   /platform/technical call it a certificate. Two names for one thing is
+   worse than either name, and a reader who meets both assumes there are two
+   things. The only "record" left in this section is the EXTERNAL integrity
+   record under stage three, which really is a different object and is not
+   ours.
+
+   ⚠️  NO MECHANISM NAMES IN THIS SECTION. No App Attest, no SHA-256, no EAS,
+   no Base. Those explain how Delphi implements the assurance and they belong
+   on /platform/technical; naming them here answers a question the reader has
+   not asked yet, and turns "what does this do for me" into "here is our
+   stack". The four-word strip at the foot is as far as the mechanism goes.
+
+   Every claim below is written against what ships today. The notes on each
+   stage record WHY it is defensible, because the temptation when this section
+   is next edited will be to round the language up.  */
+export const howItWorks = {
+  /* Short. The user's framing was "from physical asset to trusted evidence",
+     which is the right idea at twice the length an eyebrow can carry — the
+     others on this site are two or three words. */
+  eyebrow: "From asset to evidence",
+  headline: "From capture to a certificate another party can rely on.",
+  standfirst:
+    "Delphi connects the person standing in front of the asset with the people who later need to rely on what was observed. Evidence is captured through the mobile platform, processed and protected by Delphi, then made available as a web-based certificate.",
+
+  stages: [
+    {
+      id: "capture",
+      n: "01",
+      kicker: "Capture",
+      title: "Create evidence at the asset",
+      body:
+        "An authorised user captures photos or video directly through Delphi on their mobile device. The platform records the circumstances of capture alongside the media rather than relying on information supplied afterwards.",
+      shot: "capture",
+      shotAlt:
+        "The Delphi capture screen, framing a building with the GPS accuracy and capture time shown over the viewfinder",
+      /* Supported today: controlled iOS photo and video capture, precise
+         location collection, local review before publication, and
+         server-side checks at publication. */
+      points: [
+        {
+          label: "Controlled capture",
+          body:
+            "Media originates through the Delphi capture environment rather than being selected from an existing photo library.",
+        },
+        {
+          label: "Time & location",
+          body:
+            "Capture time and device-derived location are recorded as part of the evidence.",
+        },
+        {
+          label: "Immediate review",
+          body: "Evidence can be reviewed before the certificate is published.",
+        },
+      ],
+    },
+    {
+      id: "certificate",
+      n: "02",
+      kicker: "Create the certificate",
+      title: "Corroborate, protect and organise the evidence",
+      body:
+        "Delphi combines the captured media with supporting signals, checks the integrity of the capture process and creates a structured certificate.",
+      shot: "certificate",
+      shotAlt:
+        "A published Delphi certificate showing its reference, verified status and captured media",
+      /* Supported today: publication validates the session, the ordered media
+         commitments, capture timestamps, media hashes, device attestation and
+         the location and privacy requirements before a certificate exists at
+         all. None of those mechanisms is named here — see the warning above. */
+      points: [
+        {
+          label: "Corroboration",
+          body:
+            "Device, application, capture time, location and media integrity are evaluated together.",
+        },
+        {
+          label: "Integrity protection",
+          body:
+            "The captured evidence is cryptographically protected so subsequent substitution or alteration can be detected.",
+        },
+        {
+          label: "Privacy controls",
+          body:
+            "Sensitive information, including location, can be exposed at the level appropriate to the workflow.",
+        },
+      ],
+    },
+    {
+      id: "verify",
+      n: "03",
+      kicker: "Verify",
+      title: "Give the relying party direct access to the certificate",
+      body:
+        "The resulting certificate can be opened by the receiving party through a QR code or public reference, allowing them to inspect the evidence and its verification status directly.",
+      /* ⚠️  PLACEHOLDER SHOT. This stage is about a counterparty opening the
+         record in a browser, with no account and no app — and the only
+         screenshots that exist are from the iOS app. The scanner is the
+         nearest honest thing: it is the route into a public certificate, and
+         it does not show a signed-in Delphi workspace. Replace it with a
+         capture of the public verification page the moment one exists, and
+         delete this note. */
+      shot: "scan",
+      shotAlt:
+        "The Delphi scanner, ready to open a certificate from its QR code or public reference",
+      /* Supported today: unauthenticated public verification by QR or public
+         code, exposing the evidence, capture metadata, verification state and
+         the external anchor where one has been confirmed. */
+      points: [
+        {
+          label: "No account required",
+          body:
+            "A recipient does not need to become a Delphi user simply to inspect a public certificate.",
+        },
+        {
+          label: "Evidence and context together",
+          body:
+            "The certificate can present media, capture time, location, verification status and supporting integrity information.",
+        },
+        {
+          label: "Independent integrity check",
+          /* "record", twice, and correctly: this one is the EXTERNAL
+             integrity record, which is a different object from the
+             certificate and is not Delphi's. Do not sweep it into
+             "certificate" — see the noun warning at the top. */
+          /* "Where ... has been confirmed" and "can link" are both doing real
+             work. Anchoring is asynchronous, so a certificate may be verified
+             and correct while its external record is still pending. */
+          body:
+            "Where an external integrity record has been confirmed, the certificate can link the verifier to that independently maintained record.",
+        },
+      ],
+    },
+  ],
+
+  /* The assurance model, in four words, under the three things a customer
+     actually touches. Deliberately secondary: the stages above are the story.
+
+     These used to link to the four pillars that expanded them; the pillars
+     are gone and so are the links. See the note on `steps`. */
+  assurance: {
+    label: "What happens behind the certificate",
+    /* No hrefs. These carried links to the four assurance pillars that used
+       to expand them, and the pillars came off the page. Three of the four
+       now have nowhere honest to point, so all four are plain — the section
+       below makes the argument they used to link to. */
+    steps: [
+      { label: "Capture", body: "Evidence originates through Delphi." },
+      { label: "Corroborate", body: "Multiple signals are assessed together." },
+      {
+        label: "Secure",
+        body: "Evidence integrity is protected against silent alteration.",
+      },
+      {
+        label: "Verify",
+        body: "The relying party can inspect the resulting certificate.",
+      },
+    ],
+  },
+} as const;
+
+/* ── More than a photograph ───────────────────────────────────────────────
+   Section three, and the one that answers the question a customer actually
+   has: why is this better than the photograph I could take myself?
+
+   It is a COMMERCIAL section, not a security one. Most of it is a plain
+   two-column comparison a reader can take in without reading a sentence;
+   the rest introduces the one idea that makes Delphi a platform rather than
+   a camera — that no single signal is trusted on its own.
+
+   ⚠️  NOTHING FROM THE IMPLEMENTATION. No App Attest, no SHA-256, no EAS, no
+   Base, no chain ids, no nonces, no expiry windows, no signature counters,
+   no server validation rules. Every one of those answers "how", and this
+   section only answers "why is it different". They live on
+   /platform/technical, which is where a reader who wants them will go.
+
+   ⚠️  THE LEFT COLUMN IS NOT AN ACCUSATION. An ordinary photograph is not
+   fraudulent, and this copy must never imply the reader's current process is
+   dishonest — origin *may* be uncertain, metadata *can* be altered. The
+   problem is that a truthful photograph and an untruthful one look identical
+   to the person receiving them, which is a different and far more sellable
+   point. It is also why that column carries no red and no crosses: absence
+   of assurance is not a failed verification, and on this site the evidence
+   palette means something specific. */
+export const moreThanAPhotograph = {
+  eyebrow: "Why it is different",
+  headline: "More than a photograph",
+  standfirst: [
+    "An ordinary photograph can show what something looked like, but its origin, timing and location can be difficult to establish independently.",
+    "Delphi creates evidence through a controlled capture process and evaluates multiple signals together before the certificate is published.",
+  ],
+
+  /* Six paired rows. The titles carry the section on their own — the
+     sentences are for the reader who stops, not the one who scans. */
+  compare: {
+    plainLabel: "Ordinary photograph",
+    delphiLabel: "Delphi evidence",
+    rows: [
+      {
+        plain: {
+          title: "Origin may be uncertain",
+          body: "Existing media can be copied, forwarded or supplied from elsewhere.",
+        },
+        delphi: {
+          title: "Controlled capture",
+          body: "Evidence is created through Delphi's capture environment.",
+        },
+      },
+      {
+        plain: {
+          title: "Metadata can be altered",
+          body: "Dates, locations and file metadata can be changed or removed.",
+        },
+        delphi: {
+          title: "Capture circumstances recorded",
+          body: "Time, location and capture context are bound into the certificate.",
+        },
+      },
+      {
+        plain: {
+          title: "Individual signals are easy to challenge",
+          body: "A photograph or a GPS field on its own provides limited assurance.",
+        },
+        delphi: {
+          title: "Multiple signals corroborated",
+          body: "Delphi evaluates several independent signals together.",
+        },
+      },
+      {
+        plain: {
+          title: "Reproduced images may appear genuine",
+          body: "A photograph of a screen or of a printed image can be difficult to tell apart by eye.",
+        },
+        delphi: {
+          title: "Reproduction-risk screening",
+          body: "Captured photographs are screened for reproduction risk.",
+        },
+      },
+      {
+        plain: {
+          title: "Subsequent alteration may be difficult to detect",
+          body: "Nothing in an ordinary file establishes whether it changed after it was taken.",
+        },
+        delphi: {
+          title: "Evidence integrity protected",
+          body: "The certificate is cryptographically protected so substitution or alteration can be detected.",
+        },
+      },
+      {
+        plain: {
+          title: "Evidence is usually controlled by one party",
+          body: "The side that took the photograph is the side that keeps it.",
+        },
+        delphi: {
+          title: "Direct counterparty verification",
+          body: "A certificate can be opened and checked independently of the person who created it.",
+        },
+      },
+    ],
+  },
+
+  /* The platform idea, in one sentence and one diagram. */
+  model: {
+    headline: "No single signal is trusted on its own",
+    body:
+      "The assurance comes from agreement between multiple signals — not from trusting a photograph, timestamp or location claim in isolation.",
+    signalsLabel: "Core Delphi signals",
+    hub: "Delphi certificate",
+  },
+
+  asset: {
+    headline: "One evidence model. Different signals.",
+    /* ONE qualification, for the group, rather than a marker against every
+       line. Five direction chips in a row make a shipped platform look like
+       a plan; one honest sentence and one chip on the heading say the same
+       thing without it.
+
+       ⚠️  What must not happen is the qualification quietly going away. The
+       signals below are architecture, not inventory — every one of them is
+       `available: false` in platform-technical.ts. */
+    note:
+      "Delphi is designed to incorporate additional asset-specific corroboration according to the needs of each workflow.",
+  },
+} as const;
+
+/* The six signals every certificate carries today, the question each one
+   answers, and a picture.
+
+   THE PICTURES ARE DECORATIVE and are marked as such in the markup. They are
+   abstract objects — a monolith, an iris, a stack of plates — and none of
+   them depicts a feature or shows an interface. The label and the question
+   carry the whole meaning; the images only give the row weight and a
+   register, which is why they have empty alt text rather than a description
+   of a crystal.
+
+   All six came out of ONE render and were cut apart, so they share a set, a
+   light and a lens by construction rather than by luck. See
+   assets-src/features/signals-grid.prompt.txt. Questions rather than nouns on purpose: a list of nouns reads as a
+   feature list, where "was the evidence created through the controlled camera
+   workflow?" reads as something being checked.
+
+   ONE SOURCE. corroboration.live below is derived from these rather than
+   being a second, shorter list of the same thing — /industries renders that
+   one, and the two drifting apart is how a site ends up claiming four
+   signals on one page and six on another. */
+export const signals = [
+  {
+    label: "Device",
+    question: "Is the capture coming from a recognised device environment?",
+    /* A slab of black glass, alone, catching one highlight. */
+    image: "signal-device",
+  },
+  {
+    label: "Application",
+    question: "Is it coming through the Delphi capture process?",
+    /* Nested steel frames forming one tunnel in. */
+    image: "signal-application",
+  },
+  {
+    label: "Capture",
+    question: "Was the evidence created through the controlled camera workflow?",
+    /* A precision iris, part open. */
+    image: "signal-capture",
+  },
+  {
+    label: "Time",
+    question: "When was the evidence captured?",
+    /* A stack of plates with one lit from within. */
+    image: "signal-time",
+  },
+  {
+    label: "Location",
+    question: "Where did the device report the capture occurred?",
+    /* A grid plane with a beam landing on one intersection. */
+    image: "signal-location",
+  },
+  {
+    label: "Media integrity",
+    question: "Is the evidence the same evidence that was originally committed?",
+    /* Two matched crystal prisms, the same object twice. */
+    image: "signal-integrity",
+  },
+] as const;
+
+/* ── Corroboration detail, split honestly ─────────────────────────────────
+   `live` is what every certificate carries today. `bySector` is architecture,
+   not inventory: each entry is `available: false` in platform-technical.ts and
+   is rendered under an explicit direction marker. */
+export const corroboration = {
+  liveLabel: "Corroborated on every certificate today",
+  /* Derived, never hand-listed — see the note on `signals`. */
+  live: signals.map((x) => x.label),
+  sectorLabel: "Designed to accept asset-specific signals",
+  sectorNote:
+    "This is what makes Delphi a platform rather than a camera: the model takes corroboration specific to the asset, not simply more photographs. The signals below are development direction.",
+  bySector: [
+    /* One array, two pages: the asset strip on /platform and the sector
+       list on /industries both render this. */
+    { sector: "Property", signal: "Address and property reference" },
+    { sector: "Yachts", signal: "Vessel identity and navigational data" },
+    { sector: "Vehicles", signal: "VIN and telemetry" },
+    { sector: "Construction", signal: "Project and milestone data" },
+    { sector: "Industrial assets", signal: "Serial number and asset data" },
+  ],
+} as const;
+
+/* ── Built for the moments where physical reality matters ─────────────────
+   Section four, and deliberately the shortest of them. Section three says
+   why Delphi evidence is different; this only has to say WHERE that
+   difference turns into money, and then hand off to /industries.
+
+   ⚠️  NO SECTOR DETAIL HERE. Property, rentals, yachts and the rest have a
+   page of their own, and section three already carries the per-sector
+   corroboration signals. Naming them again with their own copy is how this
+   page starts looping over itself — the handoff at the foot is a link, not
+   a summary.
+
+   ⚠️  THE EIGHT MOMENTS ARE NOT A SEQUENCE. A claim does not follow an
+   inspection and a repair does not follow a milestone; they are alternative
+   occasions on which somebody needs a certificate. Arrows between them
+   would say otherwise, and this page already uses arrows for the one thing
+   that IS a sequence — capture, corroborate, secure, verify. */
+export const moments = {
+  eyebrow: "Where it creates value",
+  headline: "Built for the moments where physical reality matters.",
+  standfirst:
+    "Delphi fits into workflows where an important decision depends on the condition, location, existence or state of a physical asset — especially where different parties may later have different accounts of what happened.",
+
+  events: [
+    { icon: "handover", label: "Handover", body: "Establish condition when responsibility changes." },
+    { icon: "inspection", label: "Inspection", body: "Create a trusted record of what was observed." },
+    { icon: "delivery", label: "Delivery", body: "Record condition at despatch and receipt." },
+    { icon: "incident", label: "Incident", body: "Capture contemporaneous evidence of an event." },
+    { icon: "claim", label: "Claim", body: "Strengthen the evidential position around loss or damage." },
+    { icon: "milestone", label: "Milestone", body: "Establish physical progress at an important project stage." },
+    { icon: "repair", label: "Repair", body: "Record condition before and after intervention." },
+    { icon: "return", label: "Return", body: "Show what changed during use, hire or custody." },
+  ],
+
+  value: {
+    headline: "Stronger evidence creates commercial value.",
+    body:
+      "Where uncertainty about one of these moments has a financial consequence, better evidence can be worth measuring.",
+  },
+
+  /* A link, not a second industries page. */
+  industries: {
+    headline: "The same model applies across very different industries.",
+    body:
+      "From property and construction to yachts, insurance, vehicles and industrial assets, the underlying trust problem is often the same.",
+    label: "Explore where verified evidence applies",
+    href: "/industries",
+  },
+} as const;
+
+/* ── NO LONGER RENDERED ──────────────────────────────────────────────────
+   Everything from here to the foot of this file came off /platform when the
+   page was cut back to its hero and the how-it-works section, ready for a
+   rewrite. It is kept rather than deleted because it is the source material
+   for that rewrite, and because some of it was carefully hedged — the
+   direction markers on `bySector` and `passports`, and the deliberately
+   narrow integrity claim, all took work to get honest and should be reused
+   rather than re-derived.
+
+   ⚠️  These say "certificate" and must keep saying it. See the noun warning
+   above before reinstating any of it. */
 export type Pillar = {
   id: string;
   n: string;
@@ -97,30 +531,6 @@ export const pillars: Pillar[] = [
     ],
   },
 ];
-
-/* ── Corroboration detail, split honestly ─────────────────────────────────
-   `live` is what every certificate carries today. `bySector` is architecture,
-   not inventory: each entry is `available: false` in platform-technical.ts and
-   is rendered under an explicit direction marker. */
-export const corroboration = {
-  liveLabel: "Corroborated on every certificate today",
-  live: [
-    "Device",
-    "Application",
-    "Capture time",
-    "Precise location",
-  ],
-  sectorLabel: "Designed to accept asset-specific signals",
-  sectorNote:
-    "This is what makes Delphi a platform rather than a camera: the model takes corroboration specific to the asset, not simply more photographs. The signals below are development direction.",
-  bySector: [
-    { sector: "Property", signal: "Title and address reference" },
-    { sector: "Yachts", signal: "Vessel identity and navigational position" },
-    { sector: "Vehicles", signal: "VIN and telemetry" },
-    { sector: "Industrial assets", signal: "Serial number and IoT" },
-    { sector: "Construction", signal: "Project and milestone data" },
-  ],
-} as const;
 
 /* Stated on the overview because the choice is part of the proposition. The
    mechanism and its limits are on the technical page. */

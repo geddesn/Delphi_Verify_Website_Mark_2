@@ -95,6 +95,31 @@ const GROUPS = [
     ],
   },
   {
+    /* The six core-signal images. Their own group because their own widths:
+       they render at about 320 CSS px in a three-across row on /platform and
+       nothing on the site ever opens one larger, so 320 and 640 are exactly
+       1x and 2x and the features group's 960 and 1920 tiers would write two
+       more copies of a 906px master under misleading names.
+
+       Sliced out of ONE generation — see signals-grid.prompt.txt and
+       scripts/slice-grid.mjs. A set that has to look like a set is cheaper
+       and more consistent as a single gridded render than as six calls that
+       each reinterpret the light. */
+    name: "signals",
+    src: join(process.cwd(), "assets-src", "features"),
+    out: join(process.cwd(), "public", "assets", "features"),
+    widths: [320, 640],
+    webp: { quality: 82, effort: 6 },
+    sources: [
+      { file: "signal-device.png", name: "signal-device" },
+      { file: "signal-application.png", name: "signal-application" },
+      { file: "signal-capture.png", name: "signal-capture" },
+      { file: "signal-time.png", name: "signal-time" },
+      { file: "signal-location.png", name: "signal-location" },
+      { file: "signal-integrity.png", name: "signal-integrity" },
+    ],
+  },
+  {
     name: "product",
     src:
       process.env.DV_ASSETS ??
@@ -114,6 +139,26 @@ const GROUPS = [
       { file: "screenshots_scan.png", name: "scan" },
       { file: "screenshots_packs.png", name: "packs" },
     ],
+  },
+  {
+    name: "device",
+    src: join(process.cwd(), "assets-src", "device"),
+    out: join(process.cwd(), "public", "assets", "device"),
+    /* UI chrome rather than a photograph, and it renders at exactly one size:
+       a 24rem column on /platform/renderings, so 1x = 384 and 2x = 768. Both
+       sit under the 928px master, so neither is an upscale and the two files
+       genuinely differ — unlike a group whose top tiers collapse onto the
+       master's own width. */
+    widths: [384, 768],
+    /* Higher quality than the photographic groups. This is a hard-edged
+       object on transparency: the bezel highlight is a one-pixel gradient and
+       the screen edge is the boundary a rendering is aligned to, so ringing
+       here is visible in a way it is not in a photograph of the sea.
+
+       Alpha is the whole point of the asset — sharp carries it into WebP, and
+       the screen must stay transparent for anything to show through it. */
+    webp: { quality: 92, effort: 6 },
+    sources: [{ file: "iphone-frame.png", name: "iphone-frame" }],
   },
   {
     name: "industries",

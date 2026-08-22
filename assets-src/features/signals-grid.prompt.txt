@@ -1,14 +1,9 @@
 model: seedream5_pro
 ratio: 2720:1530
-task:  34def0b1-f80e-454f-9f14-a5ebcf5191de
-sliced: npm run slice -- --cols 3 --rows 2 --crop 16:9 --prefix signal-
-        --names device,application,capture,time,location,integrity
+task:  a593664b-e236-4472-9cfe-bc1866e28ddc
 
----
-
-Photorealistic studio photography presented as a 3x2 GRID OF SIX SEPARATE
-PHOTOGRAPHS in one image: six sculptural objects, each photographed alone on
-the same set, under the same light.
+Photorealistic editorial photography presented as a 3x2 GRID OF SIX SEPARATE
+PHOTOGRAPHS in one image: six moments from one working day at one property.
 
 THE GRID
 Three columns, two rows. Each cell is a complete photograph filling its cell
@@ -16,53 +11,66 @@ to all four edges. Cells butt edge to edge. No border, no gutter, no white
 strip, no dividing line, no frame, no rounded corners, no drop shadow, no
 numbering, no caption.
 
-ONE SET, ONE LIGHT
-Every frame is shot on the same seamless deep navy-black surface — very dark,
-faintly reflective, like polished slate. One cool key light rakes in from the
-upper left, and one narrow indigo-blue accent light picks out an edge. Deep
-shadow, controlled highlights, shallow depth of field, macro lens, museum
-lighting. Materials are real and expensive: black glass, brushed steel,
-machined aluminium, optical crystal. Cold, precise, still.
+ONE PROPERTY, ONE PERSON, ONE PHONE
+Every frame is the same prime London stucco townhouse — white render, black
+railings, tall sash windows — and the same pale restrained interior: wide oak
+boards, plaster walls, deep skirting, big soft daylight from tall windows.
+The same professional appears throughout: a woman in her thirties in a dark
+tailored coat over a plain shirt, hair tied back, no jewellery. The same
+current black smartphone in every frame. Natural overcast London daylight,
+cool and even. Documentary and unposed, shot on a fast prime at f/2, shallow
+depth of field, no flash. A working professional,
+not a model.
 
-NO TEXT ANYWHERE. No lettering, no numerals, no dials, no markings, no
-labels, no logos, no watermarks. No screens showing an interface. No hands,
-no people, no brand marks. Nothing that looks like a user interface or a
-diagram.
+NO TEXT ANYWHERE. Every phone and computer screen shows GRAPHICS ONLY —
+shapes, photographs, map colour, plain rectangles, a shutter circle. No
+lettering, no numerals, no menu items, no labels, no
+watermarks, no brand marks, no signage, no house numbers, no number plates.
+Where a screen would normally carry writing, it is softly out of focus.
 
 THE SIX
 
-1 TOP-LEFT — DEVICE. A single slab of black glass with polished bevelled
-edges, standing upright on the surface like a monolith, catching one long
-cool highlight down its face. Nothing on it. Its reflection runs into the
-dark below it.
+1 TOP-LEFT — DEVICE. She stands on the pavement outside the townhouse, the
+façade filling the background behind her, holding an entirely ordinary black
+smartphone at chest height, face up, screen dark and reflective. Nothing
+remarkable about the phone at all — that is the point of the frame. Sharp on
+the hand and the phone, the building soft behind.
 
-2 TOP-CENTRE — APPLICATION. Four rectangular steel frames of decreasing size,
-set one behind another and perfectly concentric, forming a tunnel that
-recedes into the dark. The innermost opening glows a soft indigo. A single
-controlled way in.
+2 TOP-CENTRE — APPLICATION. Closer, over her shoulder. The phone is held up
+in both hands and the screen is on: a camera viewfinder showing a live view
+of the room beyond, a white shutter circle at the bottom, thin framing marks
+at the corners. Her thumb rests near the shutter.
 
-3 TOP-RIGHT — CAPTURE. A precision iris of overlapping machined steel blades,
-seen straight on, open about a third. Cool light spills through the opening.
-Every blade edge is crisp; the machining is visible.
+3 TOP-RIGHT — CAPTURE. The strongest frame. She is photographing a LARGE
+DESKTOP MONITOR that is itself displaying a big convincing photograph of a
+handsome panelled drawing room. Through her phone's screen the monitor image
+reads as though it were simply a real room. The edge of the monitor's bezel
+and the desk beneath it show at the margin of the frame, so a viewer who
+looks twice sees this is a photograph of a photograph.
 
-4 BOTTOM-LEFT — TIME. Twelve identical thin steel plates stacked horizontally
-with even gaps between them, receding slightly from the camera. One plate,
-about a third of the way down, is lit from within so its edge glows indigo
-while the others stay dark. One moment among many, marked.
+4 BOTTOM-LEFT — TIME. Inside the empty house, standing in a bare panelled
+room. She holds the phone in one hand, thumb on the screen, which shows a
+plain pale settings list — rows of flat grey bars and one small green toggle
+switch, no writing, slightly out of focus. Her other hand is in her coat
+pocket.
 
-5 BOTTOM-CENTRE — LOCATION. A dark plane ruled with a fine grid, running away
-to a low horizon. A single narrow vertical beam of indigo light lands on one
-intersection of the grid and pools slightly where it meets the surface.
-Nothing else on the plane.
+5 BOTTOM-CENTRE — LOCATION. Inside the same house, by a tall sash window. The
+phone is held flat in her palm and the screen shows a map: soft grey streets,
+a blue dot, a wide translucent blue accuracy circle around it. No place names.
+Daylight from the window falls across the screen.
 
-6 BOTTOM-RIGHT — MEDIA INTEGRITY. Two identical faceted optical-crystal
-prisms standing side by side, exactly matched in size, angle and cut, one a
-little behind the other. Cool light passes through both and lands identically.
-They are unmistakably the same object twice.
+6 BOTTOM-RIGHT — MEDIA INTEGRITY. A desk by the window. An open laptop shows
+a photograph of the same panelled room in an image-editing workspace — dark
+grey tool rails down both sides, a row of small square swatches, a
+rectangular selection drawn over one area of wall. Beside the laptop the
+phone lies face up showing what appears to be the same photograph. No writing
+on either screen.
 
 STRICTLY AVOID
-Text of any kind. Interfaces, dashboards, app screens, charts, icons, maps
-with labels. People, hands, faces. Warm light, gold, brass, wood, plants,
-fabric. Clutter, props, tools, background objects. Lens flare, heavy bloom,
-neon, cyberpunk. Anything that reads as stock 3D or as a technology
-illustration rather than as a photograph of a real object.
+Text, lettering or numerals of any kind, on screens or in the world. Stock
+smiling business people, handshakes, boardrooms, meeting tables. Circuit
+boards, server racks, code, terminal windows,
+padlocks, shields, fingerprints, holograms, glowing wireframes, HUD overlays.
+Neon, teal-and-orange grading, lens flare, heavy bloom. Anything
+that looks like a technology stock illustration rather than a photograph
+taken on a real job.

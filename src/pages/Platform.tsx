@@ -312,10 +312,17 @@ export default function Platform() {
               ))}
             </ul>
 
-            <div className="flex items-center justify-center gap-3 rounded-md border-2 border-accent bg-surface-accent px-6 py-4 text-center">
+            {/* Six frames of doubt resolving into one object. The line
+                belongs ON the certificate rather than above the diagram —
+                it is the answer, and an answer printed before the questions
+                is just a summary. */}
+            <div className="flex flex-col items-center gap-2 rounded-md border-2 border-accent bg-surface-accent px-6 py-5 text-center">
               <span className="font-mono text-mono uppercase tracking-wide text-ink">
                 {moreThanAPhotograph.model.hub}
               </span>
+              <p className="max-w-xl text-body-sm text-ink-secondary">
+                {moreThanAPhotograph.model.hubNote}
+              </p>
             </div>
 
             <ul className="grid gap-4 sm:grid-cols-3">
@@ -467,7 +474,12 @@ function SignalNode({
   signal,
   spur,
 }: {
-  signal: { label: string; question: string; image: string };
+  signal: {
+    label: string;
+    question: string;
+    checks: readonly string[];
+    image: string;
+  };
   spur: "above" | "below";
 }) {
   const rule = (
@@ -493,24 +505,43 @@ function SignalNode({
           </p>
           <p className="text-body-sm text-ink-secondary">{signal.question}</p>
         </div>
-        {/* DECORATIVE, and marked so. These are abstract objects — a
-            monolith, an iris, a stack of plates — and describing one to a
-            screen reader would be reading out a still life in the middle of
-            a list of what gets checked. The label and question above carry
-            the whole meaning. */}
-        <img
-          aria-hidden
-          alt=""
-          src={`/assets/features/${signal.image}-320.webp`}
-          srcSet={`/assets/features/${signal.image}-320.webp 320w, /assets/features/${signal.image}-640.webp 640w`}
-          sizes="(min-width: 640px) 320px, 90vw"
-          width={906}
-          height={510}
-          loading="lazy"
-          decoding="async"
-          className="block w-full"
-          style={{ aspectRatio: "16 / 9" }}
-        />
+        {/* The picture, and the doubts it raises, on one plate.
+            The photographs are decorative — the questions on top of them are
+            not, so the type is real HTML rather than lettering asked of an
+            image model. Crisp at any size, editable without paying for
+            another render, and read out in order by a screen reader.
+
+            The plate is the same one the trust stage burns its capture
+            metadata onto. These images are bright — a white stucco façade, a
+            pale interior — so light type needs a ground under it. */}
+        <div className="relative">
+          <img
+            aria-hidden
+            alt=""
+            src={`/assets/features/${signal.image}-320.webp`}
+            srcSet={`/assets/features/${signal.image}-320.webp 320w, /assets/features/${signal.image}-640.webp 640w`}
+            sizes="(min-width: 640px) 320px, 90vw"
+            width={858}
+            height={483}
+            loading="lazy"
+            decoding="async"
+            className="block w-full"
+            style={{ aspectRatio: "16 / 9" }}
+          />
+          <ul
+            className="absolute bottom-2 left-2 rounded-sm px-2 py-1.5"
+            style={{ backgroundColor: "var(--callout-caption)" }}
+          >
+            {signal.checks.map((check) => (
+              <li
+                key={check}
+                className="font-mono text-mono-xs leading-relaxed text-callout-ink"
+              >
+                {check}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       {spur === "below" && rule}
     </li>

@@ -1,0 +1,75 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  34def0b1-f80e-454f-9f14-a5ebcf5191de
+status: SUPERSEDED by signals-grid.prompt.txt. Kept as a record of the take.
+        Six studio objects — a glass monolith, a steel iris, a stack of
+        plates. Consistent, handsome, and they said nothing: six
+        cybersecurity illustrations that could have sat on any
+        infrastructure site. Replaced by six frames from one
+        investigation of one property, where each picture is a reason an
+        apparently convincing photograph might still be challenged.
+sliced: npm run slice -- --cols 3 --rows 2 --crop 16:9 --prefix signal-
+        --names device,application,capture,time,location,integrity
+
+---
+
+Photorealistic studio photography presented as a 3x2 GRID OF SIX SEPARATE
+PHOTOGRAPHS in one image: six sculptural objects, each photographed alone on
+the same set, under the same light.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell
+to all four edges. Cells butt edge to edge. No border, no gutter, no white
+strip, no dividing line, no frame, no rounded corners, no drop shadow, no
+numbering, no caption.
+
+ONE SET, ONE LIGHT
+Every frame is shot on the same seamless deep navy-black surface — very dark,
+faintly reflective, like polished slate. One cool key light rakes in from the
+upper left, and one narrow indigo-blue accent light picks out an edge. Deep
+shadow, controlled highlights, shallow depth of field, macro lens, museum
+lighting. Materials are real and expensive: black glass, brushed steel,
+machined aluminium, optical crystal. Cold, precise, still.
+
+NO TEXT ANYWHERE. No lettering, no numerals, no dials, no markings, no
+labels, no logos, no watermarks. No screens showing an interface. No hands,
+no people, no brand marks. Nothing that looks like a user interface or a
+diagram.
+
+THE SIX
+
+1 TOP-LEFT — DEVICE. A single slab of black glass with polished bevelled
+edges, standing upright on the surface like a monolith, catching one long
+cool highlight down its face. Nothing on it. Its reflection runs into the
+dark below it.
+
+2 TOP-CENTRE — APPLICATION. Four rectangular steel frames of decreasing size,
+set one behind another and perfectly concentric, forming a tunnel that
+recedes into the dark. The innermost opening glows a soft indigo. A single
+controlled way in.
+
+3 TOP-RIGHT — CAPTURE. A precision iris of overlapping machined steel blades,
+seen straight on, open about a third. Cool light spills through the opening.
+Every blade edge is crisp; the machining is visible.
+
+4 BOTTOM-LEFT — TIME. Twelve identical thin steel plates stacked horizontally
+with even gaps between them, receding slightly from the camera. One plate,
+about a third of the way down, is lit from within so its edge glows indigo
+while the others stay dark. One moment among many, marked.
+
+5 BOTTOM-CENTRE — LOCATION. A dark plane ruled with a fine grid, running away
+to a low horizon. A single narrow vertical beam of indigo light lands on one
+intersection of the grid and pools slightly where it meets the surface.
+Nothing else on the plane.
+
+6 BOTTOM-RIGHT — MEDIA INTEGRITY. Two identical faceted optical-crystal
+prisms standing side by side, exactly matched in size, angle and cut, one a
+little behind the other. Cool light passes through both and lands identically.
+They are unmistakably the same object twice.
+
+STRICTLY AVOID
+Text of any kind. Interfaces, dashboards, app screens, charts, icons, maps
+with labels. People, hands, faces. Warm light, gold, brass, wood, plants,
+fabric. Clutter, props, tools, background objects. Lens flare, heavy bloom,
+neon, cyberpunk. Anything that reads as stock 3D or as a technology
+illustration rather than as a photograph of a real object.

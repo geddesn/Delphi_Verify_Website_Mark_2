@@ -299,10 +299,20 @@ export const moreThanAPhotograph = {
   /* The platform idea, in one sentence and one diagram. */
   model: {
     headline: "No single signal is trusted on its own",
+    /* SETS UP the diagram rather than summarising it. This used to say what
+       the line under the certificate now says, which meant the reader was
+       told the answer, shown the six questions, and then told the answer
+       again. The pictures below are six ways an apparently convincing
+       photograph can still be wrong; this sentence has to make a reader
+       willing to look at them. */
     body:
-      "The assurance comes from agreement between multiple signals — not from trusting a photograph, timestamp or location claim in isolation.",
+      "Any one of these can be misleading, and none of them announces when it is. A timestamp and a location field are claims about the evidence, made by the same device that produced it.",
     signalsLabel: "Core Delphi signals",
     hub: "Delphi certificate",
+    /* The resolution, and it belongs ON the certificate. Six frames of doubt
+       resolve into one object, which is the whole shape of the section. */
+    hubNote:
+      "None of these signals proves anything on its own. Delphi looks for agreement between them.",
   },
 
   asset: {
@@ -320,61 +330,88 @@ export const moreThanAPhotograph = {
   },
 } as const;
 
-/* The six signals every certificate carries today, the question each one
-   answers, and a picture.
+/* The six signals every certificate carries today: what each one is called,
+   the question it answers, the doubts it has to settle, and a picture.
 
-   THE PICTURES ARE DECORATIVE and are marked as such in the markup. They are
-   abstract objects — a monolith, an iris, a stack of plates — and none of
-   them depicts a feature or shows an interface. The label and the question
-   carry the whole meaning; the images only give the row weight and a
-   register, which is why they have empty alt text rather than a description
-   of a crystal.
+   THE QUESTIONS ARE ADVERSARIAL, and they have to be. "Is the capture coming
+   from a recognised device environment?" describes a check being performed;
+   "Is this a trustworthy physical device?" is the question a counterparty is
+   actually asking, and it is the one that makes the picture beside it mean
+   something. The section is not a feature list — it is six reasons an
+   apparently convincing photograph might still be challenged.
 
-   All six came out of ONE render and were cut apart, so they share a set, a
-   light and a lens by construction rather than by luck. See
-   assets-src/features/signals-grid.prompt.txt. Questions rather than nouns on purpose: a list of nouns reads as a
-   feature list, where "was the evidence created through the controlled camera
-   workflow?" reads as something being checked.
+   THE CHECKS ARE OVERLAID IN HTML, not drawn into the images. Generated
+   lettering is unreliable; overlaid type is crisp, uses the real typeface,
+   survives an edit without another render, is readable by a screen reader
+   and can be translated. Every prompt in assets-src/ forbids text for the
+   same reason — see AnnotationPanel.
 
-   ONE SOURCE. corroboration.live below is derived from these rather than
-   being a second, shorter list of the same thing — /industries renders that
-   one, and the two drifting apart is how a site ends up claiming four
-   signals on one page and six on another. */
+   ⚠️  THE CHECKS MUST STAY QUESTIONS. Written as statements they become a
+   list of things Delphi detects, which is a capability claim about
+   mechanisms this page has deliberately not described. As questions they are
+   what a sceptical counterparty would ask, which is true and is the point.
+
+   THE PICTURES ARE ONE INVESTIGATION. One London townhouse, one professional,
+   one phone, six moments of a working day: outside the building, at the
+   viewfinder, photographing a monitor, in the settings, on the map, and at a
+   laptop with the photograph open in an editing workspace. They came out of
+   ONE render and were cut apart, so the property, the person, the coat and
+   the light are the same by construction rather than by luck. See
+   assets-src/features/signals-grid.prompt.txt.
+
+   They replaced six abstract studio objects — a glass monolith, a steel iris,
+   a stack of plates — which were handsome and said nothing, and which could
+   have sat on any infrastructure site. The old brief is kept beside the new
+   one as signals-abstract.prompt.txt. */
 export const signals = [
   {
     label: "Device",
-    question: "Is the capture coming from a recognised device environment?",
-    /* A slab of black glass, alone, catching one highlight. */
+    question: "Is this a trustworthy physical device?",
+    checks: ["Real device?", "Jailbroken?", "Simulated environment?"],
+    /* Outside the townhouse, holding an entirely ordinary phone. Nothing
+       about how it looks tells a counterparty anything, which is the frame. */
     image: "signal-device",
   },
   {
     label: "Application",
-    question: "Is it coming through the Delphi capture process?",
-    /* Nested steel frames forming one tunnel in. */
+    question: "Did the genuine Delphi app create the evidence?",
+    checks: ["Official application?", "Authentic build?", "Modified software?"],
+    /* Over the shoulder at the viewfinder. Seeing an interface is not
+       evidence that the interface produced the evidence. */
     image: "signal-application",
   },
   {
     label: "Capture",
-    question: "Was the evidence created through the controlled camera workflow?",
-    /* A precision iris, part open. */
+    question: "Was the camera observing the real asset?",
+    /* The sharpest of the six, and the only one whose picture does the
+       arguing on its own: she is photographing a monitor that is displaying
+       a photograph of a room. */
+    checks: ["Live scene?", "A screen or a print?", "Reproduction risk?"],
     image: "signal-capture",
   },
   {
     label: "Time",
-    question: "When was the evidence captured?",
-    /* A stack of plates with one lit from within. */
+    question: "Did the capture actually happen when claimed?",
+    /* Not hypothetical: a phone will let you turn automatic time off and set
+       the clock by hand, which is why reading the device's own timestamp and
+       calling it verified would be worth nothing. */
+    checks: ["Device time correct?", "Manually changed?", "Independent corroboration?"],
     image: "signal-time",
   },
   {
     label: "Location",
-    question: "Where did the device report the capture occurred?",
-    /* A grid plane with a beam landing on one intersection. */
+    question: "Was the device really where it says it was?",
+    checks: ["Current fix?", "Spoofed?", "Accuracy sufficient?"],
+    /* A map, a dot and an accuracy circle. A latitude and longitude in
+       metadata is a claim, not a fact about the world. */
     image: "signal-location",
   },
   {
     label: "Media integrity",
-    question: "Is the evidence the same evidence that was originally committed?",
-    /* Two matched crystal prisms, the same object twice. */
+    question: "Is this still exactly what was captured?",
+    checks: ["Original pixels?", "Altered after capture?", "Same evidence committed?"],
+    /* The photograph open on a laptop in an editing workspace, the phone
+       beside it. The change that matters is never an absurd one. */
     image: "signal-integrity",
   },
 ] as const;

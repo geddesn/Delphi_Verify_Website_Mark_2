@@ -14,6 +14,7 @@ import {
   type RenderingSurface,
 } from "@/content/renderings";
 import { MobileTasks } from "@/components/renderings/MobileTasks";
+import { MobileCapture } from "@/components/renderings/MobileCapture";
 import { cn } from "@/lib/cn";
 
 /* ============================================================================
@@ -63,6 +64,7 @@ const PHONE_CANVAS = { width: 390, height: 844 };
    placeholder, so the page works with any subset of the five drawn. */
 const SCREENS: Record<string, () => ReactNode> = {
   "mobile-tasks": () => <MobileTasks />,
+  "mobile-capture": () => <MobileCapture />,
 };
 
 const ordinal = (i: number) => String(i + 1).padStart(2, "0");

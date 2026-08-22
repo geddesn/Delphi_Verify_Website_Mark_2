@@ -871,6 +871,50 @@
   -webkit-mask-image: var(--tile-thumb-fade);
 }
 
+/* ── Live camera, /platform/renderings ─────────────────────────────────────
+   A still photograph has to read as a viewfinder. Two motions, on two nested
+   elements, because they must not share a transform — and because two periods
+   that do not divide into each other stop the pair from visibly looping.
+
+   The drift is the operator settling on the shot; the shake is the hand
+   holding the phone. Shake alone reads as a bug, drift alone as a Ken Burns
+   slideshow. Together they read as somebody standing across the street.
+
+   The scale is headroom, not styling: the translations need somewhere to move
+   into, and without it the frame's own edges swing into view. 1.08 is what the
+   736px master affords before it starts upscaling — see
+   assets-src/renderings/townhouse-facade.source.txt, which records exactly how
+   much of the picture is spare.
+
+   Both are neutralised by the reduced-motion block below, which zeroes every
+   animation in the codebase at once. That matters more here than usual: a
+   viewfinder that will not hold still is precisely what someone who asked for
+   less motion is asking to be spared. */
+@keyframes cam-drift {
+  0%   { transform: translate3d(-1.6%, -1.1%, 0) scale(1.08); }
+  50%  { transform: translate3d(1.6%,  1.3%, 0) scale(1.08); }
+  100% { transform: translate3d(-1.6%, -1.1%, 0) scale(1.08); }
+}
+
+@keyframes cam-shake {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  20%  { transform: translate3d(0.34%, -0.30%, 0) rotate(0.13deg); }
+  45%  { transform: translate3d(-0.26%, 0.36%, 0) rotate(-0.11deg); }
+  70%  { transform: translate3d(0.30%, 0.22%, 0) rotate(0.07deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+.cam-drift {
+  animation: cam-drift 19s ease-in-out infinite;
+}
+
+.cam-shake {
+  animation: cam-shake 6.3s ease-in-out infinite;
+  /* Promoted deliberately. The drift parent is already composited, and
+     leaving this on the main thread makes the two fight over layout. */
+  will-change: transform;
+}
+
 /* ============================================================================
    ACCESSIBILITY — REDUCED MOTION
    The previous site had zero support for this. Motion tokens collapse to nil,

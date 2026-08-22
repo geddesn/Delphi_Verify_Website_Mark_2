@@ -141,6 +141,23 @@ const GROUPS = [
     ],
   },
   {
+    name: "renderings",
+    src: join(process.cwd(), "assets-src", "renderings"),
+    out: join(process.cwd(), "public", "assets", "renderings"),
+    /* Content INSIDE the app mockups on /platform/renderings, as opposed to
+       the device chrome around them.
+
+       368 and 736 are 1x and 2x of the capture preview, and 736 is also the
+       master's own width — deliberately, because there is no more resolution
+       to be had. See townhouse-facade.source.txt: the ceiling is what forced
+       a contained preview rather than a full-bleed one. */
+    widths: [368, 736],
+    /* Photographic, opaque, and shown small behind a live-camera treatment
+       that is panning slightly, so detail is not the thing being judged. */
+    webp: { quality: 80, effort: 6 },
+    sources: [{ file: "townhouse-facade.png", name: "townhouse-facade" }],
+  },
+  {
     name: "device",
     src: join(process.cwd(), "assets-src", "device"),
     out: join(process.cwd(), "public", "assets", "device"),

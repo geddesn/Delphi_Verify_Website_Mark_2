@@ -1,0 +1,38 @@
+townhouse-facade.png — 736 x 772, RGB
+
+PROVENANCE
+Supplied by Nick, 22 Aug 2026, from
+Slide Deck Manager/brands/delphi/assets/brochure/intro-townhouse.png. Not
+generated — there is no prompt that rebuilds it, and assets-src/**/*.png is
+gitignored, so the committed WebPs under public/assets/renderings are all that
+survive here. The original lives in the Slide Deck Manager repo.
+
+It is the SAME property as the one behind the camera UI in
+screenshots_capture.png, without the burned-in GPS pill, timestamp and
+controls. That is why it is the right one: the app's own capture screenshot
+and this rendering show one building, so a viewer comparing them sees the
+product rather than a stock library.
+
+ALPHA REMOVED ON THE WAY IN
+The source carries an alpha channel that is 0.00% non-opaque — dead weight in
+every derived file. Stripped here rather than in the pipeline so the master
+matches what ships.
+
+THE RESOLUTION CEILING — READ BEFORE CHANGING THE LAYOUT
+736x772 is small, and it decides how the capture preview can be composed.
+
+  full-bleed phone (390/844)  crops to 357x772   too narrow
+  4:3 portrait                crops to 579x772   too narrow
+  near-square preview         718x772            fine
+
+So the preview CANNOT go full-bleed portrait behind the whole screen; that
+crop leaves 357px of width for a window needing ~590 physical px, and it would
+visibly soften. A contained preview is also what the real app does — see
+screenshots_capture.png, where the preview sits between the certificate pill
+and the shutter — so this is consistent rather than a compromise.
+
+PANNING
+There is room. A preview of roughly 358x420 canvas px renders at ~295 CSS px
+wide, or ~590 physical at 2x, leaving about 146px horizontal and 80px vertical
+of the master unused — a 20-25% range to drift within without upscaling.
+Enough for a slow live-camera pan; not enough for a sweep.

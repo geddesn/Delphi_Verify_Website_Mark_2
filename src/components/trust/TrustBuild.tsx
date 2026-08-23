@@ -283,11 +283,29 @@ const s = {
 export function TrustBuild({
   scene,
   className,
+  fromStart = false,
 }: {
   scene: TrustBuildScene;
   className?: string;
+  /** Start at the FIRST beat instead of the last.
+   *
+   *  The stage sits at REST on mount so the prerendered markup is the finished
+   *  piece and the client hydrates onto exactly that — see the note on `step`.
+   *  That is right for the scene the server rendered, and wrong for every
+   *  scene after it: picking a sector mounts a fresh component with no server
+   *  markup to match, so it painted the ENDING for the frame or two before the
+   *  observer started it from the top. That flash is the whole reason this
+   *  prop exists.
+   *
+   *  Set by the selector once the reader has chosen something, and never on
+   *  first load. */
+  fromStart?: boolean;
 }) {
-  const [step, setStep] = useState<number>(REST);
+  /* REST on the server and on first paint so hydration agrees with the
+     prerendered markup; the first beat when the reader picked this sector,
+     because then there is no prerendered markup and starting at the end shows
+     them the ending. See fromStart. */
+  const [step, setStep] = useState<number>(fromStart ? 0 : REST);
   const [reduced, setReduced] = useState(false);
   const played = useRef(false);
   const frameRef = useRef<HTMLDivElement>(null);

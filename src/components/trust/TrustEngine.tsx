@@ -473,9 +473,23 @@ function columnFallback(side: "left" | "right", i: number, count: number) {
 export function TrustEngine({
   scene,
   className,
+  fromStart = false,
 }: {
   scene: TrustScene;
   className?: string;
+  /** Start at the FIRST beat instead of the last.
+   *
+   *  The stage sits at REST on mount so the prerendered markup is the finished
+   *  piece and the client hydrates onto exactly that — see the note on `step`.
+   *  That is right for the scene the server rendered, and wrong for every
+   *  scene after it: picking a sector mounts a fresh component with no server
+   *  markup to match, so it painted the ENDING for the frame or two before the
+   *  observer started it from the top. That flash is the whole reason this
+   *  prop exists.
+   *
+   *  Set by the selector once the reader has chosen something, and never on
+   *  first load. */
+  fromStart?: boolean;
 }) {
   /* Where this scenario ends. Derived rather than passed: the acts it plays
      are its own data, and a second opinion about the same thing is a second
@@ -485,8 +499,12 @@ export function TrustEngine({
   /* At rest on server and first client render, so hydration matches and the
      prerendered markup is the finished state rather than an empty stage —
      which for a scenario that stops early is the end of ITS last act, not the
-     end of the timeline. */
-  const [step, setStep] = useState<number>(lastStep);
+     end of the timeline.
+
+     Unless the reader picked this scene, in which case there is no server
+     markup to agree with and starting at the end shows them the answer for a
+     frame. See fromStart. */
+  const [step, setStep] = useState<number>(fromStart ? 0 : lastStep);
   const [reduced, setReduced] = useState(false);
   /* A ref, not state. The scroll trigger's callback can be queued before a
      chapter button is pressed and still run after it, and a stale `played`

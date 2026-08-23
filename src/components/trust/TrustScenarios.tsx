@@ -63,6 +63,12 @@ function written(scene: TrustSceneIntro) {
 
 export function TrustScenarios({ className }: { className?: string }) {
   const [id, setId] = useState(trustScenarios[0].id);
+  /* WHETHER THE READER HAS CHOSEN, which decides where a scene opens.
+     Nothing to do with which scene is showing: the first one is rendered by
+     the server at its final beat and hydrated onto that, so it must not be
+     moved. Anything mounted after a click has no server markup behind it, and
+     opening at the last beat flashed the ending before the piece began. */
+  const [picked, setPicked] = useState(false);
   const scene = trustScenarios.find((s) => s.id === id) ?? trustScenarios[0];
 
   return (
@@ -77,7 +83,10 @@ export function TrustScenarios({ className }: { className?: string }) {
             <button
               key={s.id}
               type="button"
-              onClick={() => setId(s.id)}
+              onClick={() => {
+                setPicked(true);
+                setId(s.id);
+              }}
               aria-current={on ? "true" : undefined}
               className={cn(
                 "cursor-pointer rounded-sm border px-3 py-1.5 font-mono text-mono-sm uppercase transition-colors",
@@ -110,9 +119,9 @@ export function TrustScenarios({ className }: { className?: string }) {
           its own beats over the same core. A sector with neither yet opens on
           its title card and says so. See TrustWorkflow. */}
       {isBuildScene(scene) ? (
-        <TrustBuild key={scene.id} scene={scene} />
+        <TrustBuild key={scene.id} scene={scene} fromStart={picked} />
       ) : isPlayableScene(scene) ? (
-        <TrustEngine key={scene.id} scene={scene} />
+        <TrustEngine key={scene.id} scene={scene} fromStart={picked} />
       ) : (
         <ScenePreview key={scene.id} scene={scene} />
       )}

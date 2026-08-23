@@ -116,6 +116,29 @@ const GROUPS = [
          the yacht saloon pair above, which this follows exactly. */
       { file: "rental-reception-checkin.png", name: "rental-reception-checkin" },
       { file: "rental-reception-checkout.png", name: "rental-reception-checkout" },
+      /* ── Development & Construction ──
+         One island photographed at six moments of its own build: plot,
+         foundations, structure, roof, fit-out, handover. The trust stage will
+         dissolve between them where the yacht and the townhouse simply stand,
+         so unlike every other asset here these six are a SEQUENCE and have to
+         stay registered — the villa cannot drift between one stage and the
+         next.
+
+         Split from one 2x3 render. Cut at the WAIST between islands rather
+         than at the exact third, because the six are packed tightly enough to
+         interlock, and each cell then keeps only its largest connected mass
+         so no sliver of a neighbour survives. Every stage is the same 768x341
+         window taken at the same offset inside its own cell, which is what
+         holds them in register. See build-stages.source.txt.
+
+         Transparent, like the yacht: these stand on the bare stage. */
+      { file: "build-1-plot.png", name: "build-1-plot" },
+      { file: "build-2-foundations.png", name: "build-2-foundations" },
+      { file: "build-3-structure.png", name: "build-3-structure" },
+      { file: "build-4-roof.png", name: "build-4-roof" },
+      { file: "build-5-fitout.png", name: "build-5-fitout" },
+      { file: "build-6-handover.png", name: "build-6-handover" },
+
       /* PLACEHOLDER, and named for the slot rather than the picture so that
          replacing it is a file drop and nothing else. Nick is supplying a
          proper cut-out; until then this is the intro townhouse photograph,

@@ -1,0 +1,69 @@
+build-1-plot … build-6-handover — 768 x 341 each, RGBA
+
+PROVENANCE
+Supplied by Nick, 23 Aug 2026, as "ChatGPT Image Aug 23, 2026, 11_46_10 AM.png"
+(1536 x 1024, RGBA, one 2x3 grid). Not generated here — no prompt in this repo
+rebuilds it, and assets-src/**/*.png is gitignored, so the committed WebPs
+under public/assets/features are all that survive in git.
+
+Supersedes a Mediterranean version supplied twenty minutes earlier (terracotta
+roofs, cypress, olive trees). The brief called for the Maldives; this is the
+one that matches it.
+
+THE SIX, in reading order, which is also build order:
+  1 plot         untouched white-sand island, jetty, perimeter palms
+  2 foundations  excavation, footings, slabs, pool structure, plant on site
+  3 structure    concrete frame and columns up, pool structure unfinished
+  4 roof         roofed, glazed and watertight, pool holding water
+  5 fitout       complete, terraces and loungers, planting filling in
+  6 handover     furnished, umbrellas, mature planting, brochure-ready
+
+⚠️  THESE SIX ARE A SEQUENCE, NOT SIX PICTURES
+Every other asset on the trust stage simply stands there. These dissolve from
+one into the next, so they have to stay REGISTERED: the island outline, the
+jetty and the villa footprint must not drift between stages, or the dissolve
+reads as a cut to a different island.
+
+HOW THEY WERE SPLIT — READ BEFORE RE-CUTTING
+The six are packed tight enough in the source that they interlock: each island
+is a rounded diamond, and adjacent rows touch. A flood fill over the whole
+image finds TWO components, not six — one per column — because the three
+islands in a column are joined.
+
+So the split is not a plain grid cut:
+
+  columns   a fully transparent gutter runs the whole height at x = 764-777,
+            so the two columns separate cleanly.
+
+  rows      cut at the WAIST — the narrowest point between two islands —
+            rather than at the exact third, because that is where a cut takes
+            the least of either. Measured per column, since the two disagree
+            by a few pixels: column 1 at y 354 and 690, column 2 at y 358
+            and 692.
+
+  cleanup   within each cell, keep only the LARGEST connected mass. The waist
+            cut still leaves a sliver of the neighbouring island in most
+            cells, and this drops it.
+
+  window    every stage is then written as the same 768x341 window taken at
+            the same offset inside its own cell. THIS is what holds the six in
+            register — not each island's own bounding box, which is unusable
+            as a common reference because several islands are clipped, by
+            their neighbours and by the canvas.
+
+Measured afterwards, the island lands at x 10-17 → 749-763 and y 0-17 →
+336-340 across the six: within about 7px horizontally and 17px vertically of
+1536, which is a few pixels at the size the stage draws them.
+
+KNOWN CLIPPING
+Stage 1's palm tops touch y = 0 and are cut flat by the source canvas. It is a
+couple of fronds and it is in the supplied image, not introduced here. If it
+shows at final size, the fix is a new render with more margin, not a crop.
+
+ASPECT, AND WHAT IT MEANS FOR THE STAGE
+2.252:1 — much wider than the yacht's 1.640 or the townhouse's 1.320. The
+trust stage sizes an asset by assetBox, and matching the yacht's VERTICAL
+extent (y 37.1-84.9) would make these 60.5% of the stage wide, which crowds
+the counterparty panels on both sides. Matching the yacht's WIDTH instead
+(44%) gives a vertical extent of only y 43.6-78.4. Neither is obviously right;
+it needs deciding against the finished script and the anchors derived after.

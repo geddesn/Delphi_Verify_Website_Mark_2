@@ -210,7 +210,10 @@ export const legalDocs = [
   { label: "Privacy policy", href: "/privacy", note: "How personal data is handled" },
   { label: "Terms of service", href: "/terms", note: "Contractual terms of use" },
   { label: "Data processing agreement", href: "/contact", note: "Available to customers on request" },
-  { label: "Sub-processor list", href: "/contact", note: "Available on request" },
+  /* Published, not "available on request". Recipients and international
+     transfers are a required disclosure rather than something a reviewer
+     should have to ask for, so this points at the table in the policy. */
+  { label: "Sub-processor list", href: "/privacy#service-providers", note: "Published in the privacy policy" },
 ] as const;
 
 export const securityReview = {

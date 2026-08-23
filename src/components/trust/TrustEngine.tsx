@@ -542,6 +542,35 @@ export function TrustEngine({
     measure();
   }, [step, measure]);
 
+  /* Re-measure again when a column FINISHES re-centring.
+     The beat effect above measures the instant the step changes, which is the
+     instant the transition STARTS — so it records where the panels were, not
+     where they are going. Everything that moves without resizing is caught by
+     that effect only if it moves instantly, and the tally does not: it opens
+     on a grid-template-rows transition, and the column re-centres over the
+     same half second.
+
+     The visible symptom was the counterparty's certificates. They hang off
+     that party's measured rect, and on the last beat of Act Two — where the
+     tally opens and nothing further changes the step — they were left at the
+     panel's pre-move position for good, sitting across the first line of the
+     tally. Only the side carrying the tally moved, which is why only that
+     side was ever wrong.
+
+     Filtered to the one property that moves a column rather than resizing
+     something. Every other transition on this stage either changes a box's
+     size, which the ResizeObserver already reports, or changes only opacity,
+     which moves nothing. */
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const onEnd = (e: TransitionEvent) => {
+      if (e.propertyName === "grid-template-rows") measure();
+    };
+    stage.addEventListener("transitionend", onEnd);
+    return () => stage.removeEventListener("transitionend", onEnd);
+  }, [measure, stageRef]);
+
   const act = s.act(step);
   const { incident, record } = scene;
 
@@ -744,8 +773,14 @@ export function TrustEngine({
             exactly where they were and let the mast run higher, which is the
             part nothing else on the stage is measured against. */}
         <div
-          className="absolute left-1/2 top-[61%] w-[44%] -translate-x-1/2 -translate-y-1/2 transition-opacity"
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity"
           style={{
+            /* From the scene, because assets are not one shape — see
+               assetBox. Inline rather than a class: these are measured
+               numbers, and Tailwind cannot see an arbitrary value it is
+               handed at runtime. */
+            width: `${scene.assetBox.width}%`,
+            top: `${scene.assetBox.top}%`,
             /* GONE for the comparison. Two frames of one saloon are the
                whole point of the act, and they were opening over a vessel,
                two counterparties and a set of connectors still claiming the
@@ -1013,7 +1048,11 @@ export function TrustEngine({
           chrome={false}
         >
           <PhoneFrame>
-            <PlainCapture capture={record.unverified.capture} />
+            <PlainCapture
+              capture={record.unverified.capture}
+              phone={record.unverified.phone}
+              framing={scene.incident.framing}
+            />
           </PhoneFrame>
         </RecordPanel>
 
@@ -1144,6 +1183,7 @@ export function TrustEngine({
           gridA={boxes["record-grid"]}
           gridB={boxes["record-grid-2"]}
           index={scene.survey.length - 1}
+          spot={scene.incident.spot}
           selecting={s.selecting(step)}
           open={s.compare(step)}
           spotting={s.spotting(step)}
@@ -2024,18 +2064,6 @@ const COMPARE_Y = 45;
 const COMPARE_H = (COMPARE_W * (496 / 882) * DESIGN_W) / DESIGN_H;
 const COMPARE_X = (100 - (COMPARE_W * 2 + COMPARE_GAP)) / 2;
 
-/* WHERE THE TEAR IS, as a fraction of the frame — measured off the master
-   rather than judged by eye: the gash is the one dark cluster on a cream
-   settee, and it centres at 270,404 of 882x496.
-
-   The same fraction serves both frames. The pair was generated as two views
-   of one room a half step apart, so the cushion is within a few pixels of the
-   same place in each — and the mark is a ring an order of magnitude larger
-   than that difference. Reshoot the pair and this has to be measured again;
-   there is nothing that will fail if it is not, it will simply point at the
-   wrong part of the sofa. */
-const TEAR = { x: 0.306, y: 0.814 };
-
 /** The two saloon frames, taken out of the record and opened.
  *
  *  The argument the whole piece has been building arrives here, and it only
@@ -2061,6 +2089,7 @@ function ComparePair({
   gridA,
   gridB,
   index,
+  spot,
   selecting,
   open,
   spotting,
@@ -2068,6 +2097,8 @@ function ComparePair({
 }: {
   delivery: TrustCapture;
   redelivery: TrustCapture;
+  /** Where the damage is in the frame. See incident.spot. */
+  spot: { x: number; y: number };
   /** The two contact sheets, measured. Nothing opens until both exist. */
   gridA?: Rect;
   gridB?: Rect;
@@ -2083,9 +2114,9 @@ function ComparePair({
 
   /* The two marks, in stage percentages, derived from the frames rather than
      authored — move the frames and the rings follow them. */
-  const markY = COMPARE_Y + TEAR.y * COMPARE_H;
+  const markY = COMPARE_Y + spot.y * COMPARE_H;
   const markX = (i: number) =>
-    COMPARE_X + i * (COMPARE_W + COMPARE_GAP) + TEAR.x * COMPARE_W;
+    COMPARE_X + i * (COMPARE_W + COMPARE_GAP) + spot.x * COMPARE_W;
   const cx = (i: number) => (markX(i) / 100) * canvas.w;
   const cy = (markY / 100) * canvas.h;
   /* Big enough to be a mark rather than a dot, small enough that it rings the
@@ -2513,13 +2544,23 @@ function EvidenceCard({
  *
  *  Kept in this file rather than components/renderings: the renderings are
  *  the product, and this is explicitly the absence of it. */
-function PlainCapture({ capture }: { capture: TrustCapture }) {
+function PlainCapture({
+  capture,
+  phone,
+  framing,
+}: {
+  capture: TrustCapture;
+  /** The clock and the camera-roll date. See record.unverified.phone. */
+  phone: { clock: string; date: string };
+  /** Where to crop. See incident.framing. */
+  framing: string;
+}) {
   return (
     <div className="flex h-full w-full flex-col bg-callout-ink">
       {/* Barely a status bar. Enough that it reads as a phone, not so much
           that it reads as a designed screen. */}
       <div className="flex shrink-0 items-center justify-between px-[24px] pb-[6px] pt-[46px] text-[13px] font-semibold text-callout-surface">
-        <span>16:41</span>
+        <span>{phone.clock}</span>
         <span className="flex items-center gap-[4px]">
           <svg viewBox="0 0 18 12" className="h-[10px] w-[16px]" aria-hidden>
             {[0, 1, 2, 3].map((i) => (
@@ -2554,7 +2595,7 @@ function PlainCapture({ capture }: { capture: TrustCapture }) {
       {/* The date the phone says it was. A camera roll header, not evidence
           — which is exactly the distinction Act One exists to draw. */}
       <p className="shrink-0 px-[20px] pb-[10px] text-center text-[15px] font-semibold text-callout-surface">
-        20 August 2026
+        {phone.date}
       </p>
 
       <div className="min-h-0 flex-1">
@@ -2569,15 +2610,12 @@ function PlainCapture({ capture }: { capture: TrustCapture }) {
           decoding="async"
           className="h-full w-full object-cover"
           /* THE DAMAGE HAS TO BE IN SHOT. This is a 16:9 photograph in a
-             portrait screen, so cover crops the sides hard and keeps the
-             middle — and the tear is at 31% across, which centring throws
-             away. The whole of Act One is a photograph of that tear; a frame
-             that does not contain it is a picture of a sofa.
-
-             25% rather than 0: hard left crops the room off the other side
-             and leaves the tear against the frame edge. See TEAR in this file
-             for where the 31% comes from. */
-          style={{ objectPosition: "25% 50%" }}
+             portrait screen, so cover crops the sides hard and keeps roughly
+             a third of the width — and centring it throws away whatever is
+             not in the middle. The whole of Act One is a photograph of the
+             damage; a frame that does not contain it is a picture of a room.
+             See incident.framing, and incident.spot for what it tracks. */
+          style={{ objectPosition: `${framing} 50%` }}
         />
       </div>
     </div>

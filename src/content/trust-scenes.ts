@@ -163,6 +163,20 @@ export type TrustScene = TrustSceneIntro & {
   asset: string;
   assetAlt: string;
 
+  /** How the asset stands on the stage, in stage percentages.
+   *
+   *  ⚠️  DERIVED FROM THE CUT-OUT, NOT CHOSEN. Every anchor in this file is a
+   *  point on the stage, so it is only a point on the ASSET while the asset
+   *  occupies the box these two values give it. The width sets the box; the
+   *  top is the vertical centre it hangs from.
+   *
+   *  It has to be scene data because assets are not one shape. The yacht is
+   *  1.64:1 and 44% wide; a building is nearly square, and 44% of the stage
+   *  would run it off the bottom. Pick the width that puts the asset's
+   *  vertical extent where the yacht's is — roughly 37% to 85% — and every
+   *  anchor stays comparable between sectors. */
+  assetBox: { width: number; top: number };
+
   /** The cast, in reading order down each column.
    *
    *  An array, not a fixed set of roles: the number of counterparties is a
@@ -198,6 +212,33 @@ export type TrustScene = TrustSceneIntro & {
   incident: {
     anchor: StagePoint;
     label: string;
+
+    /** Where the damage sits WITHIN THE PHOTOGRAPH, 0-1 of the frame.
+     *
+     *  Distinct from `anchor` above, which is where the damage is on the
+     *  asset as it stands on the stage. This one is where it is in the two
+     *  frames the comparison opens, and it places the ring that is drawn
+     *  round it.
+     *
+     *  ⚠️  MEASURE IT, DO NOT JUDGE IT. Both sets were measured off their
+     *  master by isolating the mark — the pixels dark in the damaged frame
+     *  and not dark in its twin — and taking the centroid of the largest
+     *  connected mass, so the fireplace and the shadows do not drag it. Keep
+     *  it far enough off the bottom edge that the ring, whose radius is about
+     *  15% of the frame's height, still closes inside the picture.
+     *
+     *  The same fraction serves both frames: the pair is one photograph taken
+     *  twice, so the mark is within a few pixels of the same place in each,
+     *  and the ring is an order of magnitude larger than that difference. */
+    spot: { x: number; y: number };
+
+    /** object-position for Act One's phone, which crops this same photograph
+     *  hard: a 16:9 frame in a portrait screen keeps only about a third of
+     *  the width. THE DAMAGE HAS TO SURVIVE THAT CROP — the whole act is a
+     *  photograph of it, and a frame that loses it is a picture of a room.
+     *  Roughly `spot.x`, pulled back towards the middle when that would put
+     *  the mark against the frame edge. */
+    framing: string;
   };
 
   /** The title above the stage, keyed by step id. Sparse on purpose: a step
@@ -238,7 +279,19 @@ export type TrustScene = TrustSceneIntro & {
        saloon, so its leader lands on the saloon — the incident anchor — and
        shares the marker already there. Two dots a few percent apart, one
        connected and one not, read as a mistake. */
-    unverified: { title: string; capture: TrustCapture };
+    unverified: {
+      title: string;
+      capture: TrustCapture;
+      /** What the ordinary phone says around the photograph: the clock in its
+       *  status bar, and the camera-roll date above the picture.
+       *
+       *  This is the only assertion in Act One, and it is the act's whole
+       *  argument — a date that a phone is stating and nothing is standing
+       *  behind. It has to be scene data because it is a date IN the story:
+       *  it must be the day the damage was found in this sector's timeline,
+       *  which is not the same day in a charter as in a tenancy. */
+      phone: { clock: string; date: string };
+    };
     verified: {
       title: string;
       /** The same panel, before anything is in it. See the note on the value. */
@@ -263,6 +316,12 @@ export const yachtsScene: TrustScene = {
      rather than as the object everyone is standing around. */
   asset: "yacht-cutout",
   assetAlt: "A motor yacht lying in calm water, with nobody aboard",
+
+  /* 44% and 61% put the bow, the stern and the waterline exactly where every
+     anchor below was measured against, and let the mast run higher than the
+     box — which is the part nothing else on the stage is measured against.
+     The cut-out is 1.64:1, so this lands it on y 37.1-84.9. */
+  assetBox: { width: 44, top: 61 },
 
   /* Derived from the vessel, not chosen. Its waterline rises 7.36 degrees to
      the right — measured off the cut-out's own alpha channel — and extending
@@ -381,6 +440,12 @@ export const yachtsScene: TrustScene = {
   incident: {
     anchor: { x: 48, y: 60.5 },
     label: "Saloon · leather seating, torn",
+    /* The gash is the one dark cluster on a cream settee; it centres at
+       270,404 of 882x496. */
+    spot: { x: 0.306, y: 0.814 },
+    /* 25% rather than 0: hard left crops the room off the other side and
+       leaves the tear against the frame edge. */
+    framing: "25%",
   },
 
   narration: {
@@ -459,6 +524,8 @@ export const yachtsScene: TrustScene = {
 
     unverified: {
       title: "Owner's photograph",
+      /* Redelivery day, a few hours after she came back. */
+      phone: { clock: "16:41", date: "20 August 2026" },
       capture: {
         label: "Saloon · torn",
         /* Not "no timestamp". A phone photograph usually has one — it is just
@@ -534,11 +601,11 @@ export const acts = {
    the platform does not change shape per industry, only the asset in the
    middle and the people standing round it do.
 
-   ⚠️  TWO OF THESE ARE INTROS ONLY, and are deliberately typed as such rather
+   ONE OF THESE IS AN INTRO ONLY, and is deliberately typed as such rather
    than stubbed with placeholder acts. A half-written scene that runs is worse
    than one that says it is not ready: it would put invented parties, invented
    surveys and invented certificates on a page whose entire subject is not
-   inventing things. They open on their title card and stop.
+   inventing things. It opens on its title card and stops.
 
    To finish one, give it the rest of TrustScene — asset, parties, survey,
    incident, narration, unresolved, resolved, record — and it starts playing.
@@ -560,14 +627,274 @@ export const constructionScene: TrustSceneIntro = {
 };
 
 /** Property rentals. The two ends of a tenancy, which is the same shape as a
- *  charter: an asset handed over, used, and handed back. */
-export const rentalsScene: TrustSceneIntro = {
+ *  charter: an asset handed over, used, and handed back — and argued about
+ *  afterwards by two people who were not both in the room.
+ *
+ *  ⚠️  DELIBERATELY THE SAME PIECE AS THE YACHT. Same beats, same turn, same
+ *  ending, the same number of survey frames. What changes is the asset, the
+ *  cast and the words. That is the claim the selector is making — the
+ *  platform does not change shape per industry — and a rentals scene that
+ *  invented a new structure would quietly withdraw it.
+ *
+ *  The LANDLORD is off the stage for the same reason the owner is: the agent
+ *  is the landlord's representative and conducts both inspections, so that
+ *  side of the argument is already in the room and a third panel would be one
+ *  more box between the reader and the point. */
+export const rentalsScene: TrustScene = {
   id: "property-rentals",
   sector: "Property Rentals",
   study: "Tenancy Handover · Example Study",
-  acts: ["intro"],
+  acts: ["intro", "act-one", "turn", "act-two"],
+
+  /* A cut-out with a real alpha channel, three-quarter on, carrying a small
+     apron of pavement and kerb so the building has something to stand on
+     rather than floating. Supplied by Nick, 23 Aug 2026, and trimmed here to
+     its own alpha bounding box — 1412x1070 of a 1448x1086 canvas — which is
+     what makes the box below a description of the BUILDING rather than of
+     whatever transparent margin the render happened to leave.
+
+     It is the same house as rental-front-elevation, which matters: the survey
+     opens on that photograph and the stage is showing this, and a viewer who
+     cannot see they are one building is being shown two properties. */
+  asset: "rental-asset",
+  assetAlt:
+    "A white stucco London townhouse seen from the corner, railings and pavement, with nobody outside",
+
+  /* 35.5%, not the yacht's 44%. This cut-out is 1.320:1 where the yacht is
+     1.640:1, so an equal width would sit the building lower and taller. 35.5%
+     instead gives it the SAME VERTICAL EXTENT as the yacht — y 37.1 to 84.9,
+     to the tenth — which is what every anchor, leader and dot on this stage
+     is really measured against. Horizontally it occupies x 32.3 to 67.8. */
+  assetBox: { width: 35.5, top: 61 },
+
+  /* The yacht's floor, unchanged and knowingly so. The grid's vanishing point
+     was derived from the yacht's waterline; a building standing square to the
+     viewer has no equivalent line to derive one from, and re-rendering it
+     against a placeholder asset would be work thrown away the moment the real
+     cut-out lands. Re-derive it then, with the ground it will actually stand
+     on. */
   ground: { render: "trust-ground", opacity: 1 },
-};
+
+  parties: [
+    {
+      id: "captain",
+      label: "Letting agent",
+      role: "Letting agent · Landlord's representative",
+      /* The counterpart of the captain, and for the same structural reason:
+         the person who is physically there, and therefore the person who
+         captures. */
+      holds: "Runs check-in and check-out — and holds the phone.",
+      side: "left",
+      /* The front door under the portico: where an inventory starts and where
+         the keys change hands. */
+      anchor: { x: 48.7, y: 70.2 },
+      claim: "It was spotless at check-in.",
+      enters: { one: "a1-captain", two: "a2-captain" },
+    },
+    {
+      id: "charterer",
+      label: "Tenant",
+      role: "Tenant · Assured shorthold",
+      holds: "Lives there for a year, and carries the cost if the account is wrong.",
+      side: "right",
+      /* An upper window on the right — the part of the house they actually
+         live behind, and far enough from the reception room below that the
+         two dots never read as one. */
+      anchor: { x: 55.5, y: 50.1 },
+      claim: "That was already there.",
+      enters: { one: "a1-charterer", two: "a2-charterer" },
+    },
+  ],
+
+  /* An inventory clerk's walk through an empty house on the morning of
+     check-in: in the front door, through the ground floor, up, and back down
+     to the room that will matter. Seventeen minutes, ending at 10:22, which
+     is the stamp the check-in certificate carries — the last frame of the
+     survey IS the record's check-in frame.
+
+     Anchors are points on the FACADE, since that is what the stage shows: a
+     room is anchored to the window you would see it through. Derived from the
+     asset's box (x 37-63, y 36.8-85.3), not chosen. */
+  survey: [
+    {
+      label: "Front elevation",
+      stamp: "6 Aug 2026, 10:05 UTC",
+      image: "rental-front-elevation",
+      imageAlt: "The front of the house from across the street, railings and a portico",
+      anchor: { x: 48.6, y: 58.6 },
+    },
+    {
+      label: "Entrance hall",
+      stamp: "6 Aug 2026, 10:07 UTC",
+      image: "rental-entrance-hall",
+      imageAlt: "A chequerboard stone floor and a staircase rising away under a lantern",
+      anchor: { x: 48.9, y: 69.6 },
+    },
+    {
+      label: "Kitchen",
+      stamp: "6 Aug 2026, 10:09 UTC",
+      image: "rental-kitchen",
+      imageAlt: "A pale shaker kitchen with an island and glazed doors to the garden",
+      anchor: { x: 42.5, y: 69.1 },
+    },
+    {
+      label: "Principal bedroom",
+      stamp: "6 Aug 2026, 10:12 UTC",
+      image: "rental-bedroom",
+      imageAlt: "A bedroom made up in white linen, sash windows either side",
+      anchor: { x: 42.9, y: 58.6 },
+    },
+    {
+      label: "Bathroom",
+      stamp: "6 Aug 2026, 10:14 UTC",
+      image: "rental-bathroom",
+      imageAlt: "A marble bathroom with a freestanding bath and brass tapware",
+      anchor: { x: 43.6, y: 50.0 },
+    },
+    {
+      label: "Study",
+      stamp: "6 Aug 2026, 10:16 UTC",
+      image: "rental-study",
+      imageAlt: "A small study lined with painted shelving, a desk under the window",
+      anchor: { x: 54.3, y: 49.5 },
+    },
+    {
+      label: "Garden",
+      stamp: "6 Aug 2026, 10:19 UTC",
+      image: "rental-garden",
+      imageAlt: "A narrow walled London garden, paved and planted, seen from the house",
+      anchor: { x: 60.7, y: 71.5 },
+    },
+    {
+      /* Last, and the one the record keeps. Same image and same minute as
+         record.verified.delivery — see the warning on the type. */
+      label: "Reception room",
+      stamp: "6 Aug 2026, 10:22 UTC",
+      image: "rental-reception-checkin",
+      imageAlt: "The reception room at check-in, the oak floor unmarked",
+      anchor: { x: 54.5, y: 68.7 },
+    },
+  ],
+
+  incident: {
+    anchor: { x: 54.5, y: 68.7 },
+    label: "Reception room · oak floor, burned",
+    /* Measured off the master, not judged: the burn is the one dark mass on a
+       pale floor, and isolating it against its undamaged twin puts its
+       largest connected component's centroid at 0.550, 0.857 of 814x458.
+       Lifted to 0.82 so the ring — about 15% of the frame's height in radius
+       — closes inside the picture instead of running off the bottom edge. */
+    spot: { x: 0.55, y: 0.82 },
+    /* Near enough the middle that the portrait crop keeps the burn without
+       help, and 57% centres the visible third on it exactly. */
+    framing: "57%",
+  },
+
+  narration: {
+    "a1-asset": { line: "A house, between tenancies." },
+    "a1-captain": { line: "Everyone with an interest in it arrives." },
+    "a1-delivery": {
+      line: "The keys are handed over.",
+      sub: "The inventory is a page of ticks and a signature.",
+    },
+    "a1-charter": { line: "Twelve months pass." },
+    "a1-incident": { line: "Something happens inside." },
+    "a1-redelivery": {
+      line: "The tenancy ends, and the damage is found.",
+      sub: "Nobody disputes that it is there.",
+    },
+    "a1-photo": {
+      line: "The damage is photographed.",
+      sub: "Nothing stands behind the date on it.",
+    },
+    "a1-dispute": { line: "Two accounts of the same fact." },
+
+    "a2-asset": { line: "The same tenancy, the same house." },
+    "a2-shot-1": {
+      line: "This time its condition is recorded first.",
+      sub: "Before the tenant has the keys.",
+    },
+    "a2-file": {
+      line: "Every room, in one record.",
+      sub: "Made once, and held where neither side can revise it.",
+    },
+    "a2-charterer": { line: "Everything after this runs exactly as before." },
+    "a2-share": {
+      line: "Everyone gets the same copy.",
+      sub: "Landlord, agent and tenant — before the tenant moves in.",
+    },
+    "a2-incident": { line: "The same damage, on the same day." },
+    "a2-recapture": { line: "Check-out is recorded too." },
+    "a2-reshare": {
+      line: "And shared again, the same way.",
+      sub: "Nobody is holding a record the others have not seen.",
+    },
+    "a2-compare": {
+      line: "Two dated records, neither party controls.",
+      sub: "Unmarked at check-in. Burned at check-out.",
+    },
+  },
+
+  unresolved: {
+    headline: "Nobody can prove either version.",
+    cost: "Deposit held · weeks of correspondence · written off or adjudicated",
+    outcomes: [
+      "No record of its condition at check-in",
+      "A scheme adjudication, months after the keys came back",
+      "The house off the market while it is argued",
+    ],
+  },
+
+  resolved: {
+    headline: "The argument ends because the facts are not in dispute.",
+    outcomes: [
+      "Unmarked at check-in, burned at check-out — both dated",
+      "Settled without an adjudication or a second inspection",
+      "Re-let in days, not weeks",
+    ],
+  },
+
+  record: {
+    panel: { x: 50, y: 2 },
+    align: "top-center",
+
+    unverified: {
+      title: "Landlord's photograph",
+      /* Check-out day, a few hours after the keys came back. */
+      phone: { clock: "15:12", date: "6 August 2027" },
+      capture: {
+        label: "Reception room · floor burned",
+        stamp: "Date and time unverified",
+        event: "Check-out",
+        image: "rental-reception-checkout",
+        imageAlt: "A large blackened burn across the pale oak floor of the reception room",
+      },
+    },
+
+    verified: {
+      title: "Verified condition at check-in and check-out",
+      pending: "Condition record · check-in",
+      delivery: {
+        label: "Reception room · unmarked",
+        stamp: "6 Aug 2026, 10:22 UTC",
+        code: "K3PN-T7WQ",
+        event: "Check-in",
+        image: "rental-reception-checkin",
+        imageAlt: "The reception room at check-in, the oak floor unmarked",
+      },
+      redelivery: {
+        /* The same photograph the landlord sent in Act One, deliberately. The
+           frame does not improve — only what can be said about it does. */
+        label: "Reception room · floor burned",
+        stamp: "6 Aug 2027, 11:20 UTC",
+        code: "V8LH-C2RB",
+        event: "Check-out",
+        image: "rental-reception-checkout",
+        imageAlt: "The same reception room at check-out, the oak floor burned through",
+      },
+    },
+  },
+} as const;
 
 /** Everything the selector offers, in the order it offers it. The written one
  *  leads: a reader who picks nothing should land on the argument rather than
@@ -629,6 +956,3 @@ export const trustEngineCopy = {
     "Shown as a comparison rather than an animation, because your system asks for reduced motion.",
 } as const;
 
-export const trustScenes = {
-  "yachts-marine": yachtsScene,
-} as const;

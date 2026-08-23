@@ -1,0 +1,47 @@
+rental-asset.png — 1412 x 1070, RGBA
+
+PROVENANCE
+Supplied by Nick, 23 Aug 2026, as "ChatGPT Image Aug 23, 2026, 11_04_57 AM.png"
+(1448 x 1086). Not generated here — there is no prompt in this repo that
+rebuilds it, and assets-src/**/*.png is gitignored, so the committed WebPs
+under public/assets/features are all that survive in git. Keep the original
+somewhere outside this repo.
+
+The stage asset for the Property Rentals scenario of the trust engine. It
+replaced a placeholder — the intro townhouse photograph, which was opaque and
+rectangular where the stage wants an alpha cut-out standing on bare ground.
+
+TRIMMED TO ITS ALPHA BOUNDING BOX
+The supplied canvas carried a transparent margin: content occupied 16,8 to
+1427,1077. Extracted to exactly that box on the way in, because the scene's
+assetBox and every anchor in it are fractions of the ASSET, and a margin of
+unknown width silently makes them fractions of something else. Re-trim on any
+replacement, or re-derive the box.
+
+  aspect 1.320:1   (the yacht cut-out is 1.640:1)
+
+WHY 35.5% ON THE STAGE
+Every anchor, leader and dot on the trust stage is a percentage of the stage,
+so it only points at the building while the building occupies a known box.
+35.5% wide at top 61% puts this cut-out's vertical extent at y 37.1-84.9,
+which is the yacht's to the tenth — so anchors stay comparable between
+sectors — and its horizontal extent at x 32.3-67.8. See assetBox in
+src/content/trust-scenes.ts.
+
+All eleven anchors in the scene were verified against this file's own alpha
+channel: each one lands on a pixel with alpha 253+, none in the transparent
+margin or on the pavement apron.
+
+THE SAME HOUSE AS THE SURVEY
+Deliberately consistent with rental-front-elevation (cell 1 of rental-grid):
+white stucco, black shutters, columned portico, glossy black door, railings.
+The survey opens on that photograph while the stage shows this, and a viewer
+who cannot tell they are one building is being shown two properties.
+
+THE GROUND
+It brings its own small apron of pavement and kerb, so it stands on something
+rather than floating. The perspective floor underneath is still trust-ground,
+which was ray-cast from the YACHT's waterline — see the note on ground in
+trust-scenes.ts. The two are not derived from the same vanishing point. It
+reads acceptably because the apron is small and opaque and hides the join, but
+a ground derived from this building's own kerb line would be better.

@@ -92,6 +92,37 @@ const GROUPS = [
       { file: "asset-inspection.png", name: "asset-inspection" },
       { file: "consignment-handover.png", name: "consignment-handover" },
       { file: "equipment-return.png", name: "equipment-return" },
+
+      /* ── Property Rentals ──
+         The same nine-cell arrangement as the yacht set and for the same
+         reason: the trust engine's second act ends by opening two frames of
+         one room side by side, so those two have to be ONE PHOTOGRAPH TAKEN
+         TWICE — same camera, same light, only the damage different. A pair
+         generated separately never matches, so all nine come out of a single
+         3x3 render and are split. See rental-grid.prompt.txt.
+
+         Deliberately NOT the cadogan-* set under public/assets/captures.
+         Those nine are the evidence record on /platform/renderings and are
+         staying as they are; these are the same house photographed for a
+         different purpose, and the pair is the purpose. */
+      { file: "rental-front-elevation.png", name: "rental-front-elevation" },
+      { file: "rental-entrance-hall.png", name: "rental-entrance-hall" },
+      { file: "rental-kitchen.png", name: "rental-kitchen" },
+      { file: "rental-bedroom.png", name: "rental-bedroom" },
+      { file: "rental-bathroom.png", name: "rental-bathroom" },
+      { file: "rental-study.png", name: "rental-study" },
+      { file: "rental-garden.png", name: "rental-garden" },
+      /* The matched pair. Reshoot one and you reshoot both — see the note on
+         the yacht saloon pair above, which this follows exactly. */
+      { file: "rental-reception-checkin.png", name: "rental-reception-checkin" },
+      { file: "rental-reception-checkout.png", name: "rental-reception-checkout" },
+      /* PLACEHOLDER, and named for the slot rather than the picture so that
+         replacing it is a file drop and nothing else. Nick is supplying a
+         proper cut-out; until then this is the intro townhouse photograph,
+         which is opaque and rectangular where the stage wants an alpha
+         cut-out. Its master is 736px, so the 960 and 1920 tiers write 736 —
+         it renders at ~291 design px, half that, so nothing is soft. */
+      { file: "rental-asset.png", name: "rental-asset" },
     ],
   },
   {

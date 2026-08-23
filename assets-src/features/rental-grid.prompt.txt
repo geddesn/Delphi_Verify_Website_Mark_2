@@ -1,0 +1,88 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  9a5468e5-58b7-4d09-8dee-5a5e7b48681c
+
+Photorealistic photography presented as a 3x3 GRID OF NINE SEPARATE
+PHOTOGRAPHS in one image: nine views of ONE London townhouse, nobody present.
+
+THE GRID
+Three rows of three, each cell a complete photograph filling its cell to all
+four edges. Cells butt edge to edge. No border, gutter, white strip, dividing
+line, frame, rounded corners, drop shadow or numbering.
+
+ONE HOUSE
+A white stucco Chelsea townhouse, refurbished and empty between tenancies.
+Every interior shares one hand: pale walls, deep original cornicing, tall sash
+windows with working shutters, wide pale oak boards, brass ironmongery.
+Expensive and quiet. Lightly furnished where furnished at all — a property
+being handed over, not staged for sale.
+
+THE NINE
+1 TOP-LEFT. Front elevation. The house square-on from across the street: white
+stucco, black railings, a columned portico, a glossy front door.
+
+2 TOP-CENTRE. Entrance hall. Chequerboard stone floor, staircase rising away,
+a lantern above.
+
+3 TOP-RIGHT. Kitchen. Pale shaker units, stone worktops, an island, glazed
+doors to the garden.
+
+4 MIDDLE-LEFT. Principal bedroom. A bed made up in white linen, sash windows,
+plain walls.
+
+5 MIDDLE-CENTRE. Bathroom. Marble, a freestanding bath, brass tapware, folded
+towels.
+
+6 MIDDLE-RIGHT. Study. A small room lined with painted shelving, a desk under
+the window.
+
+7 BOTTOM-LEFT. Garden. A narrow walled London garden, paved and planted, seen
+from the house.
+
+8 BOTTOM-CENTRE. Reception room, IN GOOD ORDER. A tall, pale, near-empty
+first-floor room: three sash windows with folded shutters along the left wall,
+a white marble fireplace on the right wall, deep cornicing, wide pale oak
+floorboards running away from the camera, one pale linen sofa against the left
+wall. The floor is clean, even and unmarked across its whole width.
+
+9 BOTTOM-RIGHT. THE SAME RECEPTION ROOM, DAMAGED. Identical photograph to cell
+8 — same camera position, height, lens, framing, windows, fireplace, sofa and
+light — with ONE difference: on the bare oak floor in the centre of the frame,
+in the open foreground between the sofa and the fireplace, a large BLACKENED
+BURN SCAR the size of a hearthrug. Charred dark brown and black, the boards
+scorched through and split, a couple of splintered gouges dragged out of it.
+Flat on the floor, unmistakable against the pale oak. Everything else in the
+room is exactly as in cell 8, undisturbed.
+
+HOW THEY ARE PHOTOGRAPHED
+Still and empty, recording the state the property is in on the day it changes
+hands. Condition evidence, not a listing: square-on, verticals true, even
+daylight, the corners and the floor legible. No shafts of sun, no lamps lit for
+mood, no vignette, no shallow depth of field, no artful crops.
+
+STRICTLY NOT
+No people anywhere, including through a window or in a reflection. No labels,
+captions, arrows, ticks, numbering or watermarks. In cells 1 to 8: no damage,
+dirt, clutter, boxes, dust sheets or tools, nothing torn, stained, cracked,
+scorched or worn. THE BURN APPEARS IN CELL 9 AND NOWHERE ELSE — the other
+eight are the record of a property in good order, and any mark leaking into
+them destroys the comparison this image exists for. No fire, smoke, flames or
+soot on the walls: the burn is old, cold and confined to the floorboards.
+
+CRITICAL — NINE PLAIN PHOTOGRAPHS
+All nine are straight photographs. Nothing is superimposed: no panels, cards,
+boxes, labels, callouts, annotations, user interface, diagrams, dots, markers,
+arrows or lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level. Verticals true, no converging
+distortion, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Cool neutral English daylight from the windows. Palette and exposure match
+across all nine so they read as one house on one morning — and cells 8 and 9
+match each other exactly. Neutral filmic grade, no saturation push, no HDR.
+
+AVOID
+Text, lettering, numbers or logos of any kind. Distorted geometry. Any visible
+seam, frame or gap between cells.

@@ -923,21 +923,38 @@ export function TrustEngine({
             fixed shapes reads as a REPLACEMENT, where a box that reshapes
             itself reads as the same object growing — which is the opposite of
             the point. */}
+        {/* ── Act One's photograph ──
+            A PHONE, and an ordinary one. Act One is somebody taking a picture;
+            there is no application, no checklist, no record and no
+            certificate, and the card that used to sit here was quietly
+            lending it the shape of all four.
+
+            It became actively misleading when the certificate turned into a
+            contact sheet: Act One inherited a grid of eight slots for a
+            record it does not have. The contrast between the two acts is the
+            entire argument — one photograph on a phone against eight sealed
+            captures in a record — and it only lands if the two look nothing
+            alike.
+
+            chrome={false} for the same reason SurveyCard turns it off: the
+            device is already an object with its own edges, and a phone inside
+            a tinted rounded rectangle reads as a picture of a phone pinned to
+            a card rather than as the phone itself. */}
         <RecordPanel
           spec={record}
           on={showOwnerPhoto}
-          width="w-[26%] min-w-[252px]"
+          /* Small. It is one phone with one photograph on it, standing
+             against a record of sixteen sealed captures — and the size
+             difference is part of what the two acts are saying. */
+          width="w-[9%] min-w-[78px]"
           boxRef={register("record-unverified")}
           title={record.unverified.title}
           trusted={false}
+          chrome={false}
         >
-          <div className="min-w-0 flex-1">
-            <EvidenceCard
-              cert={record.unverified.capture}
-              tone="failed"
-              trusted={false}
-            />
-          </div>
+          <PhoneFrame>
+            <PlainCapture capture={record.unverified.capture} />
+          </PhoneFrame>
         </RecordPanel>
 
         {/* ONE CARD, THEN TWO — the panel widens rather than holding an
@@ -988,13 +1005,13 @@ export function TrustEngine({
             >
               <div className="min-w-0 flex-1">
                 <EvidenceCard
-                  cert={s.deliveryCert(step) ? record.verified.delivery : undefined}
+                  cert={record.verified.delivery}
+                  issued={s.deliveryCert(step)}
                   tone="verified"
                   trusted
                   codeRef={register("code-delivery")}
                   gridRef={register("record-grid")}
                   publishing={s.publishingDelivery(step)}
-                  code={record.verified.delivery.code}
                 />
               </div>
               {/* Always mounted, so its code has a position for the held
@@ -1011,15 +1028,13 @@ export function TrustEngine({
                 }}
               >
                 <EvidenceCard
-                  cert={
-                    s.redeliveryCert(step) ? record.verified.redelivery : undefined
-                  }
+                  cert={record.verified.redelivery}
+                  issued={s.redeliveryCert(step)}
                   tone="failed"
                   trusted
                   codeRef={register("code-redelivery")}
                   gridRef={register("record-grid-2")}
                   publishing={s.publishingRedelivery(step)}
-                  code={record.verified.redelivery.code}
                 />
               </div>
             </div>
@@ -1804,10 +1819,16 @@ function RecordGrid({
       }}
     >
       {Array.from({ length: GRID_CELLS }, (_, i) => (
+        /* Dotted rather than dashed: a dashed outline at this size reads as
+           a solid one with gaps in it, and the point of the cell is that it
+           is a placeholder. */
         <div
           key={i}
-          className="rounded-xs border border-dashed border-callout-border"
-          style={{ backgroundColor: "var(--callout-halo)" }}
+          className="rounded-xs border border-dotted"
+          style={{
+            backgroundColor: "var(--callout-halo)",
+            borderColor: "var(--callout-slot)",
+          }}
         />
       ))}
     </div>
@@ -2136,6 +2157,7 @@ function RecordPanel({
   boxRef,
   title,
   trusted,
+  chrome = true,
   children,
 }: {
   spec: { panel: StagePoint; align: Align };
@@ -2145,6 +2167,8 @@ function RecordPanel({
   boxRef?: (el: HTMLElement | null) => void;
   title: string;
   trusted: boolean;
+  /** Off where the child is already an object with its own edges. */
+  chrome?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -2154,9 +2178,13 @@ function RecordPanel({
       width={width}
       style={style}
       boxRef={boxRef}
+      chrome={chrome}
       className="z-20"
     >
-      <div className="p-2">
+      {/* No padding without chrome: the inset exists to hold the contents off
+          a border that is not being drawn, and it pushes a bare device off
+          the position the panel was placed at. */}
+      <div className={chrome ? "p-2" : ""}>
         <div className="flex items-center gap-2.5 px-0.5">
           {trusted ? (
             <PanelLogo className="h-3.5 w-[50px] shrink-0" />
@@ -2197,16 +2225,20 @@ function EvidenceCard({
   codeRef,
   gridRef,
   publishing = false,
-  code,
+  issued,
 }: {
-  cert?: TrustCapture;
+  /** ALWAYS. A slot that does not know what it is waiting for cannot say so,
+   *  and an unlabelled grid of eight is a shape rather than a record. The
+   *  event and the date are known from the moment the survey starts — what
+   *  arrives later is the certificate, not the facts. */
+  cert: TrustCapture;
   tone: "verified" | "failed";
   trusted: boolean;
+  /** Whether the certificate exists yet. Was `cert !== undefined`, which
+   *  conflated "we know what this is" with "it has been issued". */
+  issued: boolean;
   /** Sealed, but not yet confirmed on the chain. */
   publishing?: boolean;
-  /** Known before the certificate is issued, because the card has to be able
-   *  to name what it is waiting for. */
-  code?: string;
   /** Reports where this card's code sits, so the copies handed to the
    *  parties can fly out of it. */
   codeRef?: (el: HTMLElement | null) => void;
@@ -2223,16 +2255,17 @@ function EvidenceCard({
         /* Dashed while it is empty, whoever it belongs to. A slot with
            nothing in it is a slot waiting to be filled, and a dashed outline
            is the one convention that says so without a caption. */
-        (!trusted || !cert) && "border-dashed",
+        !issued && "border-dashed",
       )}
       style={{
-        borderColor:
-          cert && trusted ? "var(--fx-accent-glow)" : "var(--callout-border)",
-        /* 0.4, not 0.25. This used to be seen only on the second slot before
-           redelivery, where it was deliberately easy to miss. It is now the
-           open record waiting through the whole survey, which is something a
-           viewer is meant to notice. */
-        opacity: cert ? 1 : 0.4,
+        borderColor: issued ? "var(--fx-accent-glow)" : "var(--callout-slot)",
+        /* 0.85, not 0.4. This was tuned when the empty state was a single
+           blank frame briefly visible on the second slot. It is now the open
+           sheet standing there for a whole eight-beat survey with photographs
+           landing in it — and at 0.4 the dashed cells were so faint that the
+           captures appeared to be flying into nothing. The card still reads
+           as waiting rather than issued; it just does so visibly. */
+        opacity: issued ? 1 : 0.85,
         transitionDuration: "var(--duration-normal)",
       }}
     >
@@ -2263,7 +2296,7 @@ function EvidenceCard({
               Captioning the set with the name of a single member of it was
               accurate when the set had one member and is not any more. */}
           <span className="truncate font-mono text-mono-xs text-callout-ink">
-            {cert ? cert.event : ""}
+            {cert.event}
           </span>
           <span
             className={cn(
@@ -2271,7 +2304,7 @@ function EvidenceCard({
               trusted ? "text-callout-ink-muted" : "text-failed",
             )}
           >
-            {cert ? cert.stamp : ""}
+            {cert.stamp}
           </span>
         </div>
 
@@ -2291,11 +2324,11 @@ function EvidenceCard({
             <p className="min-w-0 flex-1 font-mono text-mono-xs leading-tight text-callout-ink-muted">
               {publishing ? (
                 "Publishing certificate on blockchain…"
-              ) : cert ? (
+              ) : issued ? (
                 <>
                   Certificate published
                   <br />
-                  <span className="text-callout-ink">{code}</span>
+                  <span className="text-callout-ink">{cert.code}</span>
                 </>
               ) : (
                 ""
@@ -2309,7 +2342,7 @@ function EvidenceCard({
                  depart from. */
               className="block shrink-0 transition-opacity"
               style={{
-                opacity: cert || publishing ? 1 : 0,
+                opacity: issued || publishing ? 1 : 0,
                 transitionDuration: "var(--duration-normal)",
               }}
             >
@@ -2327,14 +2360,14 @@ function EvidenceCard({
                   style={{
                     backgroundColor: "var(--fx-link)",
                     filter: "blur(7px)",
-                    opacity: cert ? 1 : 0,
+                    opacity: issued ? 1 : 0,
                   }}
                 />
                 {/* The spinner stands exactly where the code will be, so the
                     one becomes the other rather than the card changing shape
                     under the reader. */}
                 <span className="relative grid h-9 w-9 place-items-center rounded-xs bg-callout-ink">
-                  {cert ? (
+                  {issued ? (
                     <img
                       src="/assets/certificate-code.webp"
                       alt=""
@@ -2352,6 +2385,91 @@ function EvidenceCard({
             </span>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/** Act One's photograph, on an ordinary phone.
+ *
+ *  ⚠️  DELIBERATELY NOT THE DELPHI APP. No mark, no checklist, no capture
+ *  plan, no location or device row, no certificate code — nothing that would
+ *  suggest anything was checked. It is a camera roll: a picture, and a date
+ *  the phone itself is asserting.
+ *
+ *  That date is the whole point of showing it. The photograph is not a lie
+ *  and nobody claims it is; it simply has nothing standing behind it, and a
+ *  viewer who reads the timestamp and then remembers that a phone's clock is
+ *  a setting has understood Act One without being told.
+ *
+ *  Kept in this file rather than components/renderings: the renderings are
+ *  the product, and this is explicitly the absence of it. */
+function PlainCapture({ capture }: { capture: TrustCapture }) {
+  return (
+    <div className="flex h-full w-full flex-col bg-callout-ink">
+      {/* Barely a status bar. Enough that it reads as a phone, not so much
+          that it reads as a designed screen. */}
+      <div className="flex shrink-0 items-center justify-between px-[24px] pb-[6px] pt-[46px] text-[13px] font-semibold text-callout-surface">
+        <span>16:41</span>
+        <span className="flex items-center gap-[4px]">
+          <svg viewBox="0 0 18 12" className="h-[10px] w-[16px]" aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+              <rect
+                key={i}
+                x={i * 4.5}
+                y={8 - i * 2.4}
+                width="3"
+                height={4 + i * 2.4}
+                rx="1"
+                fill="currentColor"
+              />
+            ))}
+          </svg>
+          <svg viewBox="0 0 26 12" className="h-[10px] w-[22px]" aria-hidden>
+            <rect
+              x="0.6"
+              y="0.6"
+              width="21"
+              height="10.8"
+              rx="3"
+              fill="none"
+              stroke="currentColor"
+              strokeOpacity="0.5"
+              strokeWidth="1.2"
+            />
+            <rect x="2.2" y="2.2" width="13" height="7.6" rx="1.8" fill="currentColor" />
+          </svg>
+        </span>
+      </div>
+
+      {/* The date the phone says it was. A camera roll header, not evidence
+          — which is exactly the distinction Act One exists to draw. */}
+      <p className="shrink-0 px-[20px] pb-[10px] text-center text-[15px] font-semibold text-callout-surface">
+        20 August 2026
+      </p>
+
+      <div className="min-h-0 flex-1">
+        <img
+          src={`/assets/features/${capture.image}-960.webp`}
+          srcSet={`/assets/features/${capture.image}-480.webp 480w, /assets/features/${capture.image}-960.webp 878w`}
+          sizes="150px"
+          alt={capture.imageAlt}
+          width={882}
+          height={496}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+          /* THE DAMAGE HAS TO BE IN SHOT. This is a 16:9 photograph in a
+             portrait screen, so cover crops the sides hard and keeps the
+             middle — and the tear is at 31% across, which centring throws
+             away. The whole of Act One is a photograph of that tear; a frame
+             that does not contain it is a picture of a sofa.
+
+             25% rather than 0: hard left crops the room off the other side
+             and leaves the tear against the frame edge. See TEAR in this file
+             for where the 31% comes from. */
+          style={{ objectPosition: "25% 50%" }}
+        />
       </div>
     </div>
   );

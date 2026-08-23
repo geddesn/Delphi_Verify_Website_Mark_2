@@ -20,7 +20,7 @@ export const hero = {
   standfirst:
     /* "create a trusted record of the observed …", not "establish". Delphi
        records what was observed; it does not determine physical reality. */
-    "Delphi Verify helps organisations create a trusted record of the observed condition, location and state of physical assets at important moments — reducing disputes, fraud risk and uncertainty between counterparties.",
+    "Delphi Verify creates a trusted record of the observed condition, location and state of physical assets at important moments — reducing disputes, fraud risk and uncertainty between counterparties.",
   /* Illustrative sample rendered in the hero evidence panel.
      Mirrors the real report: eight-character public code, device-reported
      capture time, SHA-256 media hash, and the actual verification stages. */

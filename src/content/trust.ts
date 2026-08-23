@@ -2,6 +2,23 @@
    TRUST CENTRE
    ============================================================================
 
+   THE QUESTION THIS PAGE ANSWERS:
+
+       "Can I trust Delphi Verify, as a company, with my organisation's
+        evidence?"
+
+   NOT "how does Delphi evidence work?" — /platform and /platform/technical
+   answer that, at length, and this page used to answer it a second time in
+   slightly different words. Controlled capture, device and application
+   signals, time and location corroboration, media integrity and independent
+   verification all belong over there. What belongs here is our posture:
+   security, data handling, infrastructure, and an exact statement of where
+   our compliance position stands.
+
+   If you find yourself adding a mechanism explanation below, it probably
+   wants to be a link to /platform/technical instead.
+
+   ---------------------------------------------------------------------------
    Statuses below were confirmed with Delphi on 2026-08-20:
    ISO 27001 implementation complete, awaiting independent certification
    (~2–4 weeks); GDPR compliant; SOC 2 not started.
@@ -20,6 +37,11 @@
    deal. Procurement teams verify certification claims, and a company selling
    evidence integrity that overstates its own compliance position has
    contradicted its entire proposition.
+
+   There is deliberately NO passage explaining that we are being precise. The
+   page demonstrates it by saying "awaiting certification" where a competitor
+   would imply certification; narrating that choice on top of demonstrating it
+   reads as defensive, and makes the claim weaker rather than stronger.
    ========================================================================= */
 
 export type ComplianceStatus =
@@ -34,126 +56,8 @@ export const trustHero = {
   eyebrow: "Trust centre",
   headline: "Built to be examined.",
   standfirst:
-    "Delphi Verify asks organisations to rely on its evidence. That is a serious request, and it deserves more than a reassuring paragraph. This section sets out how the system is secured, how data is handled, how evidence integrity is maintained, and exactly where our certification position currently stands.",
+    "Delphi Verify is designed to create evidence others can rely on. We apply the same standard to ourselves: clear security controls, responsible data handling, independent infrastructure and precise statements about our compliance status.",
 } as const;
-
-export type TrustPillar = {
-  id: string;
-  title: string;
-  summary: string;
-  items: { label: string; body: string }[];
-};
-
-export const pillars: TrustPillar[] = [
-  {
-    id: "security",
-    title: "Security",
-    summary:
-      "The controls protecting the platform, the evidence it holds, and the people who access it.",
-    items: [
-      {
-        label: "Secure architecture",
-        body: "Segregated environments, least-privilege service access, and infrastructure operated on established cloud platforms rather than self-managed hardware.",
-      },
-      {
-        label: "Encryption",
-        body: "Evidence is encrypted in transit and at rest. Cryptographic material is managed through platform key management rather than held in application code.",
-      },
-      {
-        label: "Access control",
-        body: "Role-based access, authentication controls for administrative functions, and logging of privileged actions.",
-      },
-      {
-        label: "Device and application integrity",
-        body: "Capture is refused on devices that fail integrity checks or where the application cannot be attested as authentic.",
-      },
-      {
-        label: "Monitoring",
-        body: "Platform monitoring and alerting on availability and anomalous access patterns.",
-      },
-    ],
-  },
-  {
-    id: "privacy",
-    title: "Privacy",
-    summary:
-      "Delphi handles photographs of real places and the locations at which they were taken. Both warrant care.",
-    items: [
-      {
-        label: "Data minimisation",
-        body: "Evidence packages carry what verification requires. Additional personal data is not collected because it might one day be useful.",
-      },
-      {
-        label: "Location sensitivity",
-        body: "Location is among the most sensitive data Delphi processes. Certificates are designed so that evidence can be verified without exposing more precision than the situation requires.",
-      },
-      {
-        label: "Customer control",
-        body: "Customers determine what is captured, who may open a certificate, and what is shared with a counterparty.",
-      },
-      {
-        label: "Retention",
-        body: "Retention periods are defined by customer agreement. Evidence intended to be durable and data intended to be transient are handled differently.",
-      },
-      {
-        label: "No third-party trackers on this site",
-        body: "This website self-hosts its fonts and does not load third-party tracking scripts by default. Cookie choices are respected rather than assumed.",
-      },
-    ],
-  },
-  {
-    id: "integrity",
-    title: "Evidence integrity",
-    summary:
-      "The properties that make Delphi evidence worth relying on, and the ways it can be checked.",
-    items: [
-      {
-        label: "Capture provenance",
-        body: "Evidence originates inside the Delphi capture environment. Images cannot be imported from a gallery or supplied from an external source.",
-      },
-      {
-        label: "Chain of custody",
-        body: "Each stage from capture to certificate is recorded, so the path the evidence took is itself part of the record.",
-      },
-      {
-        label: "Cryptographic sealing",
-        body: "Evidence packages are reduced to a fingerprint. Any subsequent change produces a different fingerprint, making alteration detectable.",
-      },
-      {
-        label: "Independent verification",
-        body: "The fingerprint is anchored on a public blockchain. Verification does not require trusting Delphi, or Delphi continuing to exist.",
-      },
-      {
-        label: "Stated limitations",
-        body: "Delphi establishes that a photograph was captured at a given time and place, through a verified device and application, and has not changed since. It does not interpret what the photograph means. That distinction matters, and we would rather state it than let it be assumed.",
-      },
-    ],
-  },
-  {
-    id: "continuity",
-    title: "Business continuity",
-    summary:
-      "Evidence is only useful if it is available when it is needed — which may be years after capture.",
-    items: [
-      {
-        label: "Availability",
-        body: "Platform hosted on established cloud infrastructure with managed redundancy.",
-      },
-      {
-        label: "Backup",
-        body: "Evidence data is backed up, with restoration procedures documented and tested.",
-      },
-      {
-        label: "Disaster recovery",
-        body: "Recovery procedures are defined, with objectives agreed as part of enterprise agreements.",
-      },
-      {
-        label: "Independent durability",
-        body: "Because fingerprints are anchored externally, a certificate holder retains the means to verify evidence integrity independently of Delphi's own systems.",
-      },
-    ],
-  },
-];
 
 /* Status confirmed by Delphi, 2026-08-20.
 
@@ -161,7 +65,11 @@ export const pillars: TrustPillar[] = [
    "certified" and update the statement with the certifying body and date.
    Until then the badge asset in the brand folder MUST NOT appear on this site;
    displaying a certification mark before issuance is a misrepresentation, and
-   an unusually damaging one for a company selling evidential integrity. */
+   an unusually damaging one for a company selling evidential integrity.
+
+   Statements are one line each, on purpose. This block is scanned by a
+   procurement reviewer looking for three answers, not read as prose. Anything
+   longer than a line belongs in the security documentation we send them. */
 export const compliance: {
   framework: string;
   status: ComplianceStatus;
@@ -175,27 +83,82 @@ export const compliance: {
     framework: "ISO/IEC 27001",
     status: "pending-certification",
     statement:
-      "Our ISO/IEC 27001 implementation is complete and we are awaiting independent certification. We are not yet certified, and we will say so until the certificate is issued.",
+      "Implementation complete. We are not yet certified, and we will say so until the certificate is issued.",
   },
   {
-    framework: "Data protection (UK / EU GDPR)",
+    framework: "UK / EU GDPR",
     status: "compliant",
     statement:
-      "Delphi Verify processes personal data in accordance with UK and EU data protection law. A data processing agreement is available to customers.",
+      "Data protection framework implemented. A data processing agreement is available to customers.",
   },
   {
     framework: "SOC 2",
     status: "not-started",
     statement:
-      "A SOC 2 assessment has not been started, and no report is available. If SOC 2 is a requirement of your procurement process, tell us — knowing which standards our customers actually need is genuinely useful to us.",
+      "No assessment has been started and no report is available. If SOC 2 is a requirement of your procurement process, tell us.",
   },
 ];
 
 /* ============================================================================
+   HOW DELPHI PROTECTS EVIDENCE
+   ============================================================================
+   Four cards, replacing what were four sections and nineteen labelled rows
+   covering security, privacy, evidence integrity and business continuity.
+
+   The individual controls were all true and all defensible; collectively they
+   read as a security questionnaire rendered as a web page, and nobody
+   remembers nineteen things. Four is the number an enterprise buyer can carry
+   into a meeting. The controls themselves now live where a security reviewer
+   will actually want them — in the documentation we send on request.
+
+   The stated limitation that used to sit under "evidence integrity" — that
+   Delphi establishes when, where and by what a photograph was captured, and
+   does not interpret what it shows — is made on /platform, which is the page
+   that makes the evidential claim in the first place. It has not been
+   softened, it is stated where the claim is.
+   ========================================================================= */
+export const protections = {
+  eyebrow: "Protection",
+  headline: "How Delphi protects evidence.",
+  items: [
+    {
+      title: "Secure platform",
+      body: "Encryption in transit and at rest, controlled access, segregated environments and monitoring.",
+    },
+    {
+      title: "Privacy by design",
+      body: "Data minimisation, controlled sharing and retention based on customer requirements.",
+    },
+    {
+      title: "Evidence integrity",
+      body: "Controlled capture, chain of custody, cryptographic sealing and independently checkable integrity records.",
+    },
+    {
+      title: "Durable evidence",
+      body: "Managed cloud infrastructure, backups and recovery procedures, with external integrity records that remain independently inspectable.",
+    },
+  ],
+} as const;
+
+/* ============================================================================
    INFRASTRUCTURE ATTRIBUTIONS
    ============================================================================
-   Technology logos, NOT certification marks. Every entry states something the
-   product verifiably does, each traceable to PRODUCT_TECHNICAL_DESCRIPTION.md.
+   A strip, not a section. Naming the systems underneath is worth doing — it
+   lets a reviewer check our claims against somebody else's documentation
+   rather than ours — but four paragraphs about Apple, Google, Firebase and
+   Base is more attention than an attribution deserves on the primary trust
+   page. The detail lives on /platform/technical, which is where a reviewer
+   who cares about it is going anyway.
+
+   ⚠️  DO NOT reinstate the old Apple line, which described App Attest as
+   proving the genuine app on an "uncompromised device". Apple is more careful
+   than that: App Attest establishes a genuine Apple device, a genuine
+   application and an untampered payload, and Apple explicitly notes that an
+   attacker who modifies the operating system may be able to bypass its
+   restrictions. If this ever needs a sentence again, the accurate one is:
+
+       "Helps verify that requests originate from a genuine Apple device
+        running the genuine Delphi application."
 
    ⚠️  WHY THERE ARE NO ISO 27001 OR SOC 2 BADGES HERE.
 
@@ -220,38 +183,27 @@ export const compliance: {
    ========================================================================= */
 export const infrastructure = {
   eyebrow: "Built on",
-  headline: "The systems underneath, named.",
-  standfirst:
-    "Delphi runs on established infrastructure rather than self-managed hardware, and the guarantees on this page depend on specific, checkable technology. Naming it lets a reviewer verify our claims against somebody else's documentation instead of ours.",
+  headline: "Built on established infrastructure.",
   items: [
-    {
-      logo: "apple",
-      name: "Apple App Attest",
-      body: "Hardware-backed attestation that a capture came from the genuine Delphi app on an uncompromised device. This is what makes the in-app capture rule enforceable rather than merely stated.",
-    },
-    {
-      logo: "google-cloud",
-      name: "Google Cloud",
-      body: "Managed Postgres and asynchronous task processing. Evidence sits on operated infrastructure with managed redundancy, not on hardware we maintain ourselves.",
-    },
-    {
-      logo: "firebase",
-      name: "Firebase",
-      body: "Identity, media storage and the API surface. Every private request carries a verified identity token before any evidence is touched.",
-    },
-    {
-      logo: "base-network",
-      name: "Base · Ethereum Attestation Service",
-      body: "Certificate proofs are anchored as EAS attestations on Base mainnet, chain ID 8453 — a record Delphi does not control and cannot quietly revise.",
-    },
+    { logo: "apple", name: "Apple App Attest" },
+    { logo: "google-cloud", name: "Google Cloud" },
+    { logo: "firebase", name: "Firebase" },
+    { logo: "base-network", name: "Base · Ethereum Attestation Service" },
   ],
-  note: "These are technology attributions, not endorsements, partnerships or certifications. Each names a system Delphi depends on, so that our claims can be checked against its documentation rather than ours.",
+  note: "Technology attributions, not endorsements, partnerships or certifications.",
+  link: { label: "View technical architecture", href: "/platform/technical" },
 } as const;
 
-export const complianceNote = {
-  headline: "On the precision of these statements",
-  body:
-    "We have chosen to state our certification position exactly, including where certification has not yet been obtained. A company whose product is evidential integrity should not describe its own compliance position loosely. If a certification matters to your procurement process and we do not yet hold it, tell us — it is useful for us to know which standards our customers actually require.",
+/* ============================================================================
+   DOCUMENTATION & SECURITY CONTACT
+   ============================================================================
+   One closing section carrying what used to be three: the legal documents, a
+   vulnerability disclosure block, and a standalone procurement CTA that asked
+   for the same thing a second time.
+   ========================================================================= */
+export const documentation = {
+  eyebrow: "Documentation",
+  headline: "Security & compliance documentation.",
 } as const;
 
 export const legalDocs = [
@@ -261,9 +213,16 @@ export const legalDocs = [
   { label: "Sub-processor list", href: "/contact", note: "Available on request" },
 ] as const;
 
-export const securityContact = {
-  headline: "Reporting a security issue",
+export const securityReview = {
+  headline: "Running a security review?",
   body:
-    "If you believe you have found a vulnerability in Delphi Verify, please contact us directly. We will acknowledge your report, keep you informed while we investigate, and will not pursue action against good-faith security research.",
+    "Tell us what your review process requires and we will provide what we have — including being straightforward about anything we do not.",
+  cta: { label: "Request security documentation", href: "/contact" },
+} as const;
+
+export const securityContact = {
+  headline: "Found a security issue?",
+  body:
+    "We will acknowledge your report, keep you informed while we investigate, and will not pursue action against good-faith security research.",
   email: "contact@delphiverify.com",
 } as const;

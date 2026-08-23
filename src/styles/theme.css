@@ -319,6 +319,12 @@
   --callout-ink-muted: oklch(100% 0 0 / 0.70);
   --callout-line:      oklch(100% 0 0 / 0.85);
   --callout-border:    oklch(100% 0 0 / 0.14);
+  /* An EMPTY SLOT waiting to be filled, which is a different job from a
+     panel's edge. --callout-border is 0.14 because it outlines something that
+     is already there; a slot has nothing inside it and the outline is the
+     only thing saying it exists. At 0.14 the record's eight cells were
+     invisible and the captures appeared to fly into nowhere. */
+  --callout-slot:      oklch(100% 0 0 / 0.42);
   /* Leader lines and marker dots are white, and white on a pale sky is
      invisible. Every one is drawn twice: this darker halo underneath, the
      white on top — the same trick that keeps map labels legible over

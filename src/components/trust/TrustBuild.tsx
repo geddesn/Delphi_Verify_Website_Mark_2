@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { AnnotationPanel } from "@/components/annotation/Panel";
+import { AnnotationPanel, PanelLogo } from "@/components/annotation/Panel";
 import { AnchorDot, Leaders, type LeaderSpec } from "@/components/annotation/Leaders";
 import { useBoxes } from "@/components/annotation/useBoxes";
 import {
   ChapterBar,
   DESIGN_W,
   OutcomeList,
+  RecordPanel,
   ReplayIcon,
   StageGrid,
   TitleCard,
+  flightOrigin,
   useStageScale,
 } from "@/components/trust/TrustEngine";
 import { acts, trustEngineCopy } from "@/content/trust-scenes";
@@ -92,6 +94,11 @@ const STEPS = [
   { id: "a2-fitout", ms: 1800 },
   { id: "a2-handover", ms: 2200 },
   { id: "a2-record", ms: 3600 },
+  /* Made, then handed out — the same two-beat split the yacht uses, and for
+     the same reason: a record only settles anything if both sides had it
+     before there was anything to settle, and that is a separate claim from
+     having made it. */
+  { id: "a2-share", ms: 3200 },
   { id: "a2-closing", ms: 3400 },
   { id: "a2-resolved", ms: 0 }, // REST
 ] as const;
@@ -154,6 +161,60 @@ function held(table: Record<string, number>, step: number, fallback = 0) {
   return fallback;
 }
 
+/** ONE CERTIFICATE, and every image in it.
+ *
+ *  SIX OF THESE, ONE PER STAGE. A certificate is issued at a moment and can
+ *  carry several images: the roof's holds the roof itself and the three
+ *  concealed works photographed in the fortnight before it closed. That is the
+ *  product's own shape, and getting it wrong on the stage would either invent
+ *  references that are never issued or imply one document spanning the build.
+ *
+ *  Derived from the stages and the concealed list rather than authored as a
+ *  third thing, so it cannot disagree with either — and so that adding a
+ *  concealed work puts it in the right certificate automatically. */
+export type Certificate = {
+  id: string;
+  label: string;
+  stamp: string;
+  code: string;
+  images: { key: string; image: string; stamp: string; concealed: boolean }[];
+};
+
+/* Sorted WITHOUT Date.parse. These stamps are "15 Sep 2025", which is not an
+   ISO date, and support for that shape is implementation-defined — it happens
+   to work in V8 and is not something to rely on in prerendered output. The
+   month table is three lines and cannot surprise anyone. */
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function dayNumber(stamp: string) {
+  const [d, m, y] = stamp.split(" ");
+  return Number(y) * 10000 + (MONTHS.indexOf(m) + 1) * 100 + Number(d);
+}
+
+function certificates(scene: TrustBuildScene): Certificate[] {
+  return scene.stages.map((st) => ({
+    id: st.id,
+    label: st.label,
+    stamp: st.stamp,
+    code: st.code,
+    /* In capture order within the certificate, which for the roof puts the
+       three concealed works BEFORE the roof itself — they were taken in the
+       fortnight before it closed. That order is what lets the stage fill the
+       images by a simple running count: the concealed ones land on the
+       conceal beat and the roof lands on the beat the wall closes. */
+    images: [
+      { key: st.id, image: st.image, stamp: st.stamp, concealed: false },
+      ...scene.concealed
+        .filter((c) => c.certificate === st.id)
+        .map((c) => ({
+          key: c.image,
+          image: c.image,
+          stamp: c.stamp,
+          concealed: true,
+        })),
+    ].sort((a, b) => dayNumber(a.stamp) - dayNumber(b.stamp)),
+  }));
+}
+
 const s = {
   intro: (n: number) => n < at("a1-plot"),
   introLine: (n: number) => n >= at("intro-line"),
@@ -182,14 +243,32 @@ const s = {
 
   /* The record panel: open from the first capture, and it never closes. */
   record: (n: number) => n >= at("a2-plot"),
-  /* How many records exist, which is what fills the strip. */
-  recordsAt: (n: number) => {
+
+  /* HOW MANY CERTIFICATES HAVE BEEN ISSUED — one per stage, at the beat that
+     stage completes. The concealed works are captured on a2-conceal but do
+     NOT issue anything: they go into the roof's certificate, which is issued
+     one beat later when the wall closes. */
+  certsAt: (n: number) => {
     if (n < at("a2-plot")) return 0;
     if (n < at("a2-foundations")) return 1;
     if (n < at("a2-structure")) return 2;
-    if (n < at("a2-conceal")) return 3;
-    if (n < at("a2-cover")) return 7; // the four concealed works land together
-    if (n < at("a2-fitout")) return 8;
+    if (n < at("a2-cover")) return 3;
+    if (n < at("a2-fitout")) return 4;
+    if (n < at("a2-handover")) return 5;
+    return 6;
+  },
+
+  /* HOW MANY IMAGES HAVE BEEN CAPTURED, which is a different count and moves
+     on different beats — that gap is the point of the roof certificate. A
+     running total against the flattened certificate order; see the note on
+     image order in `certificates`. */
+  imagesAt: (n: number) => {
+    if (n < at("a2-plot")) return 0;
+    if (n < at("a2-foundations")) return 1;
+    if (n < at("a2-structure")) return 2;
+    if (n < at("a2-conceal")) return 4; // structure, and its connections
+    if (n < at("a2-cover")) return 7; // waterproofing, pipework, services
+    if (n < at("a2-fitout")) return 8; // the roof itself, closing over them
     if (n < at("a2-handover")) return 9;
     return 10;
   },
@@ -283,6 +362,16 @@ export function TrustBuild({
   const act = s.act(step);
   const stageIndex = held(STAGE_AT, step);
   const paid = held(PAID_AT, step);
+  const CANVAS = { w: DESIGN_W, h: canvasH };
+
+  /* The six certificates, and how far along this beat is: how many have been
+     issued, and how many images exist. Two counts because they move on
+     different beats — the concealed works are captured before the certificate
+     that carries them is issued, which is the whole point of the roof one. */
+  const certs = certificates(scene);
+  const certCount = s.certsAt(step);
+  const imageCount = s.imagesAt(step);
+  const latest = certCount > 0 ? certs[certCount - 1] : undefined;
 
   const title = (() => {
     for (let i = step; i >= 0; i--) {
@@ -382,6 +471,15 @@ export function TrustBuild({
               showClaim={s.claims(step)}
               boxRef={register(scene.parties[0].id)}
             />
+            <HeldRecords
+              certs={certs}
+              count={certCount}
+              from={flightOrigin(
+                boxes["record-code"],
+                boxes[scene.parties[0].id],
+                CANVAS,
+              )}
+            />
           </PartyColumn>
           <PartyColumn side="right">
             <PartyCard
@@ -389,6 +487,15 @@ export function TrustBuild({
               on={s.parties(step) && !s.detail(step)}
               showClaim={s.claims(step)}
               boxRef={register(scene.parties[1].id)}
+            />
+            <HeldRecords
+              certs={certs}
+              count={certCount}
+              from={flightOrigin(
+                boxes["record-code"],
+                boxes[scene.parties[1].id],
+                CANVAS,
+              )}
             />
             <OutcomeList
               items={act === 2 ? scene.resolved.outcomes : scene.unresolved.outcomes}
@@ -410,10 +517,14 @@ export function TrustBuild({
           {/* ── The record ──
               Act two only, and it never closes once open. */}
           <BuildRecord
-            scene={scene}
+            certs={certs}
             on={s.record(step)}
-            count={s.recordsAt(step)}
+            certCount={certCount}
+            imageCount={imageCount}
+            latest={latest}
+            panel={scene.record.panel}
             boxRef={register("record")}
+            codeRef={register("record-code")}
           />
 
           {/* ── THE CONCEALMENT ──
@@ -427,6 +538,10 @@ export function TrustBuild({
             on={s.detail(step)}
             covered={s.covered(step)}
             captured={s.detailCaptured(step)}
+            certCode={
+              certs.find((c) => c.id === scene.covering.before.certificate)
+                ?.code ?? ""
+            }
           />
 
           <TitleCard
@@ -746,12 +861,16 @@ function CoverPair({
   on,
   covered,
   captured,
+  certCode,
 }: {
   covering: TrustBuildScene["covering"];
   others: readonly ConcealedWork[];
   on: boolean;
   covered: boolean;
   captured: boolean;
+  /** The reference of the certificate this capture belongs to — the roof's,
+   *  not one of its own. See the note on ConcealedWork.certificate. */
+  certCode: string;
 }) {
   return (
     <div
@@ -797,14 +916,29 @@ function CoverPair({
           className="flex items-center gap-2 px-2 py-1.5"
           style={{ backgroundColor: "var(--callout-ink)" }}
         >
+          {/* THE MARK, and only where it is earned. In act two this frame was
+              captured through the app, so it carries the same logo the record
+              and the certificate do — one product doing one thing. In act one
+              the identical photograph exists and nothing stands behind it, so
+              putting the mark there would be the single most dishonest pixel
+              on the site. */}
+          <span
+            className="shrink-0 transition-opacity"
+            style={{
+              opacity: captured ? 1 : 0,
+              transitionDuration: "var(--duration-normal)",
+            }}
+          >
+            <PanelLogo className="h-3 w-[42px]" />
+          </span>
           <span className="truncate font-mono text-mono-xs text-callout-ink">
             {covered ? covering.after.label : covering.before.label}
           </span>
           <span className="ml-auto shrink-0 font-mono text-mono-xs text-callout-ink-muted">
-            {/* The date only exists in act two. In act one there is nothing
-                standing behind one, so putting one here would be inventing
-                the very thing the act is about not having. */}
-            {captured ? covering.before.stamp : "No record"}
+            {/* The reference only exists in act two. In act one there is
+                nothing standing behind one, so putting a code here would be
+                inventing the very thing the act is about not having. */}
+            {captured ? certCode : "No record"}
           </span>
         </div>
       </div>
@@ -843,107 +977,255 @@ function CoverPair({
   );
 }
 
-/** The record: every capture, in the order it happened.
+/** THE RECORD: six certificates, in the order they were issued.
  *
- *  A STRIP, not a grid. The claim being made is chronological — this is what
- *  the asset looked like, in sequence, as it came into existence — and a grid
- *  says "a set of photographs" where a row says "a history". Read left to
- *  right it is also the shape of the story: four of the ten cluster in the
- *  fortnight before the roof goes on, which is exactly when things stop being
- *  visible.
+ *  A ROW, not a grid. The claim is chronological — this is what the asset
+ *  looked like, in sequence, as it came into existence — and a grid says "a
+ *  set of photographs" where a row says "a history". Read left to right it is
+ *  also the shape of the story: the roof certificate is four images wide where
+ *  the others are one, because four things had to be photographed in the
+ *  fortnight before that wall closed.
  *
- *  ⚠️  TEN INDIVIDUAL RECORDS, NOT ONE. Each capture is its own certificate.
- *  Persistent asset passports are development direction rather than what
- *  ships — see the `passports` pillar in platform.ts — so the panel counts
- *  records and never implies a single document spanning the build. */
+ *  WARNING — ONE BARCODE PER CERTIFICATE, AND SIX CERTIFICATES. Not one per
+ *  image: a certificate is issued at a moment and carries whatever was
+ *  captured for it. And not one for the whole build either — persistent asset
+ *  passports are development direction rather than what ships, see the
+ *  `passports` pillar in platform.ts, so nothing here may look like a single
+ *  document spanning the history.
+ *
+ *  The flight source is the LATEST issued certificate's own barcode rather
+ *  than a separate one in the footer. A seventh barcode down there would be a
+ *  seventh certificate as far as a viewer is concerned.
+ *
+ *  RecordPanel rather than a bare AnnotationPanel, so the mark on it is the
+ *  same mark the yacht's record carries — one product issuing one kind of
+ *  thing, and drawing that header twice would let the two drift. */
 function BuildRecord({
-  scene,
+  certs,
   on,
-  count,
+  certCount,
+  imageCount,
+  latest,
+  panel,
   boxRef,
+  codeRef,
 }: {
-  scene: TrustBuildScene;
+  certs: Certificate[];
   on: boolean;
-  count: number;
+  certCount: number;
+  imageCount: number;
+  latest?: Certificate;
+  panel: { x: number; y: number };
   boxRef?: (el: HTMLElement | null) => void;
+  codeRef?: (el: HTMLElement | null) => void;
 }) {
-  /* Stages and concealed works interleaved by date — built here rather than
-     authored so it cannot disagree with the two lists it comes from. */
-  const entries = [
-    ...scene.stages.map((st) => ({
-      key: st.id,
-      image: st.image,
-      label: st.label,
-      stamp: st.stamp,
-      concealed: false,
-    })),
-    ...scene.concealed.map((c) => ({
-      key: c.image,
-      image: c.image,
-      label: c.label,
-      stamp: c.stamp,
-      concealed: true,
-    })),
-  ].sort((a, b) => Date.parse(a.stamp) - Date.parse(b.stamp));
+  /* Running index across the flattened certificates, so one count fills the
+     images in capture order regardless of which certificate they belong to. */
+  let flat = -1;
 
   return (
-    <AnnotationPanel
-      spec={{ panel: scene.record.panel, align: "top-center" }}
+    <RecordPanel
+      spec={{ panel, align: "top-center" }}
       on={on}
       width=""
       style={{ width: "min(58%, 38rem)" }}
       boxRef={boxRef}
+      title={
+        certCount === 0
+          ? "Construction record · nothing issued yet"
+          : `Construction record · ${certCount} of ${certs.length} certificates`
+      }
+      trusted
     >
-      <div className="flex items-center gap-2">
-        <span
-          className="h-2.5 w-0.5 shrink-0 rounded-xs bg-verified"
-          aria-hidden
-        />
-        <span className="truncate font-mono text-mono-xs text-callout-ink">
-          Construction record
-        </span>
-        <span className="ml-auto shrink-0 font-mono text-mono-xs text-callout-ink-muted">
-          {count} of {entries.length}
-        </span>
-      </div>
+      {/* WARNING — ONE CHILD, NOT SEVERAL. RecordPanel puts its children in a
+          flex ROW: it holds one or two evidence cards side by side for the
+          yacht. A stack of sections laid out here would sit beside each other
+          and shrink to their contents — which is exactly what happened, and
+          the image strip disappeared. Everything this panel holds is a column,
+          so it goes in as a single flex child that fills the row. */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-end gap-1.5">
+          {certs.map((c, ci) => {
+            const issued = ci < certCount;
+            /* Each certificate is as wide as the number of images it carries,
+               so the roof's is four times the plot's. The width IS the
+               information: it says where the evidence had to be dense. */
+            return (
+              <div
+                key={c.id}
+                className="min-w-0"
+                style={{ flexGrow: c.images.length, flexBasis: 0 }}
+              >
+                <div className="flex gap-0.5">
+                  {c.images.map((img) => {
+                    flat += 1;
+                    const shown = flat < imageCount;
+                    return (
+                      <div key={img.key} className="min-w-0 flex-1">
+                        <div
+                          className="relative overflow-hidden rounded-xs border border-dotted"
+                          style={{
+                            aspectRatio: "16 / 9",
+                            /* The concealed ones are marked, because their
+                               being in here at all is the point of the act. */
+                            borderColor: img.concealed
+                              ? "var(--fx-accent-glow)"
+                              : "var(--callout-slot)",
+                            backgroundColor: "var(--callout-halo)",
+                          }}
+                        >
+                          <img
+                            src={`/assets/features/${img.image}-240.webp`}
+                            alt=""
+                            width={768}
+                            height={358}
+                            loading="lazy"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover transition-opacity"
+                            style={{
+                              opacity: shown ? 1 : 0,
+                              transitionDuration: "var(--duration-slow)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-      <div className="mt-1.5 flex gap-1">
-        {entries.map((e, i) => (
-          <div key={e.key} className="min-w-0 flex-1">
-            <div
-              className="relative overflow-hidden rounded-xs border border-dotted transition-opacity"
+                {/* The certificate itself: its one barcode, and what it is
+                    called. Dimmed until issued, so a viewer can watch images
+                    landing in something that has not been signed yet. */}
+                {/* Stacked, not side by side. Four of the six certificates
+                    are one image wide — about 55 design px — and an inline
+                    barcode left so little room that "Foundations" rendered as
+                    "Foun…". Below it, the label gets the whole column. */}
+                <div className="mt-1 flex flex-col items-start gap-0.5">
+                  <span
+                    /* The most recent one is where the copies fly from. */
+                    ref={ci === certCount - 1 ? codeRef : undefined}
+                    className="relative block shrink-0 transition-opacity"
+                    style={{
+                      opacity: issued ? 1 : 0.25,
+                      transitionDuration: "var(--duration-normal)",
+                    }}
+                  >
+                    <span
+                      aria-hidden
+                      className="trust-held-glow absolute -inset-1 rounded-sm"
+                      style={{
+                        backgroundColor: "var(--fx-link)",
+                        filter: "blur(5px)",
+                        opacity: issued ? 1 : 0,
+                      }}
+                    />
+                    <span className="relative block rounded-xs bg-callout-ink p-px">
+                      <img
+                        src="/assets/certificate-code.webp"
+                        alt=""
+                        width={128}
+                        height={128}
+                        loading="lazy"
+                        decoding="async"
+                        className="block h-4 w-4"
+                      />
+                    </span>
+                  </span>
+                  <span className="w-full truncate font-mono text-mono-xs text-callout-ink-muted">
+                    {c.label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* The span, and the reference of whichever certificate was issued
+            last. What makes six documents a history is that they are dated and
+            in order, so the dates are the caption. */}
+        <p className="mt-2 flex justify-between font-mono text-mono-xs text-callout-ink-muted">
+          <span>
+            {certs[0].stamp} — {certs[certs.length - 1].stamp}
+          </span>
+          <span className="text-callout-ink">{latest?.code ?? ""}</span>
+        </p>
+      </div>
+    </RecordPanel>
+  );
+}
+
+/** What one party is holding: one chip per certificate, arriving as each is
+ *  issued.
+ *
+ *  WARNING — ONE PER CERTIFICATE, NOT ONE PER IMAGE, and not one document at
+ *  the end. Six chips is what the product actually issues over this build.
+ *  Handing over a single one at handover would be a passport, which is
+ *  development direction rather than what ships; giving each image its own
+ *  would be ten references that were never issued.
+ *
+ *  BOTH SIDES GET THE SAME SIX, at the moment each is made. That is the whole
+ *  claim of the act: neither party is the one who assembled the record
+ *  afterwards, because both were given it as it happened.
+ *
+ *  Each chip is positioned where it belongs and transformed back to the
+ *  record's barcode, so one transform carries the whole journey and the
+ *  landing is exact — the same technique as the yacht's held copies. */
+function HeldRecords({
+  certs,
+  count,
+  from,
+}: {
+  certs: Certificate[];
+  count: number;
+  from: { x: number; y: number };
+}) {
+  return (
+    <div
+      className="transition-opacity"
+      style={{
+        opacity: count > 0 ? 1 : 0,
+        transitionDuration: "var(--duration-normal)",
+      }}
+    >
+      <div className="flex flex-wrap gap-1">
+        {certs.map((c, i) => {
+          const out = i < count;
+          return (
+            <span
+              key={c.id}
+              className="relative block h-5 w-5"
               style={{
-                aspectRatio: "16 / 9",
-                borderColor: e.concealed
-                  ? "var(--fx-accent-glow)"
-                  : "var(--callout-slot)",
-                backgroundColor: "var(--callout-halo)",
+                opacity: out ? 1 : 0,
+                transform: out
+                  ? "translate(0, 0) scale(1)"
+                  : `translate(${from.x}px, ${from.y}px) scale(0.4)`,
+                transition:
+                  "transform var(--duration-fly) var(--ease-out-quart), opacity var(--duration-normal) linear",
               }}
             >
-              <img
-                src={`/assets/features/${e.image}-240.webp`}
-                alt=""
-                width={768}
-                height={341}
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover transition-opacity"
-                style={{
-                  opacity: i < count ? 1 : 0,
-                  transitionDuration: "var(--duration-slow)",
-                }}
+              <span
+                aria-hidden
+                className="trust-held-glow absolute -inset-1 rounded-sm"
+                style={{ backgroundColor: "var(--fx-link)", filter: "blur(5px)" }}
               />
-            </div>
-          </div>
-        ))}
+              <span className="relative block rounded-xs bg-callout-ink p-px">
+                <img
+                  src="/assets/certificate-code.webp"
+                  alt=""
+                  width={128}
+                  height={128}
+                  loading="lazy"
+                  decoding="async"
+                  className="block h-full w-full"
+                />
+              </span>
+            </span>
+          );
+        })}
       </div>
-
-      {/* The span, under the strip. What makes ten pictures a history is that
-          they are dated and in order, so the dates are the caption. */}
-      <p className="mt-1.5 flex justify-between font-mono text-mono-xs text-callout-ink-muted">
-        <span>{entries[0].stamp}</span>
-        <span>{entries[entries.length - 1].stamp}</span>
+      <p className="mt-1 font-mono text-mono-xs text-ink-muted">
+        {count} {count === 1 ? "certificate" : "certificates"}
       </p>
-    </AnnotationPanel>
+    </div>
   );
 }

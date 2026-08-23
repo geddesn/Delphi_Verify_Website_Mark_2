@@ -441,7 +441,7 @@ const RECORD_BOX: Box = { w: 40, h: 30 };
  *
  *  Zero before anything is measured, which is also what the server renders:
  *  no flight, the certificates are simply there. */
-function flightOrigin(
+export function flightOrigin(
   source: Rect | undefined,
   target: Rect | undefined,
   stage: { w: number; h: number },
@@ -1788,7 +1788,7 @@ function AccessLinks({
  *
  *  They fly in from the record panel rather than fading in place, because
  *  where they came FROM is the point. */
-function HeldCertificates({
+export function HeldCertificates({
   issued,
   from,
 }: {
@@ -2461,7 +2461,7 @@ function ComparePair({
  *  and it changes three things at once — the mark on the title row, the
  *  border around the cards, and the weight of the type. A viewer should be
  *  able to tell the two apart at a glance and without reading. */
-function RecordPanel({
+export function RecordPanel({
   spec,
   on,
   width,

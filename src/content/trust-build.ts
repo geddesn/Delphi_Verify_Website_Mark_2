@@ -66,10 +66,17 @@ export type BuildStage = {
   /** What this moment is called, on the record and on the timeline. */
   label: string;
   stamp: string;
-  /** The reference for the record made here. Its own, because each capture is
-   *  its own certificate — persistent asset passports are development
-   *  direction, not what ships, and a single code spanning the whole build
-   *  would quietly claim one. See the `passports` pillar in platform.ts. */
+  /** The reference for the certificate issued at this stage.
+   *
+   *  ONE CODE PER CERTIFICATE, and a certificate can carry several images —
+   *  the roof's covers the roof itself and the three concealed works
+   *  photographed in the fortnight before it went on. Six stages, six
+   *  certificates, six references.
+   *
+   *  Six rather than one for the whole build: persistent asset passports are
+   *  development direction rather than what ships, so a single code spanning
+   *  the history would quietly claim one. See the `passports` pillar in
+   *  platform.ts. */
   code: string;
   /** The instalment that falls due when this stage is reported complete.
    *  Absent where no money moves — fit-out is work, not a milestone. */
@@ -85,6 +92,17 @@ export type ConcealedWork = {
   stamp: string;
   image: string;
   imageAlt: string;
+  /** WHICH CERTIFICATE THIS IMAGE IS PART OF — the id of the stage whose
+   *  record was issued after it was taken.
+   *
+   *  ⚠️  A CONCEALED WORK IS NOT ITS OWN CERTIFICATE. A certificate is issued
+   *  at a moment and can carry many images; the waterproofing, the pipework
+   *  and the services were all photographed in the fortnight before the roof
+   *  went on, so they are three of the four images in the ROOF certificate.
+   *  Giving each one its own would put ten references on the stage where the
+   *  product issues six, and would make the record look like a pile of
+   *  photographs rather than six dated documents. */
+  certificate: string;
 };
 
 export type TrustBuildScene = TrustSceneIntro & {
@@ -241,6 +259,7 @@ export const buildScene: TrustBuildScene = {
     {
       label: "Structural connections",
       stamp: "15 Sep 2025",
+      certificate: "structure",
       image: "conceal-structural",
       imageAlt:
         "A reinforced concrete column and beam junction with the reinforcement cage exposed",
@@ -248,6 +267,7 @@ export const buildScene: TrustBuildScene = {
     {
       label: "Waterproofing",
       stamp: "28 Nov 2025",
+      certificate: "roof",
       image: "conceal-waterproofing",
       imageAlt:
         "A bathroom floor with waterproofing membrane laid across it and turned up the walls",
@@ -255,12 +275,14 @@ export const buildScene: TrustBuildScene = {
     {
       label: "Pipework",
       stamp: "2 Dec 2025",
+      certificate: "roof",
       image: "conceal-pipework",
       imageAlt: "Copper and plastic pipework running through an open blockwork wall",
     },
     {
       label: "Electrical services",
       stamp: "4 Dec 2025",
+      certificate: "roof",
       image: "conceal-electrical",
       imageAlt: "Conduit and cabling routed through an open ceiling void",
     },
@@ -270,6 +292,9 @@ export const buildScene: TrustBuildScene = {
     before: {
       label: "Waterproofing",
       stamp: "28 Nov 2025",
+      /* The same capture as the entry in `concealed` above, shown twice on
+         the stage — so it belongs to the same certificate. */
+      certificate: "roof",
       image: "conceal-waterproofing",
       imageAlt:
         "A bathroom floor with waterproofing membrane laid across it and turned up the walls",
@@ -312,7 +337,7 @@ export const buildScene: TrustBuildScene = {
   /* Below the payment bar, not at the very top: the two share the top of the
      stage in act two, and the money has to stay visible while the record
      fills or the piece stops being about what the buyer is exposed to. */
-  record: { panel: { x: 50, y: 15 } },
+  record: { panel: { x: 50, y: 11 } },
 
   narration: {
     "a1-plot": {
@@ -373,8 +398,12 @@ export const buildScene: TrustBuildScene = {
     "a2-fitout": { line: "Fit-out, finishes, landscaping." },
     "a2-handover": { line: "The same villa, on the same day." },
     "a2-record": {
-      line: "Six dated records of one build.",
+      line: "Ten dated records of one build.",
       sub: "Not photographs. The observed state of the asset, in the order it happened.",
+    },
+    "a2-share": {
+      line: "Both sides have held every one of them all along.",
+      sub: "Each issued as its capture was made — not assembled afterwards by either of them.",
     },
   },
 

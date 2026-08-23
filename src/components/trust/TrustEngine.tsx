@@ -101,6 +101,11 @@ const STEPS = [
   { id: "a2-shot-6", ms: 520 },
   { id: "a2-shot-7", ms: 520 },
   { id: "a2-shot-8", ms: 900 }, // the saloon, held a beat longer
+  /* ⭐ THE CONTENT CHECK. All eight go at once and come back as each one
+     finishes — see CHECK_MS. Long enough for the slowest to land and be seen
+     landing; shorter and the beat would cut away mid-check, which would say
+     the opposite of what it is here to say. */
+  { id: "a2-check", ms: 4200 },
   { id: "a2-file", ms: 1500 },  // the pile goes into the record
   { id: "a2-capture", ms: 1500 }, // …and the record is what is left
   { id: "a2-charterer", ms: 1200 }, // arrives AFTER the record
@@ -125,6 +130,10 @@ const STEPS = [
   { id: "a2-reshot-6", ms: 520 },
   { id: "a2-reshot-7", ms: 520 },
   { id: "a2-reshot-8", ms: 1100 }, // the saloon again, and it is torn
+  /* The same check on the way out, because it is the same process. Showing it
+     only at the start would say redelivery is inspected less carefully than
+     delivery, which is the one asymmetry this act cannot afford. */
+  { id: "a2-recheck", ms: 4200 },
   /* The second certificate's turn on the chain. a2-file is the first's —
      both exist so that publishing is something a viewer WAITS for rather
      than something that has already happened by the time they look. */
@@ -298,6 +307,29 @@ const s = {
      It opens AFTER the phone rather than with the captain, so the sequence
      reads phone, record, fill — see the note on the a2-phone beat. */
   delphi: (n: number) => n >= at("a2-record"),
+
+  /* The content check, and what it leaves behind.
+
+     Two predicates, not one, because they answer different questions.
+     `checking` is the moment — the card says so, and the spinner turns. It
+     is a single step, so it is === rather than >=.
+
+     `checked` is the result, and it is a WINDOW rather than a latch: the
+     ticks come up as each frame comes back and go again when the certificate
+     is issued. They are the progress of a check, not a property of the
+     photograph — once the certificate exists it is the thing making the
+     claim, and eight ticks still sitting on the sheet underneath it would be
+     a second, weaker claim competing with it. The sheet should end up clean.
+
+     It also means the prerendered markup carries no ticks at all: at REST
+     both windows are closed, so the server draws the finished record and the
+     client agrees with it without a transition ever running. */
+  checkingDelivery: (n: number) => n === at("a2-check"),
+  checkingRedelivery: (n: number) => n === at("a2-recheck"),
+  checkedDelivery: (n: number) =>
+    n >= at("a2-check") && n < at("a2-capture"),
+  checkedRedelivery: (n: number) =>
+    n >= at("a2-recheck") && n < at("a2-recapture"),
 
   /* Made, then handed out. The gap between these two is the beat. */
   /* Between the last capture and the certificate: the record is complete
@@ -1106,6 +1138,7 @@ export function TrustEngine({
                 <EvidenceCard
                   cert={record.verified.delivery}
                   issued={s.deliveryCert(step)}
+                  checking={s.checkingDelivery(step)}
                   tone="verified"
                   trusted
                   codeRef={register("code-delivery")}
@@ -1129,6 +1162,7 @@ export function TrustEngine({
                 <EvidenceCard
                   cert={record.verified.redelivery}
                   issued={s.redeliveryCert(step)}
+                  checking={s.checkingRedelivery(step)}
                   tone="failed"
                   trusted
                   codeRef={register("code-redelivery")}
@@ -1160,6 +1194,7 @@ export function TrustEngine({
         <SurveyFlight
           shots={scene.survey}
           taken={(i) => s.shotFiled(step, i)}
+          checked={s.checkedDelivery(step)}
           on={s.deliveryImages(step)}
           frameRect={boxes["survey-frame"]}
           gridRect={boxes["record-grid"]}
@@ -1168,6 +1203,7 @@ export function TrustEngine({
         <SurveyFlight
           shots={resurvey}
           taken={(i) => s.reshotFiled(step, i)}
+          checked={s.checkedRedelivery(step)}
           on={s.redeliveryImages(step)}
           frameRect={boxes["survey-frame"]}
           gridRect={boxes["record-grid-2"]}
@@ -1974,6 +2010,96 @@ function RecordGrid({
   );
 }
 
+/* WHEN EACH TICK COMES BACK, in milliseconds from the start of the check.
+   Spread across one to three seconds and deliberately out of order, because
+   that is how the real thing behaves: eight requests go at once and each
+   returns when it returns. Ordered delays would read as a progress bar
+   sweeping left to right, which would be a picture of a queue rather than of
+   parallel work.
+
+   ⚠️  FIXED, NOT RANDOM, and that is not a compromise.
+
+   This stage is prerendered. A Math.random() delay would be computed once on
+   the server and again in the browser, and the two would disagree — a
+   hydration mismatch on the style attribute of sixteen elements. It would
+   also re-roll on every replay, so a viewer watching twice would see one
+   deterministic process animate two different ways.
+
+   Nobody can tell these eight numbers from random. React can tell a mismatch
+   from a match. */
+const CHECK_MS = [1240, 2610, 1020, 1880, 2950, 1450, 2210, 1660];
+
+/* HOW THE FRAMES FOLLOW THEIR CELLS when the record itself moves.
+
+   The photographs are positioned off the grid's MEASURED rect, and that rect
+   only changes when useBoxes re-measures — which it debounces to every 120ms,
+   deliberately: an animating panel drives its ResizeObserver at 60fps and
+   re-measuring that often re-renders the whole stage.
+
+   So when the record widens to admit the second certificate — 1200ms of CSS
+   width transition — the eight frames were being handed about ten discrete
+   positions and jumping between them. The panel glided; its contents
+   stuttered.
+
+   The fix is not to measure more often, which is the stutter the debounce
+   exists to prevent. It is to let each frame EASE toward whatever position it
+   was last given. At 200ms against 120ms steps a frame never quite arrives
+   before the next target lands, and stepped input comes out as continuous
+   motion — the same reason a low-pass filter smooths a staircase. The cost is
+   about 80ms of lag behind the panel edge during the widen, which is not
+   visible; the stepping was.
+
+   Under reduced motion theme.css zeroes every transition-duration with
+   !important, this one included, and the frames simply appear where they
+   belong. */
+const CELL_GLIDE = "left 200ms linear, top 200ms linear, width 200ms linear, height 200ms linear";
+
+/** The result of the content check, on the frame it was run against.
+ *
+ *  Bottom-right of its own cell, which is the corner nothing else uses — the
+ *  cell's own dotted border is behind the photograph by now, and the code and
+ *  the caption are outside the sheet entirely.
+ *
+ *  Sized in design pixels rather than relative to the cell. The whole stage is
+ *  drawn at DESIGN_W and scaled as one, so a fixed size here scales with
+ *  everything else and stays the same size relative to the record whatever
+ *  the viewport is. */
+function CheckTick({ on, delay }: { on: boolean; delay: number }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute grid place-items-center rounded-full bg-verified"
+      style={{
+        width: "16px",
+        height: "16px",
+        /* A ring of the card's own dark under the green, so the tick still
+           reads as a tick against the pale corner of a bathroom or a bedsheet
+           rather than dissolving into it. */
+        boxShadow: "0 0 0 1.5px var(--callout-surface)",
+        opacity: on ? 1 : 0,
+        transform: on ? "scale(1)" : "scale(0.5)",
+        /* The delay applies on the way IN only. Replaying the act turns these
+           off, and eight ticks disappearing on a stagger reads as the check
+           being undone one frame at a time. */
+        transitionDelay: on ? `${delay}ms` : "0ms",
+        transition:
+          "opacity var(--duration-fast) linear, transform var(--duration-normal) var(--ease-out-quart)",
+      }}
+    >
+      <svg viewBox="0 0 10 10" className="h-[11px] w-[11px] text-callout-ink">
+        <path
+          d="M2 5.2 L4 7.2 L8 2.8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 /** Each capture going into the record, one at a time.
  *
  *  Straight from the frame on the preview card to its cell — no staging area,
@@ -1988,6 +2114,7 @@ function RecordGrid({
 function SurveyFlight({
   shots,
   taken,
+  checked,
   on,
   /** The frame on the preview card — where each photograph flies out of. */
   frameRect,
@@ -1997,6 +2124,11 @@ function SurveyFlight({
 }: {
   shots: readonly TrustSurveyShot[];
   taken: (i: number) => boolean;
+  /** Whether the content check has run on this sheet. The ticks live here
+   *  rather than in RecordGrid because the photographs land on THIS layer:
+   *  a tick drawn in the cell underneath would be covered by the picture it
+   *  is meant to be marking. */
+  checked: boolean;
   on: boolean;
   frameRect?: Rect;
   gridRect?: Rect;
@@ -2043,10 +2175,50 @@ function SurveyFlight({
                 ? "none"
                 : `translate(${origin.x}px, ${origin.y}px) scale(${origin.scale})`,
               opacity: on && held ? 1 : 0,
-              transition:
-                "transform var(--duration-fly) var(--ease-out-quart), opacity var(--duration-fast) linear",
+              transition: `transform var(--duration-fly) var(--ease-out-quart), opacity var(--duration-fast) linear, ${CELL_GLIDE}`,
             }}
           />
+        );
+      })}
+
+      {/* ── The results, in a PASS OF THEIR OWN ──
+          Not beside each photograph in the loop above, which is where they
+          started. A tick is centred on its frame's bottom-right corner, so
+          half of it hangs over the neighbouring cell — and painting order in
+          a stack of absolutely positioned siblings is document order, so
+          every tick was covered by whichever photographs came after it. Only
+          the last frame's tick was ever fully visible.
+
+          Drawn after all eight, every one of them clears every photograph.
+
+          CENTRED ON THE CORNER rather than tucked inside it. Sat wholly
+          within the cell it read as part of the photograph — something in the
+          corner of the room — and it covered a real part of a frame only
+          about sixty pixels wide. Straddling the edge, it reads as a mark
+          made ON the picture from outside it, which is what it is. The offset
+          is half the tick's own size. */}
+      {shots.map((shot, i) => {
+        const cell = cellRect(gridRect, i, canvas);
+        return (
+          <span
+            key={`${shot.image}-checked`}
+            className="absolute"
+            style={{
+              left: `calc(${cell.x + cell.w}% - 8px)`,
+              top: `calc(${cell.y + cell.h}% - 8px)`,
+              /* The same glide as the frame it marks, or the tick would
+                 detach from its corner every time the record moves. */
+              transition: CELL_GLIDE,
+            }}
+          >
+            {/* Only once the frame is actually in the record: a tick on an
+                empty cell would be claiming a result for a photograph that
+                has not been taken. */}
+            <CheckTick
+              on={on && taken(i) && checked}
+              delay={CHECK_MS[i % CHECK_MS.length]}
+            />
+          </span>
         );
       })}
     </div>
@@ -2365,6 +2537,7 @@ function EvidenceCard({
   codeRef,
   gridRef,
   publishing = false,
+  checking = false,
   issued,
 }: {
   /** ALWAYS. A slot that does not know what it is waiting for cannot say so,
@@ -2379,6 +2552,8 @@ function EvidenceCard({
   issued: boolean;
   /** Sealed, but not yet confirmed on the chain. */
   publishing?: boolean;
+  /** Every frame is with Gemini, being read for what is in it. */
+  checking?: boolean;
   /** Reports where this card's code sits, so the copies handed to the
    *  parties can fly out of it. */
   codeRef?: (el: HTMLElement | null) => void;
@@ -2462,7 +2637,14 @@ function EvidenceCard({
                 are different claims. Collapsing them would be the one place
                 this piece overstates what the product does. */}
             <p className="min-w-0 flex-1 font-mono text-mono-xs leading-tight text-callout-ink-muted">
-              {publishing ? (
+              {/* THREE STATES, IN THE ORDER THEY HAPPEN, and each says only
+                  what is true at that moment: the content is being read, the
+                  record is being written to the chain, the certificate is
+                  published. Three different claims — see the note below on
+                  why the last two are not collapsed. */}
+              {checking ? (
+                trustEngineCopy.checking
+              ) : publishing ? (
                 "Publishing certificate on blockchain…"
               ) : issued ? (
                 <>
@@ -2482,7 +2664,7 @@ function EvidenceCard({
                  depart from. */
               className="block shrink-0 transition-opacity"
               style={{
-                opacity: issued || publishing ? 1 : 0,
+                opacity: issued || publishing || checking ? 1 : 0,
                 transitionDuration: "var(--duration-normal)",
               }}
             >

@@ -951,6 +951,16 @@ export const trustEngineCopy = {
      participle also does work here: the card is showing something in
      progress, one frame of eight. */
   survey: "Capturing condition",
+  /* THE CONTENT CHECK, between the last capture and the chain.
+     Every frame goes to Gemini, which reads it for whether the scene is real
+     rather than a photograph of a photograph or a screen, and for people and
+     personal information. It is a check on WHAT IS IN THE PICTURE, which is a
+     different claim from everything else this record makes — those are all
+     about how the capture happened. Hence its own beat and its own word.
+
+     "Checking", present tense, because the ticks land while it is on screen.
+     The card says what is happening, and the ticks say how far it has got. */
+  checking: "Checking image content with AI…",
   replay: "Replay",
   staticNote:
     "Shown as a comparison rather than an animation, because your system asks for reduced motion.",

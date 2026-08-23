@@ -12,11 +12,12 @@ import { InfraLogo, CertificationMark } from "@/components/trust/InfrastructureL
 import type { EvidenceState } from "@/components/evidence/Evidence";
 import {
   trustHero,
-  pillars,
   compliance,
-  complianceNote,
+  protections,
   infrastructure,
+  documentation,
   legalDocs,
+  securityReview,
   securityContact,
   type ComplianceStatus,
 } from "@/content/trust";
@@ -24,23 +25,72 @@ import { locationPrivacy } from "@/content/platform-technical";
 import { industryBackdrops } from "@/content/industries";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
 
-/* Status presentation is deliberately unflattering where it should be.
-   "Planned" renders as pending, not as a soft green tick. */
+/* ============================================================================
+   TRUST CENTRE
+   ============================================================================
+   Five sections and a strip, in this order:
+
+       1  Hero                    — the posture, in two lines
+       2  #compliance             — where we stand, scanned in seconds
+       3  #protection             — four things, not nineteen
+       4  #location-privacy       — the one control specific to this product
+       5  Built on                — a strip, deliberately not a section
+       6  #documentation          — documents, review request, disclosure
+
+   What this page no longer does is re-explain how Delphi evidence works.
+   /platform and /platform/technical do that; running the same argument twice
+   in different words made this read as a security questionnaire rather than
+   a statement of who a buyer is dealing with. See the header of
+   src/content/trust.ts for the division of labour.
+   ========================================================================= */
+
+/* ----------------------------------------------------------------------------
+   STATUS PRESENTATION
+   ----------------------------------------------------------------------------
+   ⚠️  THE GREEN CHIPS ARE A DELIBERATE DECISION, TAKEN 2026-08-23.
+
+   Evidence.tsx states the house rule: green means verified. Two rows below
+   are green without an external certificate behind them, which is a knowing
+   departure from it, so the reasoning is recorded here rather than left to be
+   rediscovered as a bug:
+
+     ISO 27001  — the work is complete; only the auditor's signature is
+                  outstanding. The label carries "awaiting certification" in
+                  full, so the chip cannot be read as claiming a certificate.
+     GDPR       — a legal obligation that is met, not an assessment that is
+                  pending. Amber implied something was outstanding when
+                  nothing is.
+
+   What has NOT changed, and must not: `CertificationMark` still renders only
+   for a status of "certified" WITH a `mark`. No ISO badge appears until the
+   certificate is actually issued. The colour of a chip is a claim about our
+   own position; a certification mark is a claim about somebody else's
+   determination, and only the second one is gated by their signature.
+
+   If green ever drifts onto "in-progress" or "not-started", that IS the bug
+   this comment exists to prevent.
+   -------------------------------------------------------------------------- */
 const statusPresentation: Record<
   ComplianceStatus,
   { state: EvidenceState; label: string }
 > = {
   certified: { state: "verified", label: "Certified" },
-  /* Not a green "COMPLIANT" tick. Compliance with a legal obligation is not a
-     certification anybody awarded us, and a self-awarded badge next to a real
-     one invites the reader to treat them as equivalent. */
-  compliant: { state: "pending", label: "Legal obligation met" },
-  "pending-certification": { state: "pending", label: "Awaiting certification" },
+  /* No longer "Legal obligation met" — unusually absolute for GDPR, which is
+     not a certificate anybody awards or a single test anybody passes. A chip
+     that reads like a formal external determination should describe one.
+     This describes what we did. */
+  compliant: { state: "verified", label: "Controls in place" },
+  "pending-certification": {
+    state: "verified",
+    label: "Completed — awaiting certification",
+  },
+  /* Genuinely outstanding work stays amber. */
   "in-progress": { state: "pending", label: "Audit in progress" },
   aligned: { state: "pending", label: "Aligned, not certified" },
-  /* Still honest, but "Not started" as a red failure read as an alarm about
+  /* SOC 2 is an assessment, not a certification, so "not certified" was the
+     wrong noun. "Not started" as a red failure also read as an alarm about
      the product rather than a factual statement about an assessment. */
-  "not-started": { state: "pending", label: "Not currently certified" },
+  "not-started": { state: "pending", label: "Not currently assessed" },
 };
 
 export default function Trust() {
@@ -61,29 +111,27 @@ export default function Trust() {
         </Container>
       </Section>
 
-      {/* Compliance first — it is what a procurement reviewer opens this page
-          to find, and burying it would be its own kind of evasion. */}
+      {/* ── 2. Compliance ─────────────────────────────────────────────────
+          First, and close to the top, because it is what a procurement
+          reviewer opens this page to find. Three cards across rather than
+          three stacked rows: the frameworks are alternatives being compared,
+          not a sequence, and side by side they are answered at a glance. */}
       <Section id="compliance" className="scroll-mt-20">
         <Container>
           <SectionHeader
-            eyebrow="Compliance status"
-            headline="Where we actually stand."
+            eyebrow="Compliance"
+            headline="Compliance at a glance."
           />
-          <div className="mt-12 flex flex-col gap-px overflow-hidden rounded-lg border border-line bg-line">
+          <div className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
             {compliance.map((c) => {
               const p = statusPresentation[c.status];
               return (
                 <div
                   key={c.framework}
-                  className="flex flex-col gap-3 bg-surface p-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8"
+                  className="flex flex-col gap-4 bg-surface p-6"
                 >
-                  <div className="flex flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-4">
                     <h3 className="text-subheading text-ink">{c.framework}</h3>
-                    <p className="max-w-2xl text-body-sm text-ink-secondary">
-                      {c.statement}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-4">
                     {/* Renders nothing unless the row is genuinely certified
                         AND carries a mark. That gate is the point: a badge
                         beside a "readiness" statement is what the previous
@@ -94,94 +142,62 @@ export default function Trust() {
                       mark={c.mark}
                       framework={c.framework}
                     />
-                    <EvidenceChip state={p.state} label={p.label} />
                   </div>
+                  <p className="text-body-sm text-ink-secondary">
+                    {c.statement}
+                  </p>
+                  <EvidenceChip
+                    state={p.state}
+                    label={p.label}
+                    className="mt-auto w-fit"
+                  />
                 </div>
               );
             })}
           </div>
-
-          <div className="mt-10 max-w-3xl border-l-2 border-accent pl-6">
-            <h3 className="text-subheading text-ink">{complianceNote.headline}</h3>
-            <p className="mt-2 text-body text-ink-secondary">{complianceNote.body}</p>
-          </div>
-
-          {/* ── Infrastructure attributions ──────────────────────────────
-              Deliberately placed AFTER the compliance table, and visually
-              distinct from it. These are technology marks, and a reviewer
-              must never be able to mistake them for certification badges —
-              which is precisely the confusion the old company page created
-              by putting ISO and SOC 2 seals in a row of logos. */}
-          <div className="mt-16 border-t border-line-strong pt-12">
-            <div className="flex flex-col gap-4">
-              <Eyebrow>{infrastructure.eyebrow}</Eyebrow>
-              <h3 className="max-w-2xl text-display text-ink">
-                {infrastructure.headline}
-              </h3>
-              <p className="max-w-2xl text-body-lg text-ink-secondary">
-                {infrastructure.standfirst}
-              </p>
-            </div>
-
-            <ul className="mt-10 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
-              {infrastructure.items.map((item) => (
-                <li key={item.name} className="flex gap-4 bg-surface p-6">
-                  <InfraLogo name={item.logo} label={item.name} />
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <h4 className="text-body font-semibold text-ink">{item.name}</h4>
-                    <p className="text-body-sm text-ink-secondary">{item.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <p className="mt-6 max-w-3xl text-body-sm text-ink-muted">
-              {infrastructure.note}
-            </p>
-          </div>
         </Container>
       </Section>
 
-      {/* The four pillars. */}
-      {pillars.map((pillar, i) => (
-        <Section
-          key={pillar.id}
-          id={pillar.id}
-          tone={i % 2 === 0 ? "sunken" : "default"}
-          className="scroll-mt-20"
-        >
-          <Container>
-            <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
-              <div className="flex flex-col gap-4">
-                <h2 className="text-display text-ink">{pillar.title}</h2>
-                <p className="text-body-lg text-ink-secondary">{pillar.summary}</p>
-              </div>
-              <dl className="flex flex-col">
-                {pillar.items.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex flex-col gap-1.5 border-t border-line py-5 first:border-t-0 first:pt-0 sm:flex-row sm:gap-8"
-                  >
-                    <dt className="shrink-0 text-body-sm font-semibold text-ink sm:w-56">
-                      {item.label}
-                    </dt>
-                    <dd className="text-body-sm text-ink-secondary">{item.body}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </Container>
-        </Section>
-      ))}
+      {/* ── 3. Protection ─────────────────────────────────────────────────
+          Four cards where there were four sections. Two across rather than
+          four: these carry a sentence each, and four columns would set that
+          sentence in a column too narrow to read. */}
+      <Section id="protection" tone="sunken" className="scroll-mt-20">
+        <Container>
+          <SectionHeader
+            eyebrow={protections.eyebrow}
+            headline={protections.headline}
+          />
+          <ul className="mt-12 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-2">
+            {protections.items.map((item) => (
+              <li
+                key={item.title}
+                className="flex flex-col gap-3 bg-surface p-6 sm:p-8"
+              >
+                <h3 className="text-heading text-ink">{item.title}</h3>
+                <p className="text-body text-ink-secondary">{item.body}</p>
+              </li>
+            ))}
+          </ul>
+        </Container>
+      </Section>
 
-      {/* Location privacy is reused from the platform content — one source,
-          two placements, no divergent copy to maintain. */}
+      {/* ── 4. Location privacy ───────────────────────────────────────────
+          Kept at length, and inverted so it carries weight, because it is the
+          one control on this page that is specific to Delphi rather than
+          generic to SaaS. Backups and monitoring are table stakes; having
+          thought about what publishing a location does to the person at that
+          location is not.
+
+          `briefStandfirst`, not `standfirst`: the long version and the note
+          belong to /platform/technical, which is read by someone who wants
+          the mechanism. One source, two registers. */}
       <Section id="location-privacy" className="scroll-mt-20" tone="inverse">
         <Container>
           <SectionHeader
             eyebrow={locationPrivacy.eyebrow}
             headline={locationPrivacy.headline}
-            standfirst={locationPrivacy.standfirst}
+            standfirst={locationPrivacy.briefStandfirst}
           />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {locationPrivacy.levels.map((l) => (
@@ -193,18 +209,68 @@ export default function Trust() {
               </Card>
             ))}
           </div>
-          <p className="mt-8 max-w-3xl text-body text-ink-secondary">
-            {locationPrivacy.note}
-          </p>
         </Container>
       </Section>
 
-      {/* Legal documents + security contact. */}
-      <Section tone="sunken">
+      {/* ── 5. Built on ───────────────────────────────────────────────────
+          A strip: tight padding, a heading rather than a display size, no
+          per-item paragraphs. The transparency is worth keeping and the
+          detail is not worth a page section — it is one click away on
+          /platform/technical, which is where a reviewer who wants it goes. */}
+      <Section padding="tight">
+        <Container>
+          <div className="flex flex-col gap-8 rounded-lg border border-line bg-surface p-6 sm:p-8">
+            <div className="flex flex-col gap-3">
+              <Eyebrow>{infrastructure.eyebrow}</Eyebrow>
+              <h2 className="text-heading text-ink">
+                {infrastructure.headline}
+              </h2>
+            </div>
+
+            <ul className="flex flex-wrap items-center gap-x-10 gap-y-5">
+              {infrastructure.items.map((item) => (
+                <li key={item.name} className="flex items-center gap-3">
+                  <InfraLogo
+                    name={item.logo}
+                    label={item.name}
+                    className="h-6 w-6"
+                  />
+                  <span className="text-body-sm font-semibold text-ink">
+                    {item.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8">
+              <p className="max-w-xl text-body-sm text-ink-muted">
+                {infrastructure.note}
+              </p>
+              <Link
+                to={infrastructure.link.href}
+                className="flex w-fit shrink-0 items-center gap-2 text-body-sm text-ink-accent underline-offset-4 hover:underline"
+              >
+                {infrastructure.link.label}
+                <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </div>
+        </Container>
+      </Section>
+
+      {/* ── 6. Documentation, review request, disclosure ──────────────────
+          One closing section carrying what used to be three. The old page
+          finished with a Legal block, a Disclosure block and then a separate
+          full-height CTA section asking for the security-review conversation
+          a second time. */}
+      <Section id="documentation" tone="sunken" className="scroll-mt-20">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
             <div className="flex flex-col gap-6">
-              <SectionHeader eyebrow="Legal" headline="Documents." />
+              <SectionHeader
+                eyebrow={documentation.eyebrow}
+                headline={documentation.headline}
+              />
               <ul className="flex flex-col">
                 {legalDocs.map((d) => (
                   <li key={d.label} className="border-t border-line py-4">
@@ -224,37 +290,35 @@ export default function Trust() {
               </ul>
             </div>
 
-            <div className="flex flex-col gap-4">
-              <SectionHeader
-                eyebrow="Disclosure"
-                headline={securityContact.headline}
-              />
-              <p className="text-body text-ink-secondary">{securityContact.body}</p>
-              <a
-                href={`mailto:${securityContact.email}`}
-                className="w-fit font-mono text-mono text-ink-accent underline-offset-4 hover:underline"
-              >
-                {securityContact.email}
-              </a>
-            </div>
-          </div>
-        </Container>
-      </Section>
+            <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-4">
+                <h3 className="text-heading text-ink">
+                  {securityReview.headline}
+                </h3>
+                <p className="text-body text-ink-secondary">
+                  {securityReview.body}
+                </p>
+                <div className="mt-1">
+                  <ButtonLink to={securityReview.cta.href} size="lg">
+                    {securityReview.cta.label}
+                  </ButtonLink>
+                </div>
+              </div>
 
-      <Section>
-        <Container>
-          <div className="flex max-w-3xl flex-col gap-6">
-            <h2 className="text-display text-ink">
-              Need documentation for a security review?
-            </h2>
-            <p className="text-body-lg text-ink-secondary">
-              Tell us what your review process requires and we will provide what
-              we have — including being straightforward about anything we do not.
-            </p>
-            <div className="mt-2">
-              <ButtonLink to="/contact" size="lg">
-                Request security documentation
-              </ButtonLink>
+              <div className="flex flex-col gap-4 border-t border-line pt-10">
+                <h3 className="text-heading text-ink">
+                  {securityContact.headline}
+                </h3>
+                <p className="text-body text-ink-secondary">
+                  {securityContact.body}
+                </p>
+                <a
+                  href={`mailto:${securityContact.email}`}
+                  className="w-fit font-mono text-mono text-ink-accent underline-offset-4 hover:underline"
+                >
+                  {securityContact.email}
+                </a>
+              </div>
             </div>
           </div>
         </Container>

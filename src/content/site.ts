@@ -73,12 +73,17 @@ export const footerNav: { heading: string; items: NavItem[] }[] = [
   },
   {
     heading: "Trust",
+    /* These track the section ids in src/pages/Trust.tsx, and #security,
+       #privacy and #integrity are gone: the four pillars they pointed at are
+       now one section. A link to an id that does not exist lands silently at
+       the top of the page — see the /platform#corroborate note above, which
+       is the same bug going unnoticed for months. */
     items: [
       { label: "Trust centre", href: "/trust" },
-      { label: "Security", href: "/trust#security" },
-      { label: "Privacy", href: "/trust#privacy" },
-      { label: "Evidence integrity", href: "/trust#integrity" },
       { label: "Compliance status", href: "/trust#compliance" },
+      { label: "How we protect evidence", href: "/trust#protection" },
+      { label: "Location privacy", href: "/trust#location-privacy" },
+      { label: "Security documentation", href: "/trust#documentation" },
     ],
   },
   {

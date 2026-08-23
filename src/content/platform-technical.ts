@@ -129,6 +129,13 @@ export const locationPrivacy = {
   headline: "Prove where, without exposing exactly where.",
   standfirst:
     "Location is the most sensitive thing Delphi records. Evidence usually needs to establish where something was — but it rarely needs to publish that to the nearest metre for anyone holding the code.",
+  /* Two registers, one source. This page is read by someone who wants the
+     mechanism, so it takes `standfirst` and the `note` below. /trust takes
+     `briefStandfirst` and stops: that page is answering whether we can be
+     trusted with the data, not explaining how the control works. Keep both in
+     step — if the behaviour changes, both sentences are wrong. */
+  briefStandfirst:
+    "Evidence can disclose precise, reduced or approximate location according to the workflow. The underlying evidence retains the information required for verification even when the public certificate exposes less.",
   levels: [
     {
       level: "Exact",

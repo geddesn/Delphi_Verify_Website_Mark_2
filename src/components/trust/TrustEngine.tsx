@@ -642,8 +642,15 @@ export function TrustEngine({
          with nothing in it, and a leader from an empty box to a point on the
          hull claims a connection that does not exist yet — while competing
          with the survey's own leader for the same stretch of stage. It
-         appears when the record actually holds the saloon. */
-      on: s.deliveryCert(step) || showOwnerPhoto,
+         appears when the record actually holds the saloon.
+
+         And it goes for the comparison. This is the white line running from
+         the certificates down to the hull, and it was the one thing left
+         drawing on the stage while the two frames were open — the anchor dot
+         at its far end was gated but the leader itself was not, so the line
+         stayed and ended in nothing. Both ends are hidden by then: the vessel
+         it lands on and, visually, the record it leaves. */
+      on: (s.deliveryCert(step) || showOwnerPhoto) && !s.selecting(step),
     },
   ];
 
@@ -774,10 +781,13 @@ export function TrustEngine({
                     : s.dispute(step)
                 }
                 /* Clearing the certificates, which overlap the panel above
-                   without taking any room in the flow — so this margin is the
-                   only thing keeping the two apart, and it has to cover the
-                   whole tile: code, gap and caption plate, less the overlap. */
-                className={act === 2 ? "mt-16" : "mt-3"}
+                   without taking any room in the flow — so this is the only
+                   thing keeping the two apart, and it has to cover the whole
+                   tile: code, gap and caption plate, less the overlap.
+
+                   Padding, not margin: it lives inside the collapsing row so
+                   it disappears with the list. */
+                spacing={act === 2 ? "pt-16" : "pt-3"}
               />
             )}
           </PartyColumn>
@@ -1422,19 +1432,49 @@ const OUTCOME_SIDE: "left" | "right" = "right";
  *  then the other shows the same three subjects coming out the opposite way.
  *  Ticks and crosses rather than bullets, because the point is not that these
  *  are three items — it is that they went well or they did not. */
+/** The tally, and it COLLAPSES when it has nothing to say.
+ *
+ *  It used to render its three items in flow at all times and animate only
+ *  their opacity, which meant it held its full height — plus a 4rem clearance
+ *  margin — for the entire act. The column it sits in centres its children,
+ *  so the counterparty above spent the whole of Act Two pushed up towards the
+ *  top of the stage making room for a list that was not there yet, while the
+ *  captain opposite sat centred. The two sides looked misaligned, and the
+ *  reason was invisible.
+ *
+ *  A 0fr/1fr grid row rather than a height: the tally has no height anyone can
+ *  write down — it depends on how the three lines wrap at whatever width the
+ *  column ends up — and auto is not a value a transition can interpolate
+ *  from. The inner element must clip, or 0fr shows its contents anyway.
+ *
+ *  The clearance moves INSIDE the collapsing row, as padding rather than
+ *  margin. A margin outside it would go on holding 4rem open and reintroduce
+ *  the whole problem at a quarter of the size. */
 function OutcomeList({
   items,
   tone,
   on,
-  className,
+  spacing,
 }: {
   items: readonly string[];
   tone: "verified" | "failed";
   on: boolean;
-  className?: string;
+  /** Clearance above the list, applied inside the collapsing area. */
+  spacing?: string;
 }) {
   return (
-    <ul className={cn("flex w-full flex-col gap-2", className)}>
+    <div
+      className="grid w-full"
+      style={{
+        gridTemplateRows: on ? "1fr" : "0fr",
+        /* Slower than the items' own fade, so the panel above has finished
+           settling before the first line arrives — a list that reads itself
+           out while the page is still moving is hard to read. */
+        transition:
+          "grid-template-rows var(--duration-slow) var(--ease-out-quart)",
+      }}
+    >
+    <ul className={cn("flex w-full flex-col gap-2 overflow-hidden", spacing)}>
       {items.map((o, i) => (
         <li
           key={o}
@@ -1455,6 +1495,7 @@ function OutcomeList({
         </li>
       ))}
     </ul>
+    </div>
   );
 }
 
@@ -2112,31 +2153,41 @@ function ComparePair({
         }}
         aria-hidden
       >
-        {/* Between the rings, not between the frames: the line is making a
-            claim about two points, and drawing it edge to edge would make it
-            about two pictures. */}
-        <line
-          x1={cx(0) + r}
-          y1={cy}
-          x2={cx(1) - r}
-          y2={cy}
-          className="trust-link"
-          stroke="var(--fx-link)"
-          strokeWidth={2}
-          strokeLinecap="round"
-        />
-        {[0, 1].map((i) => (
-          <circle
-            key={i}
-            cx={cx(i)}
-            cy={cy}
-            r={r}
-            fill="none"
-            strokeWidth={2.5}
-            stroke={
-              i === 0 ? "var(--fx-verified-glow)" : "var(--fx-failed-glow)"
-            }
-          />
+        {/* WHITE, OVER A DARK HALO — the same trick the leaders use, and for
+            the same reason. These are drawn over photographs of a cream
+            saloon, and a coloured line on a pale interior is a suggestion
+            rather than a mark: the green ring in particular disappeared into
+            the leather it was pointing at.
+
+            The tone has not been thrown away, it has moved to where it still
+            reads — each frame carries its own verified/failed glow on its
+            border, against the dark stage rather than against the picture.
+
+            Every shape is drawn twice: the halo first, at roughly double the
+            width, then the white over it. Both passes carry the same dash and
+            the same animation, so the dark reads as an outline around each
+            moving dash rather than as a second line. */}
+        {[
+          { w: 7, colour: "var(--callout-halo)" },
+          { w: 3.5, colour: "var(--callout-line)" },
+        ].map(({ w, colour }) => (
+          <g key={colour} fill="none" stroke={colour}>
+            {/* Between the rings, not between the frames: the line is making
+                a claim about two points, and drawing it edge to edge would
+                make it about two pictures. */}
+            <line
+              x1={cx(0) + r}
+              y1={cy}
+              x2={cx(1) - r}
+              y2={cy}
+              className="trust-link"
+              strokeWidth={w}
+              strokeLinecap="round"
+            />
+            {[0, 1].map((i) => (
+              <circle key={i} cx={cx(i)} cy={cy} r={r} strokeWidth={w} />
+            ))}
+          </g>
         ))}
       </svg>
     </div>

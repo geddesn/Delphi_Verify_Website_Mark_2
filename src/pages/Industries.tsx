@@ -150,16 +150,10 @@ export default function Industries() {
                 <span className="font-mono text-mono-sm uppercase text-ink-muted">
                   {corroboration.liveLabel}
                 </span>
-                <ul className="flex flex-wrap gap-2">
-                  {corroboration.live.map((l) => (
-                    <li
-                      key={l}
-                      className="rounded-md border border-line bg-surface-raised px-3 py-1.5 text-body-sm text-ink"
-                    >
-                      {l}
-                    </li>
-                  ))}
-                </ul>
+                <BulletList
+                  items={corroboration.live}
+                  className="text-body-sm text-ink"
+                />
               </div>
 
               {/* The nine per-sector roadmap lines, consolidated into one
@@ -230,24 +224,52 @@ export default function Industries() {
    which is the question a reader actually has after "what is it?".
    The commercial framework that used to sit above them has since gone too;
    see point 3 in the page header. */
+/* ── A middot-separated line, NOT pills ───────────────────────────────────
+   Both places this page listed short terms — the capture moments on every
+   sector card, and the live corroboration signals — drew them as filled,
+   bordered, padded boxes. That is the site's vocabulary for something you can
+   press, and neither set is pressable; the moments sat directly above a real
+   link, so the row read as a set of filters nobody could click.
+
+   Stripping the box leaves the type doing the work it was already doing. The
+   two callers keep their own treatment — the moments stay monospace uppercase
+   because they are the sector's own vocabulary, the signals stay body text
+   because they are content — and share only the separator, so the two rows
+   cannot drift apart the way the pill styles had.
+
+   The middot matches the same job elsewhere: the infrastructure strip and the
+   document row on /trust. */
+function BulletList({
+  items,
+  className,
+}: {
+  items: readonly string[];
+  className?: string;
+}) {
+  return (
+    <ul className={cn("flex flex-wrap items-center gap-x-2 gap-y-1", className)}>
+      {items.map((item, i) => (
+        <li key={item} className="flex items-center gap-2">
+          {/* Decorative. The list already conveys the grouping to a screen
+              reader, and hearing "middot" between every item does not help. */}
+          {i > 0 && (
+            <span aria-hidden className="text-ink-muted">
+              ·
+            </span>
+          )}
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function MomentTags({ moments }: { moments: Industry["moments"] }) {
   return (
-    <ul className="flex flex-wrap gap-2">
-      {moments.map((m) => {
-        return (
-          /* Filled rather than outlined: on the sunken section background an
-             outline-only tag nearly disappeared. Surface fill plus a card
-             shadow lifts it off the panel, and the text steps up from muted to
-             secondary so it reads as content rather than as a faint label. */
-          <li
-            key={m}
-            className="rounded-sm border border-line bg-surface-raised px-2.5 py-1 font-mono text-mono-sm uppercase text-ink-secondary shadow-raised"
-          >
-            {m}
-          </li>
-        );
-      })}
-    </ul>
+    <BulletList
+      items={moments}
+      className="font-mono text-mono-sm uppercase text-ink-secondary"
+    />
   );
 }
 

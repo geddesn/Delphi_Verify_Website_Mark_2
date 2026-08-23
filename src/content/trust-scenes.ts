@@ -129,11 +129,16 @@ export type StageGround = {
  *  a scene nobody can watch yet. */
 /** The acts a scenario plays, in order.
  *
- *  AN ACT IS A RANGE OVER ONE SHARED TIMELINE, not a timeline of its own. The
- *  beats are identical in every sector on purpose — that sameness is the
- *  claim the piece makes, that the platform does not change shape per
- *  industry — so what varies between scenarios is how many acts are written,
- *  not what the acts contain.
+ *  AN ACT IS A RANGE OVER ONE SHARED TIMELINE, not a timeline of its own.
+ *  Scenarios that share a WORKFLOW share these beats — a charter and a
+ *  tenancy are both an asset handed over, used and handed back — so what
+ *  varies between them is how many acts are written, not what the acts
+ *  contain.
+ *
+ *  ⚠️  THIS TIMELINE IS NOT THE PLATFORM. It is one workflow, the
+ *  handover-and-return one. A sector whose workflow is a different shape does
+ *  not belong on it and should not be bent onto it; it gets beats of its own,
+ *  over the same core. See the note at the head of TrustScenarios.
  *
  *  `intro` is one of these rather than a special case. A scenario in
  *  preparation plays exactly one act, and it is not a different kind of thing
@@ -596,10 +601,13 @@ export const acts = {
 /* ============================================================================
    THE SCENARIOS
    ============================================================================
-   One argument, three sectors. The piece is the same in each — the same
-   beats, the same turn, the same ending — because that sameness IS the claim:
-   the platform does not change shape per industry, only the asset in the
-   middle and the people standing round it do.
+   One argument, three sectors. The CORE is identical in each — controlled
+   capture, corroborating signals, sealing, certification — and nothing here
+   may suggest otherwise. The WORKFLOW on top is shaped to the sector, which
+   is a claim being made rather than one being dodged.
+
+   Yachts and rentals therefore share these beats, because their workflows
+   share a shape. Construction's does not and has its own.
 
    ONE OF THESE IS AN INTRO ONLY, and is deliberately typed as such rather
    than stubbed with placeholder acts. A half-written scene that runs is worse
@@ -630,11 +638,15 @@ export const constructionScene: TrustSceneIntro = {
  *  charter: an asset handed over, used, and handed back — and argued about
  *  afterwards by two people who were not both in the room.
  *
- *  ⚠️  DELIBERATELY THE SAME PIECE AS THE YACHT. Same beats, same turn, same
- *  ending, the same number of survey frames. What changes is the asset, the
- *  cast and the words. That is the claim the selector is making — the
- *  platform does not change shape per industry — and a rentals scene that
- *  invented a new structure would quietly withdraw it.
+ *  ⚠️  DELIBERATELY THE SAME PIECE AS THE YACHT — because a tenancy and a
+ *  charter are the same workflow: an asset handed over, used, handed back,
+ *  and argued about afterwards. Same beats, same turn, same ending, the same
+ *  number of survey frames. What changes is the asset, the cast and the words.
+ *
+ *  That is not a claim that every sector looks like this. It is a claim that
+ *  these two do, and that the core underneath is one thing either way. A
+ *  rentals scene that invented a new structure would be saying the workflow
+ *  differs where it does not.
  *
  *  The LANDLORD is off the stage for the same reason the owner is: the agent
  *  is the landlord's representative and conducts both inspections, so that
@@ -916,8 +928,8 @@ export function isPlayableScene(s: TrustSceneIntro): s is TrustScene {
 }
 
 export const trustEngineCopy = {
-  /* The title card. Brand-level, so it does not change with the sector — the
-     whole argument of the piece is that the platform does not either. */
+  /* The title card. Brand-level, so it does not change with the sector: what
+     is being shown is one platform, whichever workflow is running on top. */
   intro: "Enhancing Trust",
   /* Section copy. Generic on purpose now that this is the whole of the
      homepage below the hero: the yacht is the worked example, not the subject,

@@ -19,12 +19,25 @@ import {
    ============================================================================
    One argument, three sectors, and a way to choose between them.
 
-   The piece below is deliberately identical whichever is picked — same beats,
-   same turn, same ending — because that sameness IS the claim: the platform
-   does not change shape per industry. What changes is the asset in the middle
-   and the people standing round it. A reader who watches the yacht and then
-   switches to rentals should recognise the shape immediately, which is the
-   argument arriving without a word of copy.
+   ⚠️  WHAT IS THE SAME BETWEEN SECTORS, AND WHAT IS NOT.
+   The CORE is the same everywhere and the piece must never suggest otherwise:
+   controlled capture, corroborating signals, integrity sealing, certification.
+   That is one technology, and it does not change shape per industry.
+
+   The WORKFLOW on top of it does change, and is meant to — what gets
+   captured, at which moments, by whom, and what the resulting record is used
+   for. Building one is quick. That is a product claim in its own right, not a
+   compromise of the first one.
+
+   Which is why two of these look alike and one will not. Yachts and rentals
+   share a shape because their workflows genuinely do: an asset handed over,
+   used, and handed back, then argued about. Construction does not — it is a
+   progression, and its evidence is destroyed by the ordinary course of the
+   work rather than disputed afterwards. That difference DEMONSTRATES the
+   argument instead of breaking it.
+
+   So a reader who watches the yacht and switches to rentals should recognise
+   the shape; one who switches to construction should recognise the RECORD.
 
    ⚠️  TWO OF THE THREE ARE INTROS ONLY, and they say so. The alternative was
    to stub them with placeholder parties and invented certificates so that
@@ -133,8 +146,8 @@ function ScenePreview({ scene }: { scene: TrustSceneIntro }) {
 
       <p className="text-body-sm text-ink-secondary">
         <span className="text-ink">{scene.sector}</span> is being written. The
-        worked example runs in full for {trustScenarios[0].sector} — the
-        argument is the same one, and so are the beats.
+        worked example runs in full for {trustScenarios[0].sector} — the same
+        platform underneath, with the workflow shaped to the sector on top.
       </p>
     </div>
   );

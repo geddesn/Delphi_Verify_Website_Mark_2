@@ -1,0 +1,76 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  bfe0bd26-2091-4146-99c9-4734a8df68ca
+
+Photorealistic construction and interior photography presented as a 3x2 GRID
+OF SIX SEPARATE PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell
+to all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE BUILDING
+A high-end tropical villa under construction: pale blockwork and fair-faced
+concrete, wide openings, generous ceiling heights, tropical daylight. The
+finished frames share that hand — pale stone, warm timber, restrained and
+expensive.
+
+THE SIX
+
+1 TOP-LEFT. WATERPROOFING. A bathroom floor slab with a dark grey liquid
+waterproofing membrane freshly applied across it and turned up the walls,
+still bare. A drain outlet set into it. Square-on from the doorway, the whole
+floor and the far wall visible.
+
+2 TOP-CENTRE. PIPEWORK. An open blockwork wall with copper and white plastic
+pipework running vertically through it, chased in and clipped, before any
+plasterboard or render. Square-on to the wall.
+
+3 TOP-RIGHT. ELECTRICAL. A ceiling void and wall head with electrical conduit
+and cabling routed and clipped, junction boxes open, before the ceiling is
+closed.
+
+4 BOTTOM-LEFT. STRUCTURAL. A reinforced concrete column-to-beam junction with
+the reinforcement cage and starter bars exposed, formwork struck on one side,
+before the next pour.
+
+5 BOTTOM-CENTRE. THE SAME BATHROOM AS CELL 1, FINISHED. Identical camera
+position, height, lens and framing to cell 1 — same doorway, same far wall,
+same drain position — but the floor is now finished in large pale stone tiles
+and the walls are clad. The membrane is completely invisible. Nothing else
+about the room has changed.
+
+6 BOTTOM-RIGHT. THE SAME WALL AS CELL 2, FINISHED. Identical camera position,
+height, lens and framing to cell 2 — same wall, same width, same opening at
+the edge of frame — but the wall is now plastered and painted a soft off
+white. The pipework is completely invisible. Nothing else has changed.
+
+HOW THEY ARE PHOTOGRAPHED
+As site record photographs, not as architecture. Square-on, verticals true,
+even light, everything legible including the corners and the floor. No shafts
+of sun, no vignette, no shallow depth of field, no artful crops.
+
+STRICTLY NOT
+No people anywhere, including reflections. No labels, captions, arrows,
+numbering or watermarks. No text of any kind. In cells 5 and 6 no trace of the
+work shown in 1 and 2 — no patch, no outline, no ghosting: the point is that
+it is gone.
+
+CRITICAL — SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, labels, callouts, annotations, user interface, diagrams, dots, markers,
+arrows or lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level. Verticals true, no converging
+distortion, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Neutral tropical daylight in every frame. Palette and exposure match across
+all six, and cells 1/5 and 2/6 match each other exactly. Neutral filmic grade,
+no saturation push, no HDR.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Any visible seam,
+frame or gap between cells.

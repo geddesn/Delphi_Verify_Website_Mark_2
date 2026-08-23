@@ -139,6 +139,29 @@ const GROUPS = [
       { file: "build-5-fitout.png", name: "build-5-fitout" },
       { file: "build-6-handover.png", name: "build-6-handover" },
 
+      /* ── The concealed works ──
+         The four things a buyer can see for about a week and then never
+         again: waterproofing, pipework, electrical, structural. Act One shows
+         them being covered; Act Two shows them being recorded first. Same
+         build in both — what differs is only whether anything was captured.
+
+         ⚠️  conceal-waterproofing and conceal-waterproofing-covered ARE A
+         MATCHED PAIR and the stage dissolves one into the other. Same
+         bathroom, same camera, same corners, same drain — the membrane simply
+         disappears under the stone. Reshoot one and you reshoot both; a pair
+         of different rooms proves nothing, which is the same rule the yacht
+         saloon pair follows.
+
+         conceal-wall-covered came back as a plain finished wall with nothing
+         tying it to the pipework frame, so it is NOT a second pair. Kept as a
+         generic finished surface; the bathroom does the concealment beat. */
+      { file: "conceal-waterproofing.png", name: "conceal-waterproofing" },
+      { file: "conceal-pipework.png", name: "conceal-pipework" },
+      { file: "conceal-electrical.png", name: "conceal-electrical" },
+      { file: "conceal-structural.png", name: "conceal-structural" },
+      { file: "conceal-waterproofing-covered.png", name: "conceal-waterproofing-covered" },
+      { file: "conceal-wall-covered.png", name: "conceal-wall-covered" },
+
       /* PLACEHOLDER, and named for the slot rather than the picture so that
          replacing it is a file drop and nothing else. Nick is supplying a
          proper cut-out; until then this is the intro townhouse photograph,

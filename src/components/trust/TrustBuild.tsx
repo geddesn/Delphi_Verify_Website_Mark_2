@@ -640,17 +640,21 @@ function IslandStack({
   index: number;
 }) {
   return (
-    <div className="relative" style={{ aspectRatio: "768 / 341" }}>
+    <div className="relative" style={{ aspectRatio: "512 / 435" }}>
       {stages.map((st, i) => (
         <img
           key={st.id}
           src={`/assets/features/${st.image}-960.webp`}
-          srcSet={`/assets/features/${st.image}-480.webp 480w, /assets/features/${st.image}-960.webp 768w`}
-          sizes="(min-width: 1024px) 560px, 60vw"
+          /* The master is 512 wide, so the 960 and 1920 tiers both hold 512 —
+             withoutEnlargement. The srcSet says 512 because that is what is in
+             the file; declaring 960 would have the browser pick it for a
+             viewport that cannot use it. */
+          srcSet={`/assets/features/${st.image}-240.webp 240w, /assets/features/${st.image}-480.webp 480w, /assets/features/${st.image}-960.webp 512w`}
+          sizes="(min-width: 1024px) 380px, 42vw"
           alt={i === index ? st.imageAlt : ""}
           aria-hidden={i !== index}
-          width={768}
-          height={341}
+          width={512}
+          height={435}
           loading={i === 0 ? "eager" : "lazy"}
           decoding="async"
           className="absolute inset-0 block h-full w-full transition-opacity"

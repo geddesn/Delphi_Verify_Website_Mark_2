@@ -169,17 +169,21 @@ export const buildScene: TrustBuildScene = {
   assetAlt:
     "A private Maldivian island seen from above, with a villa under construction",
 
-  /* 46% at 58%, against the yacht's 44% at 61% and the townhouse's 35.5%.
-     This asset is 2.252:1 — far wider than either — so matching their
-     VERTICAL extent would take 60% of the stage width and leave the
-     counterparty panels nowhere to stand.
+  /* 33% at 56%. The number LOOKS smaller than the yacht's 44% and it is not:
+     this asset is 1.177:1 where the old flat render was 2.252:1, so a third
+     of the stage width now buys half its height. The island ends up carrying
+     far more pixels than the version it replaced.
 
-     It also sits HIGHER than the other two, because this stage carries a
-     payment bar the others do not and the narration owns the bottom 19%.
-     46% at 58% puts the island at x 27-73 and y 39.8-76.2, which clears the
-     record panel above it and the narration below. Every anchor below is a
-     percentage of that box — move it and re-derive them. */
-  assetBox: { width: 46, top: 58 },
+     Vertical is what binds, not horizontal. This stage carries a payment bar
+     across the top and a record panel under it, and the narration owns the
+     bottom 19%, which leaves roughly y 31-81 for the asset. 33% at 56% puts
+     the box at x 33.5-66.5 and y 31.1-80.9 — the waterline landing at 80.0%,
+     just clear of the narration, and the tallest island's palms at 32.1%,
+     just clear of the record panel.
+
+     Every anchor below is a percentage of that box. Move it and re-derive
+     them. */
+  assetBox: { width: 33, top: 56 },
 
   /* The yacht's floor. Wrong in principle — its vanishing point was ray-cast
      from a waterline that is not this asset's — but the island is an opaque
@@ -316,7 +320,7 @@ export const buildScene: TrustBuildScene = {
          physically there, and therefore the party who captures. */
       holds: "Builds, reports each stage, and requests the instalment.",
       side: "left",
-      anchor: { x: 44.5, y: 58.9 },
+      anchor: { x: 46.7, y: 52.0 },
       /* Not an accusation and not a defence. Both of these are true, which is
          the difficulty. */
       claim: "It was built correctly.",
@@ -328,7 +332,7 @@ export const buildScene: TrustBuildScene = {
       role: "Buyer · Four thousand miles away",
       holds: "Pays 85% of the price before seeing any of it.",
       side: "right",
-      anchor: { x: 57.4, y: 53.4 },
+      anchor: { x: 54.0, y: 55.5 },
       claim: "I have no way to see.",
       enters: { one: "a1-parties", two: "a2-parties" },
     },
@@ -337,7 +341,11 @@ export const buildScene: TrustBuildScene = {
   /* Below the payment bar, not at the very top: the two share the top of the
      stage in act two, and the money has to stay visible while the record
      fills or the piece stops being about what the buyer is exposed to. */
-  record: { panel: { x: 50, y: 11 } },
+  /* 48.2, not 50 — twenty design pixels left of centre. The panel is nearly
+     as wide as the gap between the two counterparty columns, and centred it
+     crowded the buyer on the right. Twenty pixels is not enough to read as
+     off-centre and is enough to give that column its room back. */
+  record: { panel: { x: 48.2, y: 11 } },
 
   narration: {
     "a1-plot": {

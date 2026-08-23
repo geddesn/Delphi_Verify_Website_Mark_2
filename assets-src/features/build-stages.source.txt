@@ -1,69 +1,67 @@
-build-1-plot … build-6-handover — 768 x 341 each, RGBA
+build-1-plot … build-6-handover — 512 x 435 each, RGBA
 
 PROVENANCE
-Supplied by Nick, 23 Aug 2026, as "ChatGPT Image Aug 23, 2026, 11_46_10 AM.png"
-(1536 x 1024, RGBA, one 2x3 grid). Not generated here — no prompt in this repo
+Supplied by Nick, 23 Aug 2026, as "ChatGPT Image Aug 23, 2026, 12_49_02 PM.png"
+(1536 x 1024, RGBA, one 3x2 grid). Not generated here — no prompt in this repo
 rebuilds it, and assets-src/**/*.png is gitignored, so the committed WebPs
 under public/assets/features are all that survive in git.
 
-Supersedes a Mediterranean version supplied twenty minutes earlier (terracotta
-roofs, cypress, olive trees). The brief called for the Maldives; this is the
-one that matches it.
+THE SET IT REPLACED, and why
+An earlier 2x3 grid supplied the same morning. Its six islands were packed
+tight enough to interlock — a flood fill over the whole image found TWO
+components, one per column, because the islands in a column touched — and
+several were clipped by their neighbours and by the canvas. Stages 1 to 4 lost
+up to 514px of their bottom row.
+
+The old masters are kept beside this file in build-v1/ (gitignored, so local
+only). The old WebPs are recoverable from git at commit db522e2.
+
+Before that again, a Mediterranean version — terracotta, cypress, olive trees.
+The brief called for the Maldives.
 
 THE SIX, in reading order, which is also build order:
-  1 plot         untouched white-sand island, jetty, perimeter palms
-  2 foundations  excavation, footings, slabs, pool structure, plant on site
-  3 structure    concrete frame and columns up, pool structure unfinished
-  4 roof         roofed, glazed and watertight, pool holding water
-  5 fitout       complete, terraces and loungers, planting filling in
-  6 handover     furnished, umbrellas, mature planting, brochure-ready
+  1 plot         bare white sand, reef and shallows, nothing built
+  2 foundations  slabs, footings and the pool structure set out
+  3 structure    concrete frame and columns up, first planting in
+  4 roof         roofed and glazed, pool holding water
+  5 fitout       terraces, loungers, planting filling in
+  6 handover     mature palms, jetty, furnished and complete
 
 ⚠️  THESE SIX ARE A SEQUENCE, NOT SIX PICTURES
-Every other asset on the trust stage simply stands there. These dissolve from
-one into the next, so they have to stay REGISTERED: the island outline, the
-jetty and the villa footprint must not drift between stages, or the dissolve
-reads as a cut to a different island.
+The stage dissolves one into the next IN PLACE, so the island outline and the
+villa footprint must not drift between them, or the dissolve reads as a cut to
+a different property.
 
-HOW THEY WERE SPLIT — READ BEFORE RE-CUTTING
-The six are packed tight enough in the source that they interlock: each island
-is a rounded diamond, and adjacent rows touch. A flood fill over the whole
-image finds TWO components, not six — one per column — because the three
-islands in a column are joined.
+HOW THEY WERE SPLIT
+The six are cleanly separated in this render — a flood fill finds exactly six
+— so the columns and rows cut at the exact thirds and half. Each cell then
+keeps only its largest connected mass, which is belt and braces: it drops the
+one-pixel bleed where stage 5's shadow crosses a cell boundary.
 
-So the split is not a plain grid cut:
+REGISTERED ON THE WATERLINE, NOT ON THE CELL — read before re-cutting
+The islands GROW. Vegetation is taller at handover than at foundations, so
+their boxes differ by 143px top to bottom (276 tall at plot, 419 at handover).
+Aligning them by cell would drift the whole island downward as the trees came
+in. Instead every island is placed so its BASE lands on a common line, and the
+planting grows upward out of a beach that stays still — which is what actually
+happened on the site.
 
-  columns   a fully transparent gutter runs the whole height at x = 764-777,
-            so the two columns separate cleanly.
+  canvas    512 x 435, aspect 1.177
+  base      every island's lowest pixel at y = 427
+  margin    8px above the tallest
 
-  rows      cut at the WAIST — the narrowest point between two islands —
-            rather than at the exact third, because that is where a cut takes
-            the least of either. Measured per column, since the two disagree
-            by a few pixels: column 1 at y 354 and 690, column 2 at y 358
-            and 692.
-
-  cleanup   within each cell, keep only the LARGEST connected mass. The waist
-            cut still leaves a sliver of the neighbouring island in most
-            cells, and this drops it.
-
-  window    every stage is then written as the same 768x341 window taken at
-            the same offset inside its own cell. THIS is what holds the six in
-            register — not each island's own bounding box, which is unusable
-            as a common reference because several islands are clipped, by
-            their neighbours and by the canvas.
-
-Measured afterwards, the island lands at x 10-17 → 749-763 and y 0-17 →
-336-340 across the six: within about 7px horizontally and 17px vertically of
-1536, which is a few pixels at the size the stage draws them.
-
-KNOWN CLIPPING
-Stage 1's palm tops touch y = 0 and are cut flat by the source canvas. It is a
-couple of fronds and it is in the supplied image, not introduced here. If it
-shows at final size, the fix is a new render with more margin, not a crop.
+Verified after extraction: all six bases at 427, and edge-pixel counts of zero
+for five of the six. Stage 5 has 27 pixels touching the left edge — its island
+begins 1px before its cell boundary in the source. It is not visible.
 
 ASPECT, AND WHAT IT MEANS FOR THE STAGE
-2.252:1 — much wider than the yacht's 1.640 or the townhouse's 1.320. The
-trust stage sizes an asset by assetBox, and matching the yacht's VERTICAL
-extent (y 37.1-84.9) would make these 60.5% of the stage wide, which crowds
-the counterparty panels on both sides. Matching the yacht's WIDTH instead
-(44%) gives a vertical extent of only y 43.6-78.4. Neither is obviously right;
-it needs deciding against the finished script and the anchors derived after.
+1.177:1 — far squarer than the set it replaced (2.252:1), and squarer than the
+yacht (1.640) or the townhouse (1.320). So the scene's assetBox width LOOKS
+smaller than the yacht's and is not: at 33% of the stage this asset carries
+more pixels than the 46% the flat version needed.
+
+Vertical is what binds. The construction stage carries a payment bar across
+the top and a record panel below it, and the narration owns the bottom 19%,
+leaving roughly y 31-81 for the asset. See assetBox in content/trust-build.ts,
+which records how the number was derived and warns that the anchors are
+percentages of that box.

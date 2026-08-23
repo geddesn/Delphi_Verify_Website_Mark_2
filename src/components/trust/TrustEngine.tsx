@@ -6,6 +6,7 @@ import type {
   StagePoint,
   TrustCapture,
   TrustParty,
+  TrustActId,
   TrustScene,
   TrustSurveyShot,
 } from "@/content/trust-scenes";
@@ -157,6 +158,42 @@ const at = (id: string) => AT[id as (typeof STEPS)[number]["id"]] ?? 0;
 
 const REST = STEPS.length - 1;
 const TURN = at("turn");
+
+/* THE ACTS, as ranges over the timeline above: where each one opens, and what
+   the chapter bar calls it. A scenario names the ones it plays, and playback
+   stops at the end of the last of them — see `lastStep`.
+
+   `intro` carries no marker because it is not somewhere a reader jumps to; it
+   is the way in, and a chapter button labelled "Intro" would invite someone
+   to watch the titles again. It is still an act, and is listed as one, so
+   that a scenario which plays only the intro is expressed the same way as one
+   that plays everything.
+
+   To add an act: put its beats in STEPS, add its id to TrustActId, and add a
+   line here. Nothing else in this file needs to know. */
+const ACTS: readonly {
+  id: TrustActId;
+  /** The step this act opens on. */
+  from: number;
+  /** Where the chapter button jumps to, if it differs from `from` — Act One
+   *  starts at the titles, because that is where a reader means to go back
+   *  to when they ask for the beginning. */
+  jumpTo?: number;
+  marker?: string;
+}[] = [
+  { id: "intro", from: 0 },
+  { id: "act-one", from: at("a1-asset"), jumpTo: 0, marker: acts.one.marker },
+  { id: "turn", from: TURN, marker: acts.turn.marker },
+  { id: "act-two", from: at("a2-asset"), marker: acts.two.marker },
+];
+
+/** The last step a scenario plays: the beat before the first act it does NOT
+ *  have, or the end of the piece. Acts run in order and a scenario is written
+ *  from the front, so the first gap is the end. */
+function lastStepOf(played: readonly TrustActId[]): number {
+  const gap = ACTS.findIndex((a) => !played.includes(a.id));
+  return gap === -1 ? REST : Math.max(0, ACTS[gap].from - 1);
+}
 
 /* The survey's length is a property of the NARRATIVE, not of the scene: the
    beats are written out in STEPS above, so the count lives here and a scene
@@ -313,7 +350,7 @@ const s = {
    1120x630 rather than a rounder number because that is the width the stage
    renders at on a desktop page, which is where every position in this file
    was judged by eye. */
-const DESIGN_W = 1120;
+export const DESIGN_W = 1120;
 const DESIGN_H = 630;
 
 /* useLayoutEffect warns when React renders on the server, where there is
@@ -325,7 +362,7 @@ const useIsomorphicLayoutEffect =
  *  to fill the frame. Height is derived rather than fixed because the frame is
  *  16:10 on a phone and 16:9 above it — the canvas stretches to match instead
  *  of letterboxing. */
-function useStageScale(ref: React.RefObject<HTMLElement | null>) {
+export function useStageScale(ref: React.RefObject<HTMLElement | null>) {
   const [box, setBox] = useState({ scale: 1, height: DESIGN_H });
 
   useIsomorphicLayoutEffect(() => {
@@ -408,9 +445,16 @@ export function TrustEngine({
   scene: TrustScene;
   className?: string;
 }) {
-  /* REST on server and first client render, so hydration matches and the
-     prerendered markup is the resolved comparison rather than an empty stage. */
-  const [step, setStep] = useState<number>(REST);
+  /* Where this scenario ends. Derived rather than passed: the acts it plays
+     are its own data, and a second opinion about the same thing is a second
+     thing to keep in step. */
+  const lastStep = lastStepOf(scene.acts);
+
+  /* At rest on server and first client render, so hydration matches and the
+     prerendered markup is the finished state rather than an empty stage —
+     which for a scenario that stops early is the end of ITS last act, not the
+     end of the timeline. */
+  const [step, setStep] = useState<number>(lastStep);
   const [reduced, setReduced] = useState(false);
   /* A ref, not state. The scroll trigger's callback can be queued before a
      chapter button is pressed and still run after it, and a stale `played`
@@ -428,6 +472,12 @@ export function TrustEngine({
      their claim surfaces during the dispute. */
   const { boxes, register, measure } = useBoxes(stageRef);
 
+  /* What the chapter bar offers: the acts this scenario plays that are worth
+     jumping to. One chapter is not a choice, so the bar hides itself. */
+  const chapters = ACTS.filter(
+    (a) => a.marker && scene.acts.includes(a.id),
+  ).map((a) => ({ label: a.marker as string, at: a.jumpTo ?? a.from }));
+
   const stop = useCallback(() => {
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = undefined;
@@ -442,7 +492,7 @@ export function TrustEngine({
       played.current = true;
       setStep(from);
       const advance = (i: number) => {
-        if (i >= REST) return;
+        if (i >= lastStep) return;
         timer.current = window.setTimeout(() => {
           setStep(i + 1);
           advance(i + 1);
@@ -450,7 +500,7 @@ export function TrustEngine({
       };
       advance(from);
     },
-    [stop],
+    [stop, lastStep],
   );
 
   const play = useCallback(() => playFrom(0), [playFrom]);
@@ -1175,7 +1225,13 @@ export function TrustEngine({
             read as a toolbar and made the piece look like something to be
             operated; down here beside Replay they are what they are — transport
             controls, available to anyone who wants them, in nobody's way. */}
-        <ChapterBar step={step} onJump={playFrom} reduced={reduced} className="ml-auto" />
+        <ChapterBar
+          step={step}
+          onJump={playFrom}
+          reduced={reduced}
+          chapters={chapters}
+          className="ml-auto"
+        />
       </div>
     </div>
   );
@@ -1183,29 +1239,31 @@ export function TrustEngine({
 
 /* ── Pieces ─────────────────────────────────────────────────────────────── */
 
+/** Somewhere to jump to, for each act the scenario actually plays.
+ *
+ *  Thirty-three seconds is a long time to ask for, and chapters let a viewer
+ *  go straight to the comparison — the part that actually argues.
+ *
+ *  The list is PASSED IN rather than built here. It used to be three hard
+ *  coded entries, which was wrong twice over: it assumed every scenario runs
+ *  every act, and it re-stated beat ids that already live in ACTS. One
+ *  scenario now plays four acts and two play one, and a bar offering chapters
+ *  a scenario does not have would be a row of buttons that go nowhere. */
 function ChapterBar({
   step,
   onJump,
   reduced,
+  chapters,
   className,
 }: {
   step: number;
   onJump: (n: number) => void;
   reduced: boolean;
+  chapters: readonly { label: string; at: number }[];
   className?: string;
 }) {
-  /* Thirty-three seconds is a long time to ask for. Chapters let a viewer go
-     straight to the comparison, which is the part that actually argues. */
-  /* By id, like every other reference to a beat. This was `at: 11` and adding
-     the title card silently re-pointed it into the middle of Act One — the
-     exact failure the gates were moved off indices to avoid, left behind here
-     because a chapter button looks like configuration rather than code. */
-  const chapters = [
-    { label: acts.one.marker, at: at("intro-logo") },
-    { label: acts.turn.marker, at: at("turn") },
-    { label: acts.two.marker, at: at("a2-asset") },
-  ];
-  if (reduced) return null;
+  /* One chapter is not a choice, and none is not a bar. */
+  if (reduced || chapters.length < 2) return null;
 
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
@@ -1242,7 +1300,7 @@ function ChapterBar({
  *  vanishing point are measured off the asset rather than chosen.
  *
  *  Two empty divs and an image. Nothing runs. */
-function StageGrid({ ground }: { ground: StageGround }) {
+export function StageGrid({ ground }: { ground: StageGround }) {
   return (
     <div
       aria-hidden
@@ -1529,7 +1587,7 @@ function OutcomeMark({ tone }: { tone: "verified" | "failed" }) {
  *  timing lives in the step machine with everything else — and jumping to a
  *  chapter lands on a coherent frame instead of halfway through an animation
  *  that was counting from mount. */
-function TitleCard({
+export function TitleCard({
   on,
   line,
   lineOn,

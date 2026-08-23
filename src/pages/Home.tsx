@@ -6,8 +6,8 @@ import {
   Eyebrow,
 } from "@/components/ui/primitives";
 import { ButtonLink, ArrowRight } from "@/components/ui/Button";
-import { TrustEngine } from "@/components/trust/TrustEngine";
-import { yachtsScene, trustEngineCopy } from "@/content/trust-scenes";
+import { TrustScenarios } from "@/components/trust/TrustScenarios";
+import { trustEngineCopy } from "@/content/trust-scenes";
 import { hero, closing } from "@/content/home";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
 import { HeroDevices } from "@/components/product/HeroDevices";
@@ -120,7 +120,10 @@ export default function Home() {
             headline={trustEngineCopy.headline}
             standfirst={trustEngineCopy.standfirst}
           />
-          <TrustEngine scene={yachtsScene} className="mt-8" />
+          {/* Three sectors, one argument. The selector sits above the stage
+              — choosing which sector to watch precedes watching it, where the
+              chapter bar below chooses where to jump within it. */}
+          <TrustScenarios className="mt-8" />
         </Container>
       </Section>
 

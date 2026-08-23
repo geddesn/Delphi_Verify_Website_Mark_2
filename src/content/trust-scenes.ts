@@ -112,16 +112,56 @@ export type StageGround = {
   opacity: number;
 };
 
-export type TrustScene = {
+/** What EVERY scenario has, written or not.
+ *
+ *  The piece runs one sector at a time and the reader chooses which. A sector
+ *  whose two acts have not been written yet still needs to exist: it has to be
+ *  nameable in the selector and the stage has to be able to open on it, or the
+ *  choice is between one thing and two disabled buttons.
+ *
+ *  So this is the head of TrustScene rather than a separate idea. A scenario
+ *  in preparation carries exactly these fields; the day its acts are authored
+ *  it becomes a TrustScene by gaining them, and nothing that reads it changes.
+ *
+ *  Note what is NOT here: the asset. The title card runs before the vessel,
+ *  the building or the flat arrives, so a scenario that only plays its intro
+ *  needs no photograph — and requiring one would mean inventing a cut-out for
+ *  a scene nobody can watch yet. */
+/** The acts a scenario plays, in order.
+ *
+ *  AN ACT IS A RANGE OVER ONE SHARED TIMELINE, not a timeline of its own. The
+ *  beats are identical in every sector on purpose — that sameness is the
+ *  claim the piece makes, that the platform does not change shape per
+ *  industry — so what varies between scenarios is how many acts are written,
+ *  not what the acts contain.
+ *
+ *  `intro` is one of these rather than a special case. A scenario in
+ *  preparation plays exactly one act, and it is not a different kind of thing
+ *  from one that plays four; it is the same thing, shorter.
+ *
+ *  A fifth act is an id here and an entry in ACTS in the component. */
+export type TrustActId = "intro" | "act-one" | "turn" | "act-two";
+
+export type TrustSceneIntro = {
   id: string;
   sector: string;
   /** Named on the opening title card, under the brand line. */
   study: string;
+  ground: StageGround;
+  /** How far this scenario runs.
+   *
+   *  ⚠️  A SCENARIO MUST NOT CLAIM AN ACT IT HAS NO DATA FOR. `intro` needs
+   *  nothing beyond this type; every act after it needs the whole of
+   *  TrustScene, and isPlayableScene is the type system's half of the same
+   *  rule. Claiming "act-one" without a cast would put an empty stage on the
+   *  page and call it a story. */
+  acts: readonly TrustActId[];
+};
+
+export type TrustScene = TrustSceneIntro & {
   /** Basename under public/assets/features — the clean asset, no people. */
   asset: string;
   assetAlt: string;
-
-  ground: StageGround;
 
   /** The cast, in reading order down each column.
    *
@@ -212,6 +252,8 @@ export type TrustScene = {
 export const yachtsScene: TrustScene = {
   id: "yachts-marine",
   sector: "Yachts & Marine",
+  /* The written one, end to end. */
+  acts: ["intro", "act-one", "turn", "act-two"],
   /* The title card's second line. Sector-specific, and it says "example"
      because that is what it is: an illustration of the mechanism, not a case
      study of a real charter. */
@@ -483,6 +525,68 @@ export const acts = {
     title: "With a record",
   },
 } as const;
+
+/* ============================================================================
+   THE SCENARIOS
+   ============================================================================
+   One argument, three sectors. The piece is the same in each — the same
+   beats, the same turn, the same ending — because that sameness IS the claim:
+   the platform does not change shape per industry, only the asset in the
+   middle and the people standing round it do.
+
+   ⚠️  TWO OF THESE ARE INTROS ONLY, and are deliberately typed as such rather
+   than stubbed with placeholder acts. A half-written scene that runs is worse
+   than one that says it is not ready: it would put invented parties, invented
+   surveys and invented certificates on a page whose entire subject is not
+   inventing things. They open on their title card and stop.
+
+   To finish one, give it the rest of TrustScene — asset, parties, survey,
+   incident, narration, unresolved, resolved, record — and it starts playing.
+   Nothing in the component needs to know it happened; see isPlayableScene.
+   ========================================================================= */
+
+/** Development and construction. Evidence at the moments work is covered up
+ *  and can no longer be inspected — a pour, a closed wall, a buried service. */
+export const constructionScene: TrustSceneIntro = {
+  id: "development-construction",
+  sector: "Development & Construction",
+  study: "Construction Milestone · Example Study",
+  acts: ["intro"],
+  /* The yacht's floor. It is a perspective grid rather than anything nautical,
+     and re-rendering one per sector before the sector has a scene would be
+     work in service of nothing. A scene that gains an asset has to derive its
+     own — see the note on the yacht's ground. */
+  ground: { render: "trust-ground", opacity: 1 },
+};
+
+/** Property rentals. The two ends of a tenancy, which is the same shape as a
+ *  charter: an asset handed over, used, and handed back. */
+export const rentalsScene: TrustSceneIntro = {
+  id: "property-rentals",
+  sector: "Property Rentals",
+  study: "Tenancy Handover · Example Study",
+  acts: ["intro"],
+  ground: { render: "trust-ground", opacity: 1 },
+};
+
+/** Everything the selector offers, in the order it offers it. The written one
+ *  leads: a reader who picks nothing should land on the argument rather than
+ *  on a notice that it is coming. */
+export const trustScenarios: readonly TrustSceneIntro[] = [
+  yachtsScene,
+  constructionScene,
+  rentalsScene,
+];
+
+/** Whether a scenario can actually be watched.
+ *
+ *  `survey` is the discriminator because it is the first thing Act Two needs
+ *  and among the last things authored — a scene with a survey has had its
+ *  argument written. Checking a `status` flag instead would let the flag and
+ *  the data disagree, and the data is what the component renders. */
+export function isPlayableScene(s: TrustSceneIntro): s is TrustScene {
+  return "survey" in s;
+}
 
 export const trustEngineCopy = {
   /* The title card. Brand-level, so it does not change with the sector — the

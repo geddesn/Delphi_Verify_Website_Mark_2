@@ -76,7 +76,14 @@ export const OPEN_CAPTURE = CAPTURES[6];
 
 /** What was recorded about the open capture. */
 export const OPEN_DETAIL = {
-  coordinates: "51.496612° N, 0.161083° W",
+  /* Nudged 5 m west of its original 0.161083° W on 2026-08-23. At the zoom
+     the /trust Exact panel now uses, the old longitude put the dot astride
+     the party wall between two houses, which reads as a capture that cannot
+     say which building it was taken at — the opposite of what that panel
+     claims. Moved toward No. 18, so it also narrows the standing gap between
+     these coordinates and RECORD.address rather than widening it.
+     Keep in step with CAPTURE_POINT below. */
+  coordinates: "51.496612° N, 0.161155° W",
   accuracy: "±4.2 m",
   source: "Delphi Verify iOS",
   media: "4032 × 3024 · 4.8 MB JPEG",
@@ -84,6 +91,18 @@ export const OPEN_DETAIL = {
      the whole reason a third party can recompute it and get the same answer. */
   fingerprint: "SHA-256 c8f2a74d…89e23d",
 } as const;
+
+/* The same position as OPEN_DETAIL.coordinates above, in the decimal degrees
+   a map library wants. Two representations of one fact, so they are declared
+   adjacently: if the capture moves, both lines change together or the site
+   starts contradicting itself in public.
+
+   Used by the location-privacy panels on /trust, which plot this point at
+   three disclosure levels. scripts/fetch-borough.mjs holds a copy — it cannot
+   import TypeScript — and asserts that this point falls inside the borough
+   polygon it generates, so a transposed sign fails the build rather than
+   quietly relocating the property. */
+export const CAPTURE_POINT = { lat: 51.496612, lng: -0.161155 } as const;
 
 /* Each names a fact that was recorded, never a conclusion drawn from it. */
 export const VERIFICATION = [

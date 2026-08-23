@@ -19,6 +19,15 @@ export default defineConfig({
             if (/[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)) {
               return "react-vendor";
             }
+            /* Leaflet is imported dynamically, and only by the location-privacy
+               panels on /trust. Naming a chunk here would override that and
+               pull ~150 kB of mapping library into the eager vendor bundle on
+               every page — which is what happened the first time. Returning
+               undefined lets Rollup keep it in its own async chunk, fetched
+               when that section mounts and never anywhere else. */
+            if (/[\\/]node_modules[\\/]leaflet[\\/]/.test(id)) {
+              return undefined;
+            }
             return "vendor";
           }
           return undefined;

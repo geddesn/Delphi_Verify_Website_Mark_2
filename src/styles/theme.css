@@ -336,6 +336,27 @@
      reason as the rest of this group. */
   --callout-caption:   oklch(0% 0 0 / 0.62);
 
+  /* ── Map marks ─────────────────────────────────────────────────────────
+     Drawn over OpenStreetMap raster tiles in the location-privacy panels on
+     /trust. Theme-invariant for the same reason as the callout group above:
+     the tiles are the standard OSM style, which is light in both themes, so
+     a mark that flipped to a dark-theme value would be drawn for a backdrop
+     that never arrives.
+
+     Not --accent, then, even though the blue is close. --accent flips to a
+     lighter delphi in dark mode, and a pale dot on pale streets disappears.
+     This is the one deliberately fixed for the surface it lands on.
+
+     Read by LocationPrivacyMap via getComputedStyle — Leaflet paints SVG
+     through its own options object and cannot take a utility class, so the
+     token has to be resolved in JS. That is still one source of truth; the
+     value lives here like every other. */
+  --map-mark:        var(--delphi-600);
+  --map-mark-ring:   oklch(100% 0 0);
+  --map-mark-halo:   oklch(52% 0.19 258 / 0.18);
+  --map-grid:        oklch(20% 0.02 265 / 0.38);
+  --map-cell-fill:   oklch(52% 0.19 258 / 0.28);
+
   /* Watermark on scene photography. Like the callout tokens this is
      theme-invariant: it sits on a photograph, which does not change between
      light and dark. Held back from full white so it reads as a mark on the

@@ -21,6 +21,11 @@ import {
   securityContact,
   type ComplianceStatus,
 } from "@/content/trust";
+import {
+  LocationPrivacyMap,
+  type PrivacyLevel,
+} from "@/components/trust/LocationPrivacyMap";
+import { boroughAttribution } from "@/content/borough-boundary";
 import { locationPrivacy } from "@/content/platform-technical";
 import { industryBackdrops } from "@/content/industries";
 import { SceneBackdrop } from "@/components/product/SceneBackdrop";
@@ -199,16 +204,28 @@ export default function Trust() {
             headline={locationPrivacy.headline}
             standfirst={locationPrivacy.briefStandfirst}
           />
+          {/* One capture, three disclosures. The map under each card plots the
+              SAME position at that card's level, which is the argument the
+              section is making — the evidence does not change, only what the
+              certificate says about it. See LocationPrivacyMap for why the
+              lower two levels deliberately omit the dot. */}
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {locationPrivacy.levels.map((l) => (
-              <Card key={l.level} className="flex flex-col gap-3">
+              <Card key={l.level} className="flex flex-col gap-4">
                 <span className="font-mono text-mono-sm uppercase text-ink-accent">
                   {l.level}
                 </span>
                 <p className="text-body-sm text-ink-secondary">{l.body}</p>
+                <LocationPrivacyMap
+                  level={l.level.toLowerCase() as PrivacyLevel}
+                  className="mt-auto"
+                />
               </Card>
             ))}
           </div>
+          <p className="mt-6 text-caption text-ink-muted">
+            {boroughAttribution}
+          </p>
         </Container>
       </Section>
 

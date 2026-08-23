@@ -58,8 +58,8 @@ export const principles = [
    Real people, real roles — nothing here is invented.
 
    That source file also carries a founding engineer in Lisbon. He is omitted
-   because this section is the two founders; add him here if the intention is
-   a team page rather than a leadership one. */
+   because this section is the named leadership; add him here if the intention
+   is a team page rather than a leadership one. */
 export const showLeadership = true;
 export const leadership: {
   name: string;
@@ -84,7 +84,7 @@ export const leadership: {
   },
   {
     name: "Nick Geddes",
-    role: "Co-founder & CTO",
+    role: "Senior Advisor",
     location: "Cambridge, UK",
     /* The Global Inkjet Systems / Nano Dimension detail comes from the public
        team page rather than the founders page. It is a specific, checkable

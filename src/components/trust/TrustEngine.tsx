@@ -1325,7 +1325,7 @@ export function TrustEngine({
  *  every act, and it re-stated beat ids that already live in ACTS. One
  *  scenario now plays four acts and two play one, and a bar offering chapters
  *  a scenario does not have would be a row of buttons that go nowhere. */
-function ChapterBar({
+export function ChapterBar({
   step,
   onJump,
   reduced,
@@ -1584,7 +1584,7 @@ const OUTCOME_SIDE: "left" | "right" = "right";
  *  The clearance moves INSIDE the collapsing row, as padding rather than
  *  margin. A margin outside it would go on holding 4rem open and reintroduce
  *  the whole problem at a quarter of the size. */
-function OutcomeList({
+export function OutcomeList({
   items,
   tone,
   on,
@@ -2827,7 +2827,7 @@ function PublishSpinner() {
   );
 }
 
-function ReplayIcon() {
+export function ReplayIcon() {
   return (
     <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" aria-hidden>
       <path

@@ -21,6 +21,10 @@
    ========================================================================= */
 
 import type { Align } from "@/components/annotation/geometry";
+/* A VALUE import, and the only one in this file. trust-build.ts imports back
+   from here with `import type` only, which TypeScript erases entirely — so
+   there is no runtime cycle, and trust-build initialises first. */
+import { buildScene, type TrustBuildScene } from "@/content/trust-build";
 
 export type StagePoint = { x: number; y: number };
 
@@ -147,11 +151,35 @@ export type StageGround = {
  *  A fifth act is an id here and an entry in ACTS in the component. */
 export type TrustActId = "intro" | "act-one" | "turn" | "act-two";
 
+/** WHICH SHAPE OF JOB a sector's workflow is, and therefore which piece plays.
+ *
+ *  This is the distinction the whole selector rests on. The CORE is one thing
+ *  everywhere — controlled capture, corroborating signals, sealing,
+ *  certification. The workflow on top is shaped to the sector, and these are
+ *  the shapes that have been written:
+ *
+ *  `handover`      an asset given to someone, used, and given back, then
+ *                  argued about. A charter and a tenancy are the same job.
+ *                  Plays TrustEngine, on the beats in this file.
+ *
+ *  `progression`   an asset that does not exist yet and is paid for while it
+ *                  is built — where the evidence is destroyed by the ordinary
+ *                  course of the work rather than disputed afterwards. Plays
+ *                  TrustBuild, on its own beats. See content/trust-build.ts.
+ *
+ *  A new shape is a new value here and a component that plays it. It is NOT a
+ *  reason to bend a sector onto beats that do not fit it — doing that would
+ *  quietly assert that every industry works the same way, which is the
+ *  overclaim this type exists to prevent. */
+export type TrustWorkflow = "handover" | "progression";
+
 export type TrustSceneIntro = {
   id: string;
   sector: string;
   /** Named on the opening title card, under the brand line. */
   study: string;
+  /** Which piece plays. See TrustWorkflow. */
+  workflow: TrustWorkflow;
   ground: StageGround;
   /** How far this scenario runs.
    *
@@ -310,6 +338,7 @@ export type TrustScene = TrustSceneIntro & {
 export const yachtsScene: TrustScene = {
   id: "yachts-marine",
   sector: "Yachts & Marine",
+  workflow: "handover",
   /* The written one, end to end. */
   acts: ["intro", "act-one", "turn", "act-two"],
   /* The title card's second line. Sector-specific, and it says "example"
@@ -620,20 +649,6 @@ export const acts = {
    Nothing in the component needs to know it happened; see isPlayableScene.
    ========================================================================= */
 
-/** Development and construction. Evidence at the moments work is covered up
- *  and can no longer be inspected — a pour, a closed wall, a buried service. */
-export const constructionScene: TrustSceneIntro = {
-  id: "development-construction",
-  sector: "Development & Construction",
-  study: "Construction Milestone · Example Study",
-  acts: ["intro"],
-  /* The yacht's floor. It is a perspective grid rather than anything nautical,
-     and re-rendering one per sector before the sector has a scene would be
-     work in service of nothing. A scene that gains an asset has to derive its
-     own — see the note on the yacht's ground. */
-  ground: { render: "trust-ground", opacity: 1 },
-};
-
 /** Property rentals. The two ends of a tenancy, which is the same shape as a
  *  charter: an asset handed over, used, and handed back — and argued about
  *  afterwards by two people who were not both in the room.
@@ -656,6 +671,7 @@ export const rentalsScene: TrustScene = {
   id: "property-rentals",
   sector: "Property Rentals",
   study: "Tenancy Handover · Example Study",
+  workflow: "handover",
   acts: ["intro", "act-one", "turn", "act-two"],
 
   /* A cut-out with a real alpha channel, three-quarter on, carrying a small
@@ -913,18 +929,26 @@ export const rentalsScene: TrustScene = {
  *  on a notice that it is coming. */
 export const trustScenarios: readonly TrustSceneIntro[] = [
   yachtsScene,
-  constructionScene,
+  buildScene,
   rentalsScene,
 ];
 
-/** Whether a scenario can actually be watched.
+/** Whether a HANDOVER scenario has been written far enough to watch.
  *
  *  `survey` is the discriminator because it is the first thing Act Two needs
  *  and among the last things authored — a scene with a survey has had its
  *  argument written. Checking a `status` flag instead would let the flag and
- *  the data disagree, and the data is what the component renders. */
+ *  the data disagree, and the data is what the component renders.
+ *
+ *  Says nothing about progression scenes, which have no survey and never
+ *  will; ask isBuildScene about those. */
 export function isPlayableScene(s: TrustSceneIntro): s is TrustScene {
-  return "survey" in s;
+  return s.workflow === "handover" && "survey" in s;
+}
+
+/** Whether this scenario plays the construction piece. */
+export function isBuildScene(s: TrustSceneIntro): s is TrustBuildScene {
+  return s.workflow === "progression";
 }
 
 export const trustEngineCopy = {

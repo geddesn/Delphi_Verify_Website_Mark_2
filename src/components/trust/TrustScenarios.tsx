@@ -7,7 +7,9 @@ import {
   TrustEngine,
   useStageScale,
 } from "@/components/trust/TrustEngine";
+import { TrustBuild } from "@/components/trust/TrustBuild";
 import {
+  isBuildScene,
   isPlayableScene,
   trustEngineCopy,
   trustScenarios,
@@ -51,6 +53,14 @@ import {
    choosing where to jump within it follows.
    ========================================================================= */
 
+/** Whether a scenario has been written far enough to watch, whichever shape
+ *  it is. The button says "soon" when this is false, so it has to know about
+ *  every workflow — a scene that plays but is labelled unwritten is worse
+ *  than one that does not play at all. */
+function written(scene: TrustSceneIntro) {
+  return isPlayableScene(scene) || isBuildScene(scene);
+}
+
 export function TrustScenarios({ className }: { className?: string }) {
   const [id, setId] = useState(trustScenarios[0].id);
   const scene = trustScenarios.find((s) => s.id === id) ?? trustScenarios[0];
@@ -82,7 +92,7 @@ export function TrustScenarios({ className }: { className?: string }) {
                   picks a sector and gets a notice instead of a story has been
                   led somewhere; one who can see which sectors are written
                   chooses. */}
-              {!isPlayableScene(s) && (
+              {!written(s) && (
                 <span className="ml-2 text-ink-muted">· soon</span>
               )}
             </button>
@@ -94,7 +104,14 @@ export function TrustScenarios({ className }: { className?: string }) {
           measured boxes, all of which belong to the scenario that was playing
           — switching sector has to be a new run, not the old one resuming at
           whatever beat it had reached. A key is the whole of that. */}
-      {isPlayableScene(scene) ? (
+      {/* WHICH PIECE PLAYS IS THE SCENE'S OWN BUSINESS, and it is decided by
+          the workflow rather than by the sector. Handover sectors run the
+          two-act engine; a progression runs the construction piece, which has
+          its own beats over the same core. A sector with neither yet opens on
+          its title card and says so. See TrustWorkflow. */}
+      {isBuildScene(scene) ? (
+        <TrustBuild key={scene.id} scene={scene} />
+      ) : isPlayableScene(scene) ? (
         <TrustEngine key={scene.id} scene={scene} />
       ) : (
         <ScenePreview key={scene.id} scene={scene} />

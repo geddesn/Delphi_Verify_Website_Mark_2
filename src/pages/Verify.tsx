@@ -1,24 +1,9 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { Container, Section, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { PhoneShot } from "@/components/product/PhoneShot";
 
-/* The public verification entry point. Codes are eight characters (see
-   PRODUCT_TECHNICAL_DESCRIPTION §4.3). This page validates and normalises
-   locally, then hands off to the real verification report.
-
-   ABSOLUTE, NOT RELATIVE, and deliberately. `/v/CODE` is served by the
-   verification app rather than by this static site, so a relative path
-   resolves against whatever host the page happens to be on — and every host
-   this site runs on except production would answer it with the SPA's own
-   404. A preview build, a local dev server and a staging deploy would each
-   swallow a real certificate lookup. The one destination that is always
-   correct is the live one.
-
-   The report takes the code UNHYPHENATED — /v/W1MQE4ML, not /v/W1MQ-E4ML —
-   which is what `normalise` already produces. The hyphen exists only in how
-   a certificate prints its reference; see `format` below. */
-const VERIFY_REPORT_BASE = "https://delphiverify.com/v";
 const CODE_LENGTH = 8;
 
 /** Strips formatting down to the eight significant characters. */
@@ -35,6 +20,7 @@ function format(raw: string) {
 }
 
 export default function Verify() {
+  const navigate = useNavigate();
   const [code, setCode] = useState("");
   const [touched, setTouched] = useState(false);
 
@@ -46,7 +32,7 @@ export default function Verify() {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
-    window.location.assign(`${VERIFY_REPORT_BASE}/${normalised}`);
+    navigate("/certificate");
   }
 
   return (

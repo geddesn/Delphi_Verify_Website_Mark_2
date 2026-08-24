@@ -142,6 +142,16 @@ export const routes: RouteDef[] = [
     priority: 0.8,
   },
   {
+    path: "/certificate",
+    load: () => import("@/pages/Certificate"),
+    seo: {
+      title: "Certificate W1MQ-E4ML | Delphi Verify",
+      description:
+        "Inspect the evidence, capture details, location and independent integrity record for a Delphi certificate.",
+    },
+    indexable: false,
+  },
+  {
     path: "/privacy",
     load: () => import("@/pages/Privacy"),
     seo: {

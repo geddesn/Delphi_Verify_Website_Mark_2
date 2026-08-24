@@ -404,7 +404,7 @@ export const industriesPage = {
    direction marker, instead of nine per-sector roadmap lines. The sector
    mapping itself is shared with /platform; see `corroboration` there. */
 export const crossIndustry = {
-  eyebrow: "One model, many assets",
+  eyebrow: "One technology, many applications",
   headline: "One platform. Different evidence for different assets.",
   body: "The assurance model does not change between sectors. What changes is the corroborating evidence available for the asset in front of you.",
   linkLabel: "How Delphi works",

@@ -49,12 +49,32 @@
     ],
     "headers": [
       {
-        "comment": "Hashed build assets are immutable — cache them hard.",
-        "source": "/assets/**",
+        "comment": "Vite's own output, and ONLY that: bundles and the fonts it emits alongside them. Every one of these names carries a content hash, so a changed file is a changed URL and a year of immutable caching is free. The glob is deliberately narrow — flat files directly under /assets, by the extensions the build actually produces. The woff entries matter: @fontsource is imported through Vite, so the faces land here hashed, and leaving them out of this rule dropped them through to no cache rule at all.",
+        "source": "/assets/*.@(js|css|woff|woff2)",
         "headers": [
           {
             "key": "Cache-Control",
             "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "comment": "Static media — everything in a subdirectory of /assets. NOT immutable, and that distinction is the whole point of splitting this rule. THESE FILENAMES ARE STABLE: build-1-plot-960.webp keeps its name when the picture inside it is replaced, so the URL cannot tell a browser that the bytes changed. Marking them immutable told every browser never to ask again, and replacing the construction islands with a set at a different aspect ratio left anyone who had already visited rendering last week's image inside this week's box, stretched, for a year, with no way to recover short of a hard refresh. A day of max-age with revalidation after it costs one conditional request per asset per day and answers 304 almost every time. Do not restore immutable here unless the filenames start carrying a content hash.",
+        "source": "/assets/*/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400, must-revalidate"
+          }
+        ]
+      },
+      {
+        "comment": "The handful of media that sit directly in /assets rather than in a subdirectory — logo.svg, logo-mono.svg, icon-rounded.svg, certificate-code.webp. Same reasoning as above: stable names, so they must revalidate. Listed by extension so this rule and the bundle rule above cannot both match a file.",
+        "source": "/assets/*.@(webp|png|jpg|jpeg|avif|gif|svg|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400, must-revalidate"
           }
         ]
       },

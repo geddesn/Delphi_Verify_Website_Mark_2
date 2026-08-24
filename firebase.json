@@ -47,6 +47,10 @@
         "function": "api"
       },
       {
+        "source": "/internal/tasks/**",
+        "function": "api"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

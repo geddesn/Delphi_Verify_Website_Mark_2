@@ -73,7 +73,7 @@ export default function Certificate() {
               </Button>
             </div>
 
-            <div className="hidden items-center justify-center rounded-md border border-line bg-surface p-4 lg:flex">
+            <div className="flex items-center justify-center rounded-md border border-line bg-surface p-4">
               <img
                 src="/assets/certificate-code.webp"
                 alt={`QR code for certificate ${RECORD.code}`}
@@ -82,7 +82,7 @@ export default function Certificate() {
             </div>
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.8fr)]">
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.8fr)] [&>*]:min-w-0">
             <Card>
               <CardTitle>Evidence media</CardTitle>
               <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_5.5rem]">
@@ -135,7 +135,7 @@ export default function Certificate() {
             </Card>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] [&>*]:min-w-0">
             <Card>
               <CardTitle>Capture location</CardTitle>
               <div className="mt-5 grid gap-5 md:grid-cols-[15rem_minmax(0,1fr)]">
@@ -163,7 +163,7 @@ export default function Certificate() {
                 <Detail label="Transaction hash" value={transactionHash} mono />
               </dl>
               <a
-                href="https://base.easscan.org/"
+                href={`https://base.easscan.org/attestation/view/${transactionHash}`}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-5 inline-flex h-10 items-center rounded-md bg-accent px-4 text-body-sm font-semibold text-accent-ink"
@@ -193,7 +193,7 @@ export default function Certificate() {
                 {CAPTURES.map((capture) => (
                   <li key={capture.n} className="grid gap-2 border-t border-line py-3 sm:grid-cols-[12rem_1fr]">
                     <span className="text-body-sm text-ink">#{capture.n} · {capture.label}</span>
-                    <span className="truncate font-mono text-mono-sm text-ink-muted">
+                    <span className="min-w-0 truncate font-mono text-mono-sm text-ink-muted">
                       0x{capture.n.toString(16).padStart(2, "0")}{proofHash.slice(2)}
                     </span>
                   </li>
@@ -264,7 +264,7 @@ function Detail({ label, value, mono = false }: { label: string; value: string; 
   return (
     <div className="border-t border-line py-3 first:border-t-0 first:pt-0">
       <dt className="text-caption text-ink-muted">{label}</dt>
-      <dd className={`mt-1 break-words text-body-sm text-ink ${mono ? "font-mono text-mono-sm" : ""}`}>
+      <dd className={`mt-1 text-body-sm text-ink ${mono ? "break-all font-mono text-mono-sm" : "break-words"}`}>
         {value}
       </dd>
     </div>

@@ -33,4 +33,4 @@ jobs:
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
 
-      - run: npx --yes firebase-tools@latest deploy --only hosting:improvement --project "${{ vars.FIREBASE_PROJECT_ID }}"
+      - run: npx --yes firebase-tools@latest deploy --only hosting --project "${{ vars.FIREBASE_PROJECT_ID }}"

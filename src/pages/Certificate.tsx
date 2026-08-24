@@ -328,7 +328,7 @@ function CertificateReport({ report }: { report: Report }) {
                 </li>
               ))}
             </ul>
-            <a href="/platform/technical" className="mt-4 inline-block text-body-sm text-ink-accent underline underline-offset-4">How to verify these fields</a>
+            <a href="/platform/technical" className="mt-4 inline-block text-body-sm text-ink-accent underline underline-offset-4">How to verify</a>
           </div>
         </details>
 

@@ -72,7 +72,7 @@ export const leadership: {
 }[] = [
   {
     name: "Tess Davies",
-    role: "Co-founder & CEO",
+    role: "Founder & CEO",
     location: "Monaco / UAE",
     bio: "Tess leads company strategy, commercial development, partnerships and fundraising. She runs customer discovery, enterprise relationships and go-to-market activity, drawing on international commercial networks across high-value property and luxury markets.",
     highlights: [

@@ -298,7 +298,7 @@ function CertificateReport({ report }: { report: Report }) {
             </dl>
             {report.anchor.attestationUid ? (
               <a href={`https://base.easscan.org/attestation/view/${report.anchor.attestationUid}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex h-10 items-center rounded-md bg-accent px-4 text-body-sm font-semibold text-accent-ink">
-                View independent record
+                View blockchain record
               </a>
             ) : null}
           </Card>

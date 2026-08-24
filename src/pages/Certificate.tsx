@@ -203,7 +203,7 @@ function CertificateReport({ report }: { report: Report }) {
             <Eyebrow>Public certificate</Eyebrow>
             <h1 className="mt-5 max-w-3xl text-display text-ink md:text-display-lg">{title}</h1>
             {report.description ? <p className="mt-3 max-w-2xl text-body text-ink-secondary">{report.description}</p> : null}
-            <p className="mt-8 text-caption text-ink-muted">Captured on (device-reported)</p>
+            <p className="mt-8 text-caption text-ink-muted">Captured on</p>
             <p className="mt-1 font-mono text-mono text-ink">{formatDate(report.capturedAt)}</p>
           </div>
           <div className="flex flex-col items-start gap-5 lg:items-end">

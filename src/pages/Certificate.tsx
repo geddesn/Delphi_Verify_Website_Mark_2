@@ -305,7 +305,7 @@ function CertificateReport({ report }: { report: Report }) {
         <details className="group min-w-0 rounded-lg border border-line bg-surface-raised p-6 shadow-card">
           <summary className="cursor-pointer list-none">
             <CardTitle>Independent verification</CardTitle>
-            <span className="mt-2 block text-subheading text-ink">Decoded proof fields</span>
+            <span className="mt-2 block text-subheading text-ink">Blockchain record details</span>
             <span className="mt-1 block text-body-sm text-ink-secondary group-open:hidden">Show proof</span>
           </summary>
           <div className="mt-6 min-w-0 border-t border-line pt-6">

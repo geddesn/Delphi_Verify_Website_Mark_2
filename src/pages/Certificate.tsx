@@ -263,8 +263,6 @@ function CertificateReport({ report }: { report: Report }) {
               <Detail label="Network" value={networkName(report.anchor.chainId)} />
               <Detail label="Certificate" value={formattedCode} mono />
               <Detail label="Evidence files" value={String(media.length)} />
-              <Detail label="Device verification" value={report.deviceVerification.status} />
-              <Detail label="Capture verification" value={report.captureVerification.status} />
             </dl>
           </Card>
         </div>

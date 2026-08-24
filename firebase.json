@@ -6,6 +6,7 @@
     "ignore": [
       "firebase.json",
       "**/.*",
+      "!**/.well-known/**",
       "**/node_modules/**"
     ],
     "redirects": [
@@ -51,6 +52,15 @@
       }
     ],
     "headers": [
+      {
+        "source": "/.well-known/apple-app-site-association",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
       {
         "comment": "Vite's own output, and ONLY that: bundles and the fonts it emits alongside them. Every one of these names carries a content hash, so a changed file is a changed URL and a year of immutable caching is free. The glob is deliberately narrow — flat files directly under /assets, by the extensions the build actually produces. The woff entries matter: @fontsource is imported through Vite, so the faces land here hashed, and leaving them out of this rule dropped them through to no cache rule at all.",
         "source": "/assets/*.@(js|css|woff|woff2)",

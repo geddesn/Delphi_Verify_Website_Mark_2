@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["SSPQK2YUZ8.com.delphiverify.app"],
+        "components": [{ "/": "/v/*" }]
+      }
+    ]
+  }
+}

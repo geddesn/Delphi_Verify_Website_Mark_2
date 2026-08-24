@@ -5,6 +5,8 @@ import { Footer } from "@/components/layout/Footer";
 import NotFound from "@/pages/NotFound";
 import { routes } from "@/routes";
 
+const Certificate = lazy(() => import("@/pages/Certificate"));
+
 /** Restores scroll on navigation and moves focus to the main landmark, so
  *  keyboard and screen-reader users are not stranded at the bottom of the
  *  previous page. Honours in-page anchors. */
@@ -110,6 +112,7 @@ export default function App() {
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Suspense fallback={<PageFallback />}>
           <Routes>
+            <Route path="/v/:code" element={<Certificate />} />
             {lazyRoutes.map(({ path, Component }) => (
               <Route key={path} path={path} element={<Component />} />
             ))}

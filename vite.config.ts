@@ -5,6 +5,9 @@ import path from "node:path";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: { "/api": "https://delphiverify.com" },
+  },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },

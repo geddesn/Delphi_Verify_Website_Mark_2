@@ -32,7 +32,7 @@ export default function Verify() {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
-    navigate("/certificate");
+    navigate(`/v/${normalised}`);
   }
 
   return (

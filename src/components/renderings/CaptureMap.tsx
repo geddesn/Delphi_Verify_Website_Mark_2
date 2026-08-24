@@ -7,11 +7,9 @@ import { RECORD } from "@/content/evidence-record";
    The real Google map, at the real address, inside the evidence-record
    renderings — the same thing the shipping certificate shows.
 
-   THE QUERY IS THE RECORD'S OWN ADDRESS. Google geocodes it and drops the
-   pin, so the map cannot disagree with the heading above it, and correcting
-   the address in one place corrects both. Do not replace this with a
-   hardcoded lat/lng: that is a second copy of the same fact, and the two will
-   drift the first time the address changes.
+   The rendering defaults to its shared fixture address. Public certificates
+   pass the address returned by the verification API, keeping the pin and the
+   visible certificate data on the same source of truth.
 
    ⚠️  THIS IS THE ONLY THIRD PARTY THE SITE TALKS TO. Everything else —
    fonts included — is self-hosted, specifically to avoid handing visitor IPs
@@ -29,13 +27,12 @@ import { RECORD } from "@/content/evidence-record";
    events and fighting the surrounding demo scroll.
    ========================================================================= */
 
-const QUERY = encodeURIComponent(RECORD.address);
-
-export function CaptureMap({ className }: { className?: string }) {
+export function CaptureMap({ className, query = RECORD.address }: { className?: string; query?: string }) {
+  const encodedQuery = encodeURIComponent(query);
   return (
     <iframe
-      title={`Map of ${RECORD.address}`}
-      src={`https://maps.google.com/maps?q=${QUERY}&z=16&output=embed`}
+      title={`Map of ${query}`}
+      src={`https://maps.google.com/maps?q=${encodedQuery}&z=16&output=embed`}
       loading="lazy"
       referrerPolicy="no-referrer-when-downgrade"
       className={cn("pointer-events-none block h-full w-full border-0", className)}

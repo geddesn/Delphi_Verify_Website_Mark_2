@@ -284,9 +284,19 @@ export function TrustBuild({
   scene,
   className,
   fromStart = false,
+  onEnd,
 }: {
   scene: TrustBuildScene;
   className?: string;
+  /** Called once the piece has reached its last beat.
+   *
+   *  It fires the MOMENT the timeline runs out and does not wait: how long to
+   *  dwell on an ending before moving on is a property of the sequence, not of
+   *  any one story in it, so the selector owns that. See SCENE_HOLD_MS.
+   *
+   *  Never fires under reduced motion, and not because anything here checks:
+   *  the piece never starts, so it never finishes. */
+  onEnd?: () => void;
   /** Start at the FIRST beat instead of the last.
    *
    *  The stage sits at REST on mount so the prerendered markup is the finished
@@ -308,6 +318,13 @@ export function TrustBuild({
   const [step, setStep] = useState<number>(fromStart ? 0 : REST);
   const [reduced, setReduced] = useState(false);
   const played = useRef(false);
+  /* See the note on the same ref in TrustEngine: keeping the callback out of
+     playFrom's dependencies is what stops an inline arrow from restarting the
+     run on every parent render. */
+  const onEndRef = useRef(onEnd);
+  useEffect(() => {
+    onEndRef.current = onEnd;
+  });
   const frameRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const { scale, height: canvasH } = useStageScale(frameRef);
@@ -325,7 +342,10 @@ export function TrustBuild({
       played.current = true;
       setStep(from);
       const advance = (i: number) => {
-        if (i >= REST) return;
+        if (i >= REST) {
+          onEndRef.current?.();
+          return;
+        }
         timer.current = window.setTimeout(() => {
           setStep(i + 1);
           advance(i + 1);

@@ -387,7 +387,7 @@ const DESIGN_H = 630;
 
 /* useLayoutEffect warns when React renders on the server, where there is
    nothing to measure — the fallback scale of 1 is the server's answer. */
-const useIsomorphicLayoutEffect =
+export const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /** How much to scale the canvas by, and how tall it has to be in canvas units
@@ -474,9 +474,19 @@ export function TrustEngine({
   scene,
   className,
   fromStart = false,
+  onEnd,
 }: {
   scene: TrustScene;
   className?: string;
+  /** Called once the piece has reached its last beat.
+   *
+   *  It fires the MOMENT the timeline runs out and does not wait: how long to
+   *  dwell on an ending before moving on is a property of the sequence, not of
+   *  any one story in it, so the selector owns that. See SCENE_HOLD_MS.
+   *
+   *  Never fires under reduced motion, and not because anything here checks:
+   *  the piece never starts, so it never finishes. */
+  onEnd?: () => void;
   /** Start at the FIRST beat instead of the last.
    *
    *  The stage sits at REST on mount so the prerendered markup is the finished
@@ -517,6 +527,15 @@ export function TrustEngine({
   const { scale, height: canvasH } = useStageScale(frameRef);
   const timer = useRef<number | undefined>(undefined);
 
+  /* Held in a ref so the callback's identity cannot get into playFrom's
+     dependencies. A parent passing an inline arrow would otherwise rebuild
+     playFrom on every render, and the effect that starts the piece would tear
+     down and restart the run it is in the middle of. */
+  const onEndRef = useRef(onEnd);
+  useEffect(() => {
+    onEndRef.current = onEnd;
+  });
+
   /* The panels report their own footprint, so a leader starts on the real
      edge of its box. Matters most for the counterparties, which grow when
      their claim surfaces during the dispute. */
@@ -542,7 +561,12 @@ export function TrustEngine({
       played.current = true;
       setStep(from);
       const advance = (i: number) => {
-        if (i >= lastStep) return;
+        if (i >= lastStep) {
+          /* The end of the run, however it got here — played through, or
+             jumped to by a chapter button. */
+          onEndRef.current?.();
+          return;
+        }
         timer.current = window.setTimeout(() => {
           setStep(i + 1);
           advance(i + 1);

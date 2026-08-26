@@ -1,11 +1,8 @@
 import { Container, Section, Eyebrow } from "@/components/ui/primitives";
-import { EvidenceChip } from "@/components/evidence/Evidence";
 import { cn } from "@/lib/cn";
-import type { LegalSection } from "@/content/legal";
+import type { LegalSection } from "@/lib/legal-markdown";
+import { Fragment, type ReactNode } from "react";
 
-/** Shared renderer for the legal pages. Sections flagged `todo` render a
- *  visible reviewer's note, so an unfinished clause cannot ship unnoticed —
- *  the failure mode with legal scaffolding is that it quietly looks finished. */
 export function LegalPage({
   title,
   updated,
@@ -17,8 +14,6 @@ export function LegalPage({
   intro: string;
   sections: readonly LegalSection[];
 }) {
-  const outstanding = sections.filter((s) => s.todo).length;
-
   return (
     <>
       <Section tone="inverse" padding="tight">
@@ -27,30 +22,10 @@ export function LegalPage({
             <Eyebrow>Legal</Eyebrow>
             <h1 className="text-display text-ink md:text-display-lg">{title}</h1>
             <p className="font-mono text-mono text-ink-muted">{updated}</p>
-            <p className="text-body-lg text-ink-secondary">{intro}</p>
+            <p className="text-body-lg text-ink-secondary">{renderInline(intro)}</p>
           </div>
         </Container>
       </Section>
-
-      {outstanding > 0 && (
-        <Section padding="tight">
-          <Container width="prose">
-            <div className="flex flex-col gap-3 rounded-lg border border-dashed border-pending p-6">
-              <div className="flex items-center gap-3">
-                <EvidenceChip state="pending" label="Draft" />
-                <h2 className="text-subheading text-ink">Not yet legally reviewed</h2>
-              </div>
-              <p className="text-body-sm text-ink-secondary">
-                {outstanding} section{outstanding === 1 ? "" : "s"} on this page
-                still need{outstanding === 1 ? "s" : ""} completion or legal
-                review, and {outstanding === 1 ? "is" : "are"} marked below. This
-                page must not go live in this state — either port the existing
-                published policy or have counsel complete it.
-              </p>
-            </div>
-          </Container>
-        </Section>
-      )}
 
       <Section padding="flush">
         <Container width="prose">
@@ -86,7 +61,7 @@ export function LegalPage({
                 <div className="mt-4 flex flex-col gap-4 pl-8">
                   {s.body.map((p) => (
                     <p key={p.slice(0, 28)} className="text-body text-ink-secondary">
-                      {p}
+                      {renderInline(p)}
                     </p>
                   ))}
                   {/* Enumerated clauses — the acceptable-use prohibitions and
@@ -105,7 +80,7 @@ export function LegalPage({
                           <span aria-hidden className="text-ink-muted">
                             —
                           </span>
-                          <span>{item}</span>
+                          <span>{renderInline(item)}</span>
                         </li>
                       ))}
                     </ul>
@@ -154,16 +129,9 @@ export function LegalPage({
                   )}
                   {s.after?.map((p) => (
                     <p key={p.slice(0, 28)} className="text-body text-ink-secondary">
-                      {p}
+                      {renderInline(p)}
                     </p>
                   ))}
-                  {s.todo && (
-                    <p className="border-l-2 border-pending pl-4 text-body-sm text-ink-muted">
-                      <strong className="text-pending">Reviewer note —</strong>{" "}
-                      this section requires completion or confirmation before
-                      publication.
-                    </p>
-                  )}
                 </div>
               </section>
             ))}
@@ -172,4 +140,33 @@ export function LegalPage({
       </Section>
     </>
   );
+}
+
+function renderInline(text: string): ReactNode {
+  return text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\)|`[^`]+`)/g).map((part, index) => {
+    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (link) {
+      return (
+        <a className="underline underline-offset-4 hover:text-ink" href={link[2]} key={index}>
+          {link[1]}
+        </a>
+      );
+    }
+
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code className="font-mono text-mono-sm" key={index}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+
+    return part.startsWith("**") && part.endsWith("**") ? (
+      <strong className="text-ink" key={index}>
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    );
+  });
 }

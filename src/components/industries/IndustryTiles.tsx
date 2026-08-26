@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { industries, industryShortcuts } from "@/content/industries";
 import { featureFigures } from "@/content/features";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
 
 /* ============================================================================
    INDUSTRY TILES
@@ -106,11 +107,25 @@ export function IndustryTiles({
         {industryShortcuts.map((s) => (
           <li key={s.id}>
             {to === "anchor" ? (
-              <a href={`#${s.id}`} className={shortcutTile}>
+              <a
+                href={`#${s.id}`}
+                className={shortcutTile}
+                onClick={() => posthog.capture("industry_selected", {
+                  industry: s.id,
+                  placement: "industries_page",
+                })}
+              >
                 <TileBody id={s.id} label={s.label} />
               </a>
             ) : (
-              <Link to={`/industries#${s.id}`} className={shortcutTile}>
+              <Link
+                to={`/industries#${s.id}`}
+                className={shortcutTile}
+                onClick={() => posthog.capture("industry_selected", {
+                  industry: s.id,
+                  placement: "home",
+                })}
+              >
                 <TileBody id={s.id} label={s.label} />
               </Link>
             )}
@@ -121,7 +136,14 @@ export function IndustryTiles({
             who does not see themselves in the nine is the one most worth
             hearing from. */}
         <li className={yoursClassName}>
-          <Link to="/contact" className={cn(shortcutTile, "text-ink-accent")}>
+          <Link
+            to="/contact"
+            className={cn(shortcutTile, "text-ink-accent")}
+            onClick={() => posthog.capture("industry_selected", {
+              industry: "other",
+              placement: to === "anchor" ? "industries_page" : "home",
+            })}
+          >
             Yours? →
           </Link>
         </li>

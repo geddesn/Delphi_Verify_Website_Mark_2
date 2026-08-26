@@ -1,10 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Container } from "@/components/ui/primitives";
 import { ButtonLink } from "@/components/ui/Button";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { primaryNav, ctas, brand } from "@/content/site";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
+
+function trackHeaderClick(event: MouseEvent<HTMLElement>) {
+  const link = (event.target as HTMLElement).closest("a");
+  if (!link) return;
+  posthog.capture("header_link_clicked", {
+    label: link.textContent?.trim() || link.getAttribute("aria-label"),
+    destination: link.getAttribute("href"),
+    placement: link.closest("#mobile-nav") ? "mobile" : "desktop",
+  });
+}
 
 /** The real Delphi mark, applied as a CSS mask and painted with --logo-ink.
  *  This themes correctly (brand navy on light, near-white on dark) without
@@ -56,7 +67,10 @@ export function Header() {
     );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-md">
+    <header
+      className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur-md"
+      onClickCapture={trackHeaderClick}
+    >
       <Container>
         <div className="flex h-16 items-center justify-between gap-6">
           <Wordmark />

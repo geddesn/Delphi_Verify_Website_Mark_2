@@ -1,11 +1,25 @@
+import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/components/ui/primitives";
 import { Wordmark } from "@/components/layout/Header";
 import { footerNav, footer, brand } from "@/content/site";
+import posthog from "@/lib/posthog";
+
+function trackFooterClick(event: MouseEvent<HTMLElement>) {
+  const link = (event.target as HTMLElement).closest("a");
+  if (!link) return;
+  posthog.capture("footer_link_clicked", {
+    label: link.textContent?.trim() || link.getAttribute("aria-label"),
+    destination: link.getAttribute("href"),
+  });
+}
 
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-surface-sunken">
+    <footer
+      className="border-t border-line bg-surface-sunken"
+      onClickCapture={trackFooterClick}
+    >
       <Container>
         <div className="grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)] lg:gap-8">
           <div className="flex flex-col gap-4">

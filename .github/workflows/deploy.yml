@@ -26,6 +26,9 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_POSTHOG_KEY: ${{ vars.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST }}
 
       - uses: google-github-actions/auth@v3
         with:

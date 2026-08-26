@@ -339,8 +339,11 @@ export const privacy = {
       id: "cookies",
       heading: "This website",
       body: [
-        "This site self-hosts its fonts and does not load third-party tracking scripts by default. Any analytics are loaded only after consent, and declining leaves the site fully functional.",
-        "The location-privacy illustrations on our trust page load map tiles from OpenStreetMap, which receives your IP address when they load. The evidence-record illustrations on our platform pages embed a map from Google on the same basis.",
+        "We use one essential cookie, delphi_cookie_consent, for 180 days to remember whether you accepted or rejected optional services. It is necessary to respect your privacy choice and cannot be disabled through our settings.",
+        "With your permission, preferences storage remembers choices such as light or dark theme. Declining this category leaves this public website functional.",
+        "Analytics are disabled until you consent. If enabled, our EU-hosted PostHog project receives page visits and named interactions together with limited browser and device information. We disable automatic element capture, session replay, person profiles and automatic error capture, and redact public certificate codes from analytics URLs.",
+        "Google Maps and OpenStreetMap content are disabled until you consent to embedded maps. Enabling maps sends your IP address and request information to the relevant map provider when its content loads.",
+        "You can accept, reject or change any optional category at any time through Cookie settings in the footer. Withdrawing consent stops future collection but does not affect processing already carried out with your consent.",
       ],
     },
     {

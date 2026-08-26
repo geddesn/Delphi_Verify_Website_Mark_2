@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useCookieConsent } from "@/app/privacy/cookie-consent-context";
+import { hasCookieConsent } from "@/lib/cookie-consent";
 
 type Choice = "light" | "dark" | "system";
 
@@ -14,7 +16,7 @@ function apply(choice: Choice) {
 }
 
 export function readStoredTheme(): Choice {
-  if (typeof localStorage === "undefined") return "system";
+  if (typeof localStorage === "undefined" || !hasCookieConsent("preferences")) return "system";
   const stored = localStorage.getItem(STORAGE_KEY);
   return stored === "light" || stored === "dark" ? stored : "system";
 }
@@ -22,13 +24,15 @@ export function readStoredTheme(): Choice {
 /** Cycles system → light → dark. Because the whole palette lives in the token
  *  layer, this only sets an attribute — no component re-renders for theming. */
 export function ThemeToggle() {
+  const { consent, ready } = useCookieConsent();
   const [choice, setChoice] = useState<Choice>(readStoredTheme);
 
   useEffect(() => {
+    if (!ready) return;
     apply(choice);
-    if (choice === "system") localStorage.removeItem(STORAGE_KEY);
+    if (!consent.preferences || choice === "system") localStorage.removeItem(STORAGE_KEY);
     else localStorage.setItem(STORAGE_KEY, choice);
-  }, [choice]);
+  }, [choice, consent.preferences, ready]);
 
   const next: Record<Choice, Choice> = {
     system: "light",

@@ -35,6 +35,14 @@
     <script>
       (function () {
         try {
+          var consentCookie = document.cookie
+            .split(";")
+            .map(function (part) { return part.trim(); })
+            .find(function (part) { return part.indexOf("delphi_cookie_consent=") === 0; });
+          var consent = consentCookie
+            ? JSON.parse(decodeURIComponent(consentCookie.split("=").slice(1).join("=")))
+            : null;
+          if (!consent || consent.preferences !== true) return;
           var stored = localStorage.getItem("dv-theme");
           if (stored === "light" || stored === "dark") {
             document.documentElement.setAttribute("data-theme", stored);

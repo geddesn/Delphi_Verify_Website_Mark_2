@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "npm run check:tokens && tsc -b && npm run build:client && npm run build:ssr && npm run prerender",
     "lint": "oxlint",
+    "test:privacy": "node --experimental-strip-types scripts/test-privacy.mjs",
     "preview": "vite preview",
     "check:tokens": "node scripts/check-tokens.mjs",
     "build:client": "vite build",

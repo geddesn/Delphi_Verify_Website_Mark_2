@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/primitives";
 import { Wordmark } from "@/components/layout/Header";
 import { footerNav, footer, brand } from "@/content/site";
 import posthog from "@/lib/posthog";
+import { useCookieConsent } from "@/app/privacy/cookie-consent-context";
 
 function trackFooterClick(event: MouseEvent<HTMLElement>) {
   const link = (event.target as HTMLElement).closest("a");
@@ -15,6 +16,8 @@ function trackFooterClick(event: MouseEvent<HTMLElement>) {
 }
 
 export function Footer() {
+  const { openPreferences } = useCookieConsent();
+
   return (
     <footer
       className="border-t border-line bg-surface-sunken"
@@ -58,9 +61,18 @@ export function Footer() {
 
         <div className="flex flex-col gap-3 border-t border-line py-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-caption text-ink-muted">{footer.legalLine}</p>
-          <p className="font-mono text-mono-sm uppercase text-ink-muted">
-            Independent evidence verification
-          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            <button
+              className="text-caption text-ink-muted underline underline-offset-4 hover:text-ink-accent"
+              onClick={openPreferences}
+              type="button"
+            >
+              Cookie settings
+            </button>
+            <p className="font-mono text-mono-sm uppercase text-ink-muted">
+              Independent evidence verification
+            </p>
+          </div>
         </div>
       </Container>
     </footer>

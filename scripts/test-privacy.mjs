@@ -25,7 +25,6 @@ assert.deepEqual(
 const legacyConsent = encodeURIComponent(JSON.stringify({
   version: 1,
   decided: true,
-  authentication: true,
   maps: true,
   preferences: true,
   updatedAt: "2026-08-01T00:00:00.000Z",
@@ -34,7 +33,6 @@ assert.deepEqual(parseCookieConsent(legacyConsent), {
   version: 1,
   decided: false,
   analytics: false,
-  authentication: true,
   maps: true,
   preferences: true,
   updatedAt: "2026-08-01T00:00:00.000Z",

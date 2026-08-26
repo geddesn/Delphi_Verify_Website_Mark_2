@@ -8,7 +8,6 @@ import {
 
 const EMPTY_SELECTION: ConsentSelection = {
   analytics: false,
-  authentication: false,
   maps: false,
   preferences: false,
 };
@@ -31,7 +30,6 @@ export function CookieConsentManager() {
     if (!preferencesOpen) return;
     setDraft({
       analytics: consent.analytics,
-      authentication: consent.authentication,
       maps: consent.maps,
       preferences: consent.preferences,
     });
@@ -61,7 +59,7 @@ export function CookieConsentManager() {
               <h2 className="text-subheading text-ink">Your privacy choices</h2>
               <p className="mt-2 text-body-sm text-ink-secondary">
                 We use an essential cookie to remember your choices. Optional technologies support
-                preferences, authentication, analytics and embedded maps. Read our{" "}
+                preferences, analytics and embedded maps. Read our{" "}
                 <Link className="font-semibold text-ink-accent underline" to="/privacy#cookies">
                   privacy policy
                 </Link>
@@ -120,14 +118,6 @@ export function CookieConsentManager() {
                 description="Remembers display choices such as light or dark theme."
                 label="Preferences"
                 onChange={(preferences) => setDraft((current) => ({ ...current, preferences }))}
-              />
-              <ConsentRow
-                checked={draft.authentication}
-                description="Allows sign-in services on protected Delphi Verify applications."
-                label="Authentication"
-                onChange={(authentication) =>
-                  setDraft((current) => ({ ...current, authentication }))
-                }
               />
               <ConsentRow
                 checked={draft.analytics}

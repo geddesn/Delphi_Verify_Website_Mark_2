@@ -6,7 +6,6 @@ const CONSENT_MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
 
 export type OptionalConsentCategory =
   | "analytics"
-  | "authentication"
   | "maps"
   | "preferences";
 
@@ -14,7 +13,6 @@ export type CookieConsent = {
   version: typeof COOKIE_CONSENT_VERSION;
   decided: boolean;
   analytics: boolean;
-  authentication: boolean;
   maps: boolean;
   preferences: boolean;
   updatedAt: string | null;
@@ -24,7 +22,6 @@ export const DEFAULT_COOKIE_CONSENT: CookieConsent = {
   version: COOKIE_CONSENT_VERSION,
   decided: false,
   analytics: false,
-  authentication: false,
   maps: false,
   preferences: false,
   updatedAt: null,
@@ -66,7 +63,6 @@ export function parseCookieConsent(raw: string | null): CookieConsent {
       version: COOKIE_CONSENT_VERSION,
       decided: parsed.decided === true && analyticsWasDecided,
       analytics: parsed.analytics === true,
-      authentication: parsed.authentication === true,
       maps: parsed.maps === true,
       preferences: parsed.preferences === true,
       updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : null,

@@ -17,7 +17,7 @@ import { setAnalyticsConsent } from "@/lib/posthog";
 
 export type ConsentSelection = Pick<
   CookieConsent,
-  "analytics" | "authentication" | "maps" | "preferences"
+  "analytics" | "maps" | "preferences"
 >;
 
 type CookieConsentContextValue = {
@@ -70,7 +70,6 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
           ...consent,
           decided: true,
           analytics: true,
-          authentication: true,
           maps: true,
           preferences: true,
         });
@@ -90,7 +89,6 @@ export function CookieConsentProvider({ children }: { children: ReactNode }) {
           ...consent,
           decided: true,
           analytics: false,
-          authentication: false,
           maps: false,
           preferences: false,
         });

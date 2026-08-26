@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { cn } from "@/lib/cn";
+import { useCookieConsent } from "@/app/privacy/cookie-consent-context";
+import { MapConsentPlaceholder } from "@/components/renderings/CaptureMap";
 import { CAPTURE_POINT } from "@/content/evidence-record";
 import { boroughBoundary, boroughName } from "@/content/borough-boundary";
 
@@ -28,10 +30,9 @@ import { boroughBoundary, boroughName } from "@/content/borough-boundary";
    from our own tokens. Nothing here needs a teardrop pin.
 
    ── THIRD PARTY, DECLARED ──────────────────────────────────────────────────
-   ⚠️  Tiles come from tile.openstreetmap.org, so this hands each visitor's IP
-   to the OSM Foundation. Before these panels existed the only third party on
-   the site was the Google Maps frame on /platform/renderings; the CSP comment
-   in firebase.json now records both.
+   Tiles come from tile.openstreetmap.org, so this hands the visitor's IP to
+   the OSM Foundation. The shared maps consent category prevents Leaflet and
+   its tile layer from loading until the visitor explicitly enables maps.
 
    OSM's tile usage policy asks that production services not be built on their
    donated infrastructure. Three small panels on a marketing site is light use,
@@ -93,10 +94,13 @@ export function LocationPrivacyMap({
   level: PrivacyLevel;
   className?: string;
 }) {
+  const { allowMaps, consent, ready } = useCookieConsent();
   const host = useRef<HTMLDivElement>(null);
   const map = useRef<LeafletMap | null>(null);
 
   useEffect(() => {
+    if (!ready || !consent.maps) return;
+
     /* Leaflet reaches for `document` as it initialises, and prerender.mjs runs
        this component through renderToString in Node. Importing inside the
        effect keeps the whole library off the server path — and off the initial
@@ -261,7 +265,16 @@ export function LocationPrivacyMap({
       map.current?.remove();
       map.current = null;
     };
-  }, [level]);
+  }, [consent.maps, level, ready]);
+
+  if (!ready || !consent.maps) {
+    return (
+      <MapConsentPlaceholder
+        className={cn("h-40 rounded-md border border-line", className)}
+        onEnable={allowMaps}
+      />
+    );
+  }
 
   return (
     <div

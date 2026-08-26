@@ -4,6 +4,7 @@ import { renderToString } from "react-dom/server";
    "react-router-dom/server" entry point no longer exists. */
 import { StaticRouter, Route, Routes } from "react-router-dom";
 import type { ComponentType } from "react";
+import { CookieConsentProvider } from "@/app/privacy/cookie-consent-context";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import NotFound from "@/pages/NotFound";
@@ -41,26 +42,28 @@ export async function loadRoutes(): Promise<Loaded[]> {
 export function render(url: string, loaded: Loaded[]): string {
   return renderToString(
     <StrictMode>
-      <StaticRouter location={url}>
-        <div className="flex min-h-dvh flex-col bg-canvas">
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-body-sm focus:text-accent-ink"
-          >
-            Skip to content
-          </a>
-          <Header />
-          <main id="main" tabIndex={-1} className="flex-1 outline-none">
-            <Routes>
-              {loaded.map(({ path, Component }) => (
-                <Route key={path} path={path} element={<Component />} />
-              ))}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </StaticRouter>
+      <CookieConsentProvider>
+        <StaticRouter location={url}>
+          <div className="flex min-h-dvh flex-col bg-canvas">
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-body-sm focus:text-accent-ink"
+            >
+              Skip to content
+            </a>
+            <Header />
+            <main id="main" tabIndex={-1} className="flex-1 outline-none">
+              <Routes>
+                {loaded.map(({ path, Component }) => (
+                  <Route key={path} path={path} element={<Component />} />
+                ))}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </StaticRouter>
+      </CookieConsentProvider>
     </StrictMode>,
   );
 }

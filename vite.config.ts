@@ -31,6 +31,12 @@ export default defineConfig({
             if (/[\\/]node_modules[\\/]leaflet[\\/]/.test(id)) {
               return undefined;
             }
+            /* PostHog is consent-gated through a dynamic import. Keep its SDK
+               and private dependencies out of the shared vendor chunk so the
+               browser does not even download analytics code before opt-in. */
+            if (/[\\/]node_modules[\\/](posthog-js|@posthog)[\\/]/.test(id)) {
+              return undefined;
+            }
             return "vendor";
           }
           return undefined;

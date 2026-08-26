@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Container, Section, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/Button";
 import { PhoneShot } from "@/components/product/PhoneShot";
+import posthog, { isPostHogEnabled } from "@/lib/posthog";
 
 const CODE_LENGTH = 8;
 
@@ -32,6 +33,7 @@ export default function Verify() {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
+    if (isPostHogEnabled) posthog.capture("certificate_lookup_submitted");
     navigate(`/v/${normalised}`);
   }
 

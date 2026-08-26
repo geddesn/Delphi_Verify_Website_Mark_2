@@ -106,12 +106,12 @@
         ]
       },
       {
-        "comment": "Security headers. The CSP is deliberately strict: no third-party scripts, fonts or connections. The narrow exceptions are Google Maps frames, OpenStreetMap tiles, and the public certificate media stored in Delphi's Firebase Storage bucket. If analytics are added, widen script-src and connect-src for that host ONLY, rather than relaxing the policy.",
+        "comment": "Security headers. The CSP is deliberately strict: the narrow exceptions are PostHog analytics, Google Maps frames, OpenStreetMap tiles, and the public certificate media stored in Delphi's Firebase Storage bucket.",
         "source": "**",
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org https://firebasestorage.googleapis.com; media-src https://firebasestorage.googleapis.com; font-src 'self'; connect-src 'self'; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org https://firebasestorage.googleapis.com; media-src https://firebasestorage.googleapis.com; font-src 'self'; connect-src 'self' https://*.posthog.com; frame-src https://www.google.com https://maps.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
           },
           {
             "key": "X-Content-Type-Options",

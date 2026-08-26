@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
 import {
   DESIGN_W,
   StageGrid,
@@ -165,7 +166,10 @@ export function TrustScenarios({ className }: { className?: string }) {
                  opening beat. It does NOT stop the cycle — the reader asked
                  for this sector now, not for the rotation to end, and Replay
                  is there for anyone who wants to hold on one. */
-              onClick={() => show(s.id)}
+              onClick={() => {
+                posthog.capture("trust_scenario_sector_selected", { sector: s.id });
+                show(s.id);
+              }}
               aria-current={on ? "true" : undefined}
               className={cn(
                 "cursor-pointer rounded-sm border px-3 py-1.5 font-mono text-mono-sm uppercase transition-colors",

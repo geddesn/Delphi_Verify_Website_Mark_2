@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
 import { AnnotationPanel, PanelLogo } from "@/components/annotation/Panel";
 import { AnchorDot, Leaders, type LeaderSpec } from "@/components/annotation/Leaders";
 import { useBoxes } from "@/components/annotation/useBoxes";
@@ -622,7 +623,10 @@ export function TrustBuild({
         ) : (
           <button
             type="button"
-            onClick={play}
+            onClick={() => {
+              posthog.capture("trust_scenario_replayed", { sector: scene.id });
+              play();
+            }}
             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong px-3 py-2 text-body-sm text-ink-secondary transition-colors hover:border-ink-muted hover:text-ink"
             style={{ transitionDuration: "var(--duration-fast)" }}
           >
@@ -636,6 +640,7 @@ export function TrustBuild({
           onJump={playFrom}
           reduced={reduced}
           chapters={CHAPTERS}
+          sector={scene.id}
           className="ml-auto"
         />
       </div>

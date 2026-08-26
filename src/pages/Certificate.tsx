@@ -5,6 +5,7 @@ import { CaptureMap } from "@/components/renderings/CaptureMap";
 import { EvidenceChip, type EvidenceState } from "@/components/evidence/Evidence";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Container, Eyebrow, Section } from "@/components/ui/primitives";
+import posthog, { isPostHogEnabled } from "@/lib/posthog";
 
 type Gps = { lat: number; lng: number; accuracy: number; capturedAt: string };
 type Address = {
@@ -96,9 +97,20 @@ function CertificateLoader({ code }: { code: string }) {
         if (!response.ok) return { status: "error" } as const;
         return { status: "ready", report: (await response.json()) as Report } as const;
       })
-      .then((next) => setLoad(next))
+      .then((next) => {
+        if (isPostHogEnabled) {
+          posthog.capture(
+            next.status === "ready" ? "certificate_lookup_succeeded" : "certificate_lookup_failed",
+            { outcome: next.status },
+          );
+        }
+        setLoad(next);
+      })
       .catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setLoad({ status: "error" });
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          if (isPostHogEnabled) posthog.capture("certificate_lookup_failed", { outcome: "error" });
+          setLoad({ status: "error" });
+        }
       });
 
     return () => controller.abort();
@@ -160,7 +172,8 @@ function CertificateReport({ report }: { report: Report }) {
   }, [report.publicCode]);
 
   async function copyCode() {
-    await navigator.clipboard?.writeText(formattedCode);
+    await navigator.clipboard.writeText(formattedCode);
+    if (isPostHogEnabled) posthog.capture("certificate_code_copied");
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
   }
@@ -168,8 +181,11 @@ function CertificateReport({ report }: { report: Report }) {
   async function share() {
     const data = { title: `Certificate ${formattedCode}`, url: window.location.href };
     try {
-      if (navigator.share) await navigator.share(data);
-      else await navigator.clipboard?.writeText(data.url);
+      const canShare = typeof navigator.share === "function";
+      const method = canShare ? "native" : "clipboard";
+      if (canShare) await navigator.share(data);
+      else await navigator.clipboard.writeText(data.url);
+      if (isPostHogEnabled) posthog.capture("certificate_shared", { method });
     } catch {
       // The native share sheet was dismissed.
     }
@@ -189,7 +205,12 @@ function CertificateReport({ report }: { report: Report }) {
           reason: form.get("reason"),
         }),
       });
-      setReportState(response.ok ? "success" : "error");
+      if (response.ok) {
+        if (isPostHogEnabled) posthog.capture("certificate_concern_submitted");
+        setReportState("success");
+      } else {
+        setReportState("error");
+      }
     } catch {
       setReportState("error");
     }
@@ -242,7 +263,10 @@ function CertificateReport({ report }: { report: Report }) {
                 </figure>
                 <div className="flex gap-2 overflow-x-auto md:max-h-[32rem] md:flex-col md:overflow-y-auto">
                   {media.map((item) => (
-                    <button key={item.index} type="button" onClick={() => setActiveIndex(item.index)} aria-label={`Open evidence ${item.index}`} aria-pressed={active.index === item.index} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-line aria-pressed:border-ink-accent">
+                    <button key={item.index} type="button" onClick={() => {
+                      if (isPostHogEnabled) posthog.capture("certificate_evidence_selected", { media_type: item.type });
+                      setActiveIndex(item.index);
+                    }} aria-label={`Open evidence ${item.index}`} aria-pressed={active.index === item.index} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-line aria-pressed:border-ink-accent">
                       <img src={item.thumbnailDownloadUrl ?? item.downloadUrl} alt="" className="h-full w-full object-cover" />
                       {item.type === "video" ? <span className="absolute inset-x-0 bottom-0 bg-surface-inverse px-1 py-0.5 font-mono text-mono-xs text-ink-inverse">Video</span> : null}
                     </button>

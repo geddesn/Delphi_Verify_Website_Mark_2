@@ -1,6 +1,7 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
 
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "md" | "lg";
@@ -29,6 +30,12 @@ function classes(variant: Variant, size: Size, className?: string) {
 
 const motion = { transitionDuration: "var(--duration-fast)" };
 
+function trackRequestDemo(event: MouseEvent<HTMLAnchorElement>) {
+  if (event.currentTarget.textContent?.trim() === "Request a demonstration") {
+    posthog.capture("request_demo_clicked");
+  }
+}
+
 export function ButtonLink({
   to,
   children,
@@ -51,6 +58,7 @@ export function ButtonLink({
         className={classes(variant, size, className)}
         style={motion}
         rel="noreferrer"
+        onClick={trackRequestDemo}
       >
         {children}
       </a>
@@ -58,7 +66,12 @@ export function ButtonLink({
   }
 
   return (
-    <Link to={to} className={classes(variant, size, className)} style={motion}>
+    <Link
+      to={to}
+      className={classes(variant, size, className)}
+      style={motion}
+      onClick={trackRequestDemo}
+    >
       {children}
     </Link>
   );

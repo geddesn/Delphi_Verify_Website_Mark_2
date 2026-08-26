@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import posthog from "@/lib/posthog";
 import { acts, trustEngineCopy } from "@/content/trust-scenes";
 import type {
   StageGround,
@@ -1329,7 +1330,10 @@ export function TrustEngine({
         ) : (
           <button
             type="button"
-            onClick={play}
+            onClick={() => {
+              posthog.capture("trust_scenario_replayed", { sector: scene.id });
+              play();
+            }}
             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-line-strong px-3 py-2 text-body-sm text-ink-secondary transition-colors hover:border-ink-muted hover:text-ink"
             style={{ transitionDuration: "var(--duration-fast)" }}
           >
@@ -1348,6 +1352,7 @@ export function TrustEngine({
           onJump={playFrom}
           reduced={reduced}
           chapters={chapters}
+          sector={scene.id}
           className="ml-auto"
         />
       </div>
@@ -1372,12 +1377,14 @@ export function ChapterBar({
   onJump,
   reduced,
   chapters,
+  sector,
   className,
 }: {
   step: number;
   onJump: (n: number) => void;
   reduced: boolean;
   chapters: readonly { label: string; at: number }[];
+  sector: string;
   className?: string;
 }) {
   /* One chapter is not a choice, and none is not a bar. */
@@ -1392,7 +1399,13 @@ export function ChapterBar({
           <button
             key={c.label}
             type="button"
-            onClick={() => onJump(c.at)}
+            onClick={() => {
+              posthog.capture("trust_scenario_chapter_selected", {
+                sector,
+                chapter: c.label,
+              });
+              onJump(c.at);
+            }}
             aria-current={active ? "step" : undefined}
             className={cn(
               "cursor-pointer rounded-sm border px-2.5 py-1 font-mono text-mono-sm uppercase transition-colors",

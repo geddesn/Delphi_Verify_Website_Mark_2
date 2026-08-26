@@ -60,20 +60,7 @@ export default function Contact() {
 
       <Section>
         <Container>
-          <div className="grid gap-6 md:grid-cols-3">
-            {contactPage.routes.map((route) => (
-              <Card key={route.title} className="flex flex-col gap-3">
-                <h2 className="text-subheading text-ink">{route.title}</h2>
-                <p className="flex-1 text-body-sm text-ink-secondary">{route.body}</p>
-                <span className="flex items-center gap-2 text-body-sm text-ink-accent">
-                  {route.action}
-                  <ArrowRight />
-                </span>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="mt-14 grid gap-10 p-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:p-10">
+          <Card className="grid gap-10 p-8 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:p-10">
             <div className="flex flex-col gap-4">
               <Eyebrow>Contact Delphi</Eyebrow>
               <h2 className="text-heading text-ink">Get in touch</h2>

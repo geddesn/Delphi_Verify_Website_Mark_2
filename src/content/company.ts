@@ -125,22 +125,5 @@ export const contactPage = {
   headline: "Speak with Delphi Verify.",
   standfirst:
     "The most productive first conversation is usually about a specific problem rather than the technology. If there is a handover that keeps going wrong, a claim that is hard to substantiate, or an inspection that costs more than it should, that is the right place to start.",
-  routes: [
-    {
-      title: "Evaluating Delphi",
-      body: "Deployment, integration, pricing and pilots for organisations assessing verified evidence.",
-      action: "Request a demonstration",
-    },
-    {
-      title: "Security and procurement",
-      body: "Security documentation, data processing agreements and sub-processor information for review teams.",
-      action: "Request security documentation",
-    },
-    {
-      title: "Verifying a certificate",
-      body: "If someone has sent you a Delphi certificate code, you can open it directly without contacting us.",
-      action: "Verify a certificate",
-    },
-  ],
   email: "contact@delphiverify.com",
 } as const;

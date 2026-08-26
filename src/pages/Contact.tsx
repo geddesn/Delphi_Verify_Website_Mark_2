@@ -18,6 +18,7 @@ export default function Contact() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    posthog.capture("contact_form_send_clicked");
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const value = (name: string) => form.get(name)?.toString().trim() ?? "";
@@ -157,7 +158,6 @@ export default function Contact() {
                 type="submit"
                 size="lg"
                 disabled={status === "submitting"}
-                onClick={() => posthog.capture("contact_form_send_clicked")}
               >
                 {status === "submitting" ? "Sending…" : "Send message"}
                 <ArrowRight />

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/primitives";
 import { ArrowRight, Button } from "@/components/ui/Button";
 import { contactPage } from "@/content/company";
+import posthog from "@/lib/posthog";
 
 const fieldClass =
   "mt-2 w-full rounded-md border border-line-strong bg-surface px-4 text-body text-ink placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -151,7 +152,13 @@ export default function Contact() {
                 ) : null}
               </div>
 
-              <Button className="justify-self-start" type="submit" size="lg" disabled={status === "submitting"}>
+              <Button
+                className="justify-self-start"
+                type="submit"
+                size="lg"
+                disabled={status === "submitting"}
+                onClick={() => posthog.capture("contact_form_send_clicked")}
+              >
                 {status === "submitting" ? "Sending…" : "Send message"}
                 <ArrowRight />
               </Button>

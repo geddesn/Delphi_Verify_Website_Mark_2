@@ -85,7 +85,7 @@ Do not publish personal or confidential information unless you are authorised to
 
 ## 8. Blockchain records
 
-When an evidence record is sealed, a cryptographic commitment may be published to the Ethereum Attestation Service on Base mainnet. The blockchain record is designed not to contain readable photographs, location, timestamps, account information or other directly interpretable certificate data. It contains cryptographic commitments instead, but may nevertheless be capable of being related to information retained elsewhere and is not automatically anonymous.
+Under the current format, the on-chain record contains media hashes and salted cryptographic commitments to published location and capture time, together with technical proof fields. It does not contain images, readable location or timestamps, account information, certificate descriptions or public verification codes. Once deletion is completed under section 11, Delphi Verify no longer makes the underlying certificate data available. The permanent on-chain commitments do not reveal that content by themselves.
 
 Public blockchain records are permanent and outside our control. Deleting a certificate removes the media and certificate data held by Delphi Verify as described below, but cannot edit or erase an attestation already published on-chain.
 

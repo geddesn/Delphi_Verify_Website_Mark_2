@@ -3,19 +3,8 @@ import { redactAnalyticsProperties } from "@/lib/analytics-privacy";
 const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
 const posthogHost = import.meta.env.VITE_POSTHOG_HOST;
 
-if (!posthogKey && import.meta.env.DEV) {
-  throw new Error(
-    "VITE_POSTHOG_KEY variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_POSTHOG_KEY is configured",
-  );
-}
-if (!posthogHost && import.meta.env.DEV) {
-  throw new Error(
-    "VITE_POSTHOG_HOST variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once VITE_POSTHOG_HOST is configured",
-  );
-}
-
 export const isPostHogEnabled = Boolean(
-  posthogKey && posthogHost && typeof window !== "undefined",
+  import.meta.env.PROD && posthogKey && posthogHost && typeof window !== "undefined",
 );
 
 type PostHogClient = (typeof import("posthog-js"))["default"];

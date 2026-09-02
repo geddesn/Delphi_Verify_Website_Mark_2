@@ -22,7 +22,6 @@ function loadPostHog() {
       autocapture: false,
       capture_exceptions: false,
       capture_pageview: "history_change",
-      disable_external_dependency_loading: true,
       disable_session_recording: true,
       disable_surveys: true,
       mask_all_element_attributes: true,

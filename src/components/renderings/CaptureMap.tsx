@@ -19,12 +19,19 @@ import { useCookieConsent } from "@/app/privacy/cookie-consent-context";
    The keyless `output=embed` form is used rather than the Maps Embed API, so
    there is no key to put in client HTML, restrict by referrer, or rotate.
 
-   pointer-events-none, deliberately: this is a picture of a product, not a
-   map anyone should be panning. It also stops the iframe swallowing wheel
-   events and fighting the surrounding demo scroll.
+   Product renderings disable pointer events so the iframe does not fight the
+   surrounding demo scroll. Public certificates opt into interaction.
    ========================================================================= */
 
-export function CaptureMap({ className, query = RECORD.address }: { className?: string; query?: string }) {
+export function CaptureMap({
+  className,
+  interactive = false,
+  query = RECORD.address,
+}: {
+  className?: string;
+  interactive?: boolean;
+  query?: string;
+}) {
   const { allowMaps, consent, ready } = useCookieConsent();
 
   if (!ready || !consent.maps) {
@@ -38,7 +45,7 @@ export function CaptureMap({ className, query = RECORD.address }: { className?: 
       src={`https://maps.google.com/maps?q=${encodedQuery}&z=16&output=embed`}
       loading="lazy"
       referrerPolicy="no-referrer-when-downgrade"
-      className={cn("pointer-events-none block h-full w-full border-0", className)}
+      className={cn("block h-full w-full border-0", !interactive && "pointer-events-none", className)}
     />
   );
 }

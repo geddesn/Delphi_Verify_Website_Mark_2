@@ -301,7 +301,7 @@ function CertificateReport({ report }: { report: Report }) {
                 <Detail label="Address" value={address ?? "Address unavailable"} />
               </dl>
               <div className="h-72 overflow-hidden rounded-md border border-line">
-                <CaptureMap query={address ?? `${gps.lat},${gps.lng}`} />
+                <CaptureMap query={`${gps.lat},${gps.lng}`} interactive />
               </div>
             </div>
           </Card>

@@ -51,8 +51,8 @@ export const principles = [
   },
 ] as const;
 
-/* ⚠️ PLACEHOLDER — replace with real people or delete the section entirely.
-   `showLeadership: false` hides it until then. Never ship invented names. */
+/* Temporarily hidden for ISO audit consistency: the audit began with only
+   Lucas and Tess declared as employees. Re-enable after the audit ends. */
 /* Sourced from the founders page in the Delphi brand content
    (Slide Deck Manager → brands/delphi/content/pages/founders-and-team.json).
    Real people, real roles — nothing here is invented.
@@ -60,7 +60,7 @@ export const principles = [
    That source file also carries a founding engineer in Lisbon. He is omitted
    because this section is the named leadership; add him here if the intention
    is a team page rather than a leadership one. */
-export const showLeadership = true;
+export const showLeadership = false;
 export const leadership: {
   name: string;
   role: string;

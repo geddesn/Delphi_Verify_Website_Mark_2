@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { CaptureMap } from "@/components/renderings/CaptureMap";
 import { EvidenceChip, type EvidenceState } from "@/components/evidence/Evidence";
@@ -29,6 +29,7 @@ type Media = {
 };
 type Report = {
   publicCode: string;
+  viewCount: number;
   title: string | null;
   description: string | null;
   capturedAt: string;
@@ -86,6 +87,7 @@ export default function Certificate() {
 function CertificateLoader({ code }: { code: string }) {
   const [revision, setRevision] = useState(0);
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
+  const counted = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,6 +125,33 @@ function CertificateLoader({ code }: { code: string }) {
     const timer = window.setTimeout(() => setRevision((value) => value + 1), 3000);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  useEffect(() => {
+    if (load.status !== "ready" || counted.current) return;
+    let timer: number | undefined;
+    const syncTimer = () => {
+      window.clearTimeout(timer);
+      if (document.visibilityState !== "visible") return;
+      timer = window.setTimeout(() => {
+        counted.current = true;
+        void fetch(`/api/verify/${encodeURIComponent(code)}/view`, { method: "POST" })
+          .then((response) => response.ok ? response.json() as Promise<{ viewCount: number }> : null)
+          .then((result) => {
+            if (!result) return;
+            setLoad((current) => current.status === "ready"
+              ? { status: "ready", report: { ...current.report, viewCount: result.viewCount } }
+              : current);
+          })
+          .catch(() => undefined);
+      }, 3000);
+    };
+    syncTimer();
+    document.addEventListener("visibilitychange", syncTimer);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", syncTimer);
+    };
+  }, [code, load.status]);
 
   function retry() {
     setLoad({ status: "loading" });
@@ -237,6 +266,7 @@ function CertificateReport({ report }: { report: Report }) {
                   {copied ? "Copied" : "Copy"}
                 </button>
               </div>
+              <p className="mt-2 text-caption text-ink-muted">{(report.viewCount ?? 0).toLocaleString()} views</p>
             </div>
             <Button variant="secondary" onClick={() => void share()}>Share certificate</Button>
           </div>

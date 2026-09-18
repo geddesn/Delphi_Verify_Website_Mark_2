@@ -2,6 +2,8 @@
 
 Marketing site. Vite + React + TypeScript + Tailwind v4, deployed static.
 
+The public certificate page displays the API view count and records one view after the report stays visible for three seconds. It calls `POST /api/verify/:code/view`; hidden tabs cancel the pending timer.
+
 ```bash
 npm install
 npm run dev          # http://localhost:5173

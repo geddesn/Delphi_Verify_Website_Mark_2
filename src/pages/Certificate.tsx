@@ -64,6 +64,7 @@ type LoadState =
   | { status: "error" };
 
 const CODE_LENGTH = 8;
+const INVALID_PLAIN_TEXT = /[\p{Cc}\uFFFC\uFFFD]/gu;
 
 export default function Certificate() {
   const { code: pathCode } = useParams<{ code: string }>();
@@ -97,7 +98,7 @@ function CertificateLoader({ code }: { code: string }) {
         if (response.status === 404 || response.status === 400) return { status: "not-found" } as const;
         if (response.status === 410) return { status: "removed" } as const;
         if (!response.ok) return { status: "error" } as const;
-        return { status: "ready", report: (await response.json()) as Report } as const;
+        return { status: "ready", report: cleanReport((await response.json()) as Report) } as const;
       })
       .then((next) => {
         if (isPostHogEnabled) {
@@ -184,7 +185,7 @@ function CertificateReport({ report }: { report: Report }) {
   const active = media.find((item) => item.index === activeIndex) ?? media[0];
   const gps = active?.gps ?? report.gps;
   const formattedCode = formatCode(report.publicCode);
-  const title = report.title?.trim() || "Delphi certificate";
+  const title = report.title || "Delphi certificate";
   const address = displayAddress(report.address, gps.accuracy);
   const verificationState = report.verificationStatus as EvidenceState;
 
@@ -479,6 +480,18 @@ function Hash({ label, value }: { label: string; value: string }) {
 
 function normalise(raw: string) {
   return raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, CODE_LENGTH);
+}
+
+function cleanPlainText(value: string | null) {
+  return value?.normalize("NFC").replace(INVALID_PLAIN_TEXT, " ").trim() ?? "";
+}
+
+function cleanReport(report: Report): Report {
+  return {
+    ...report,
+    title: cleanPlainText(report.title) || null,
+    description: cleanPlainText(report.description) || null,
+  };
 }
 
 function formatCode(raw: string) {

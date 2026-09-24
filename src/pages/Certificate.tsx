@@ -6,6 +6,7 @@ import { EvidenceChip, type EvidenceState } from "@/components/evidence/Evidence
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Container, Eyebrow, Section } from "@/components/ui/primitives";
 import posthog, { isPostHogEnabled } from "@/lib/posthog";
+import { sortMediaForDisplay } from "./certificate-media-order";
 
 type Gps = { lat: number; lng: number; accuracy: number; capturedAt: string };
 type Address = {
@@ -36,6 +37,7 @@ type Report = {
   gps: Gps;
   address: Address | null;
   media: Media[];
+  displayMediaOrder?: number[] | null;
   verificationStatus: "pending" | "verified" | "failed";
   captureVerification: { status: "verified" | "retry_required" | "failed"; verifiedCaptures: number };
   deviceVerification: { status: "verified"; verifiedAt: string | null };
@@ -178,11 +180,15 @@ function CertificateLoader({ code }: { code: string }) {
 
 function CertificateReport({ report }: { report: Report }) {
   const media = useMemo(() => [...report.media].sort((a, b) => a.index - b.index), [report.media]);
-  const [activeIndex, setActiveIndex] = useState(media[0]?.index ?? 0);
+  const displayMedia = useMemo(
+    () => sortMediaForDisplay(media, report.displayMediaOrder),
+    [media, report.displayMediaOrder],
+  );
+  const [activeIndex, setActiveIndex] = useState(displayMedia[0]?.index ?? 0);
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState("");
   const [reportState, setReportState] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const active = media.find((item) => item.index === activeIndex) ?? media[0];
+  const active = displayMedia.find((item) => item.index === activeIndex) ?? displayMedia[0];
   const gps = active?.gps ?? report.gps;
   const formattedCode = formatCode(report.publicCode);
   const title = report.title || "Delphi certificate";
@@ -293,7 +299,7 @@ function CertificateReport({ report }: { report: Report }) {
                   </figcaption>
                 </figure>
                 <div className="flex gap-2 overflow-x-auto md:max-h-[32rem] md:flex-col md:overflow-y-auto">
-                  {media.map((item) => (
+                  {displayMedia.map((item) => (
                     <button key={item.index} type="button" onClick={() => {
                       if (isPostHogEnabled) posthog.capture("certificate_evidence_selected", { media_type: item.type });
                       setActiveIndex(item.index);

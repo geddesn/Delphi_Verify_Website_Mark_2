@@ -380,8 +380,20 @@ function CertificateReport({ report }: { report: Report }) {
             <p className="mt-6 text-eyebrow uppercase text-ink-muted">Media hashes</p>
             <ul className="mt-2 min-w-0">
               {media.map((item) => (
-                <li key={item.index} className="grid min-w-0 gap-2 border-t border-line py-3 sm:grid-cols-[12rem_minmax(0,1fr)]">
-                  <span className="text-body-sm text-ink">#{item.index} · {item.type}</span>
+                <li key={item.index} className="grid min-w-0 gap-4 border-t border-line py-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {item.type === "photo" || item.thumbnailDownloadUrl ? (
+                      <img
+                        src={item.thumbnailDownloadUrl ?? item.downloadUrl}
+                        alt=""
+                        loading="lazy"
+                        className="h-16 w-16 shrink-0 rounded-md border border-line bg-surface-sunken object-cover"
+                      />
+                    ) : (
+                      <span aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-line bg-surface-sunken text-caption text-ink-muted">Video</span>
+                    )}
+                    <span className="text-body-sm text-ink">#{item.index} · {item.type}</span>
+                  </div>
                   <div className="min-w-0">
                     <Hash label="Media" value={item.sha256} />
                     {item.metadataHashes ? <><Hash label="Latitude" value={item.metadataHashes.lat} /><Hash label="Longitude" value={item.metadataHashes.lng} /><Hash label="Captured at" value={item.metadataHashes.capturedAt} /></> : null}

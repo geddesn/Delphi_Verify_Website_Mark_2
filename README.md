@@ -115,9 +115,8 @@ product changes, re-check `src/content/platform.ts` first.
       hits a browser security warning. Live outage.
 - [ ] **Install analytics** — there is currently none, so there is no baseline
       to measure this redesign against.
-- [ ] **When the ISO 27001 certificate is issued** (expected ~Sept 2026), change
-      its status to `certified` in `src/content/trust.ts` and add the certifying
-      body and date. **Do not display the ISO badge asset before issuance.**
+- [x] ISO/IEC 27001 certification status is `certified`. Add a certification
+      mark only when its use is approved by the certifying body.
 - [ ] Re-confirm every compliance status in `src/content/trust.ts`.
 - [ ] Decide whether the partner and European Commission brand assets can be
       used as proof (deferred — see `docs/DESIGN-DECISIONS.md` §7).

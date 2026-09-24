@@ -54,23 +54,9 @@ import { SceneBackdrop } from "@/components/product/SceneBackdrop";
    ----------------------------------------------------------------------------
    ⚠️  THE GREEN CHIPS ARE A DELIBERATE DECISION, TAKEN 2026-08-23.
 
-   Evidence.tsx states the house rule: green means verified. Two rows below
-   are green without an external certificate behind them, which is a knowing
-   departure from it, so the reasoning is recorded here rather than left to be
-   rediscovered as a bug:
-
-     ISO 27001  — the work is complete; only the auditor's signature is
-                  outstanding. The label carries "awaiting certification" in
-                  full, so the chip cannot be read as claiming a certificate.
-     GDPR       — a legal obligation that is met, not an assessment that is
-                  pending. Amber implied something was outstanding when
-                  nothing is.
-
-   What has NOT changed, and must not: `CertificationMark` still renders only
-   for a status of "certified" WITH a `mark`. No ISO badge appears until the
-   certificate is actually issued. The colour of a chip is a claim about our
-   own position; a certification mark is a claim about somebody else's
-   determination, and only the second one is gated by their signature.
+   ISO 27001 now has an issued certificate. GDPR remains a statement about
+   controls, not an external certification. `CertificationMark` renders only
+   for a certified row with an approved mark.
 
    If green ever drifts onto "in-progress" or "not-started", that IS the bug
    this comment exists to prevent.
@@ -137,11 +123,7 @@ export default function Trust() {
                 >
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="text-subheading text-ink">{c.framework}</h3>
-                    {/* Renders nothing unless the row is genuinely certified
-                        AND carries a mark. That gate is the point: a badge
-                        beside a "readiness" statement is what the previous
-                        site did, and it asserted a certification we do not
-                        hold. */}
+                    {/* A mark requires both certification and an approved asset. */}
                     <CertificationMark
                       status={c.status}
                       mark={c.mark}

@@ -19,9 +19,8 @@
    wants to be a link to /platform/technical instead.
 
    ---------------------------------------------------------------------------
-   Statuses below were confirmed with Delphi on 2026-08-20:
-   ISO 27001 implementation complete, awaiting independent certification
-   (~2–4 weeks); GDPR compliant; SOC 2 not started.
+   ISO 27001 certification was confirmed by Delphi on 2026-09-24.
+   GDPR compliance and SOC 2 status were confirmed on 2026-08-20.
 
    ⚠️  Re-confirm before launch, and again whenever any of it changes.  ⚠️
 
@@ -59,15 +58,7 @@ export const trustHero = {
     "Delphi Verify is designed to create evidence others can rely on. We apply the same standard to ourselves: clear security controls, responsible data handling, independent infrastructure and precise statements about our compliance status.",
 } as const;
 
-/* Status confirmed by Delphi, 2026-08-20.
-
-   ⚠️ ISO 27001 — the moment the certificate is issued, change `status` to
-   "certified" and update the statement with the certifying body and date.
-   Until then the badge asset in the brand folder MUST NOT appear on this site;
-   displaying a certification mark before issuance is a misrepresentation, and
-   an unusually damaging one for a company selling evidential integrity.
-
-   Statements are one line each, on purpose. This block is scanned by a
+/* Statements are one line each, on purpose. This block is scanned by a
    procurement reviewer looking for three answers, not read as prose. Anything
    longer than a line belongs in the security documentation we send them. */
 export const compliance: {
@@ -81,9 +72,8 @@ export const compliance: {
 }[] = [
   {
     framework: "ISO/IEC 27001",
-    status: "pending-certification",
-    statement:
-      "Implementation complete. We are not yet certified, and we will say so until the certificate is issued.",
+    status: "certified",
+    statement: "Delphi Verify holds ISO/IEC 27001 certification.",
   },
   {
     framework: "UK / EU GDPR",
@@ -160,11 +150,12 @@ export const protections = {
        "Helps verify that requests originate from a genuine Apple device
         running the genuine Delphi application."
 
-   ⚠️  WHY THERE ARE NO ISO 27001 OR SOC 2 BADGES HERE.
+   ⚠️  WHY THERE IS NO SOC 2 BADGE HERE.
 
    The previous site showed both, beside copy describing "ISO 27001 and SOC 2
    Type II readiness". A badge is scanned; a caveat is read. Together they
-   assert a certification that is not held.
+   assert certifications that were not held at the time. ISO 27001 has since
+   been issued; SOC 2 has not.
 
    SOC 2 is the harder line. That artwork is the AICPA SOC service-organization
    mark, which AICPA licenses only to organisations that have completed a SOC
@@ -172,10 +163,7 @@ export const protections = {
    would be a licensing violation on top of a false claim — and procurement
    teams verify certification claims as a matter of routine.
 
-   ISO 27001 certification is expected within weeks. When the certificate is
-   ISSUED — not before — set that entry's status to "certified" in `compliance`
-   above and give it a `mark`. The Trust page renders a badge only for a
-   "certified" row, so nothing else needs changing and nothing can leak early.
+   Add an ISO mark only when its use is permitted by the certifying body.
 
    Stripe appeared on the old page and is omitted: there is no payment
    processing anywhere in the product description, so it would have attributed

@@ -6,6 +6,7 @@ import { EvidenceChip, type EvidenceState } from "@/components/evidence/Evidence
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Container, Eyebrow, Section } from "@/components/ui/primitives";
 import posthog, { isPostHogEnabled } from "@/lib/posthog";
+import { displayAddress } from "./certificate-location";
 import { sortMediaForDisplay } from "./certificate-media-order";
 
 type Gps = { lat: number; lng: number; accuracy: number; capturedAt: string };
@@ -28,7 +29,7 @@ type Media = {
   gps: Gps;
   metadataHashes?: { lat: string; lng: string; capturedAt: string };
 };
-type Report = {
+export type Report = {
   publicCode: string;
   viewCount: number;
   title: string | null;
@@ -187,6 +188,7 @@ function CertificateReport({ report }: { report: Report }) {
   const [activeIndex, setActiveIndex] = useState(displayMedia[0]?.index ?? 0);
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState("");
+  const [pdfState, setPdfState] = useState<"idle" | "loading" | "error">("idle");
   const [reportState, setReportState] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const active = displayMedia.find((item) => item.index === activeIndex) ?? displayMedia[0];
   const gps = active?.gps ?? report.gps;
@@ -224,6 +226,27 @@ function CertificateReport({ report }: { report: Report }) {
       if (isPostHogEnabled) posthog.capture("certificate_shared", { method });
     } catch {
       // The native share sheet was dismissed.
+    }
+  }
+
+  async function downloadPdf() {
+    setPdfState("loading");
+    try {
+      const { createCertificatePdf } = await import("./certificate-pdf");
+      const bytes = await createCertificatePdf(report, displayMedia);
+      const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `delphi-certificate-${formattedCode}.pdf`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (isPostHogEnabled) posthog.capture("certificate_pdf_downloaded");
+      setPdfState("idle");
+    } catch (error) {
+      console.error("Could not create certificate PDF", error);
+      setPdfState("error");
     }
   }
 
@@ -275,7 +298,14 @@ function CertificateReport({ report }: { report: Report }) {
               </div>
               <p className="mt-2 text-caption text-ink-muted">{(report.viewCount ?? 0).toLocaleString()} views</p>
             </div>
-            <Button variant="secondary" onClick={() => void share()}>Share certificate</Button>
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              <Button variant="secondary" onClick={() => void downloadPdf()} disabled={pdfState === "loading"}>
+                <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4"><path d="M10 2v10m0 0 3.5-3.5M10 12 6.5 8.5M3 13v4h14v-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                {pdfState === "loading" ? "Creating PDF…" : "Download PDF"}
+              </Button>
+              <Button variant="secondary" onClick={() => void share()}>Share link</Button>
+            </div>
+            {pdfState === "error" ? <p role="alert" className="max-w-60 text-caption text-failed lg:text-right">PDF could not be created. Please try again.</p> : null}
           </div>
           <div className="flex items-center justify-center rounded-md border border-line bg-surface p-4">
             {qr ? <img src={qr} alt={`QR code for certificate ${formattedCode}`} className="h-32 w-32" /> : <div className="h-32 w-32 animate-pulse rounded-md bg-surface-sunken" />}
@@ -518,17 +548,11 @@ function formatCode(raw: string) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium" }).format(new Date(value));
+  return `${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "medium", timeZone: "UTC" }).format(new Date(value))} UTC`;
 }
 
 function formatAccuracy(value: number) {
   return value >= 1000 ? `${(value / 1000).toFixed(1)} km` : `${Math.round(value)} m`;
-}
-
-function displayAddress(address: Address | null, accuracy: number) {
-  if (!address) return null;
-  const regional = [address.city ?? address.county, address.region, address.country].filter(Boolean).join(", ");
-  return accuracy >= 250 ? regional || null : address.formattedAddress || regional || null;
 }
 
 function networkName(chainId: number) {

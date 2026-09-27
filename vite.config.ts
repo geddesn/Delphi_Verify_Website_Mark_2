@@ -6,7 +6,23 @@ import path from "node:path";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    proxy: { "/api": "https://delphiverify.com" },
+    proxy: {
+      "/api": "https://delphiverify.com",
+      "/__certificate-media": {
+        target: "https://firebasestorage.googleapis.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/__certificate-media/, ""),
+      },
+    },
+  },
+  preview: {
+    proxy: {
+      "/__certificate-media": {
+        target: "https://firebasestorage.googleapis.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/__certificate-media/, ""),
+      },
+    },
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },

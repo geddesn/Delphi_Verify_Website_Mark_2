@@ -71,27 +71,21 @@ async function jpeg(url: string, iconOnly = false) {
   const requestUrl = local && source.hostname === "firebasestorage.googleapis.com"
     ? `/__certificate-media${source.pathname}${source.search}`
     : source.href;
-  const response = await fetch(requestUrl);
-  if (!response.ok) throw new Error(`Image request failed: ${response.status}`);
-  const blobUrl = URL.createObjectURL(await response.blob());
-  try {
-    const image = new Image();
-    image.src = blobUrl;
-    await image.decode();
-    const scale = Math.min(1, 1200 / Math.max(image.naturalWidth, image.naturalHeight));
-    const canvas = document.createElement("canvas");
-    canvas.width = iconOnly ? 320 : Math.max(1, Math.round(image.naturalWidth * scale));
-    canvas.height = iconOnly ? 320 : Math.max(1, Math.round(image.naturalHeight * scale));
-    const context = canvas.getContext("2d");
-    if (!context) throw new Error("Canvas unavailable");
-    context.fillStyle = "white";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    if (iconOnly) context.drawImage(image, 0, 0, 80, 80, 0, 0, canvas.width, canvas.height);
-    else context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return await canvasJpeg(canvas);
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.src = requestUrl;
+  await image.decode();
+  const scale = Math.min(1, 1200 / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement("canvas");
+  canvas.width = iconOnly ? 320 : Math.max(1, Math.round(image.naturalWidth * scale));
+  canvas.height = iconOnly ? 320 : Math.max(1, Math.round(image.naturalHeight * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas unavailable");
+  context.fillStyle = "white";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  if (iconOnly) context.drawImage(image, 0, 0, 80, 80, 0, 0, canvas.width, canvas.height);
+  else context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvasJpeg(canvas);
 }
 
 function label(page: PDFPage, bold: PDFFont, value: string, x: number, top: number, width = W - x - 34) {
@@ -205,7 +199,7 @@ export async function createCertificatePdf(report: Report, media: Media[]) {
     pages.push(page);
     rect(page, 0, 0, W, H, panel);
     rect(page, 13, 13, W - 26, H - 26, white);
-    page.drawImage(watermark, { x: 342, y: H - 226, width: 225, height: 225, opacity: 0.055 });
+    page.drawImage(watermark, { x: W - 13 - 225, y: H - 226, width: 225, height: 225, opacity: 0.055 });
     header(page, logo, font);
     return page;
   };

@@ -59,6 +59,12 @@ try {
     description = text;
     gps.accuracy = accuracy;
     await page.goto(`${origin}/v/WO5D1KMZ`);
+    await page.evaluate(() => {
+      const policy = document.createElement("meta");
+      policy.httpEquiv = "Content-Security-Policy";
+      policy.content = "img-src 'self' data:";
+      document.head.append(policy);
+    });
     await page.getByText(/Captured on/).first().waitFor();
     assert.match(await page.locator("main").innerText(), /UTC/);
     await page.getByText(expectedAddress, { exact: true }).waitFor();

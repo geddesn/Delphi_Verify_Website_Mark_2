@@ -51,7 +51,8 @@ try {
   for (const [scenario, mediaCount, expectedPages, accuracy, expectedAddress, text] of [
     ["2", 2, 1, 1000, "Liguria, Italy", "Rose gold and diamonds"],
     ["4", 4, 2, 250, "Dolceacqua, Liguria, Italy", "Rose gold and diamonds"],
-    ["8", 8, 4, 10, "Via Roma 12, Dolceacqua, Liguria, Italy", "Rose gold and diamonds"],
+    ["6", 6, 2, 10, "Via Roma 12, Dolceacqua, Liguria, Italy", "Rose gold and diamonds"],
+    ["8", 8, 3, 10, "Via Roma 12, Dolceacqua, Liguria, Italy", "Rose gold and diamonds"],
     ["long", 4, 2, 250, "Dolceacqua, Liguria, Italy", "The original capture documents the object, its condition, and the surrounding context. ".repeat(4)],
     ["very-long", 2, null, 1000, "Liguria, Italy", "Complete description preserved across pages. ".repeat(500)],
   ]) {
@@ -81,7 +82,7 @@ try {
   }
   assert.ok(mediaRequests > 0, "Certificate media must use the local proxy");
   assert.equal(tileRequests, 0, "PDF must not fetch map tiles");
-  console.log("Certificate PDF download: 2, 4 and 8 images; long descriptions; UTC date; location accuracy; no map tiles");
+  console.log("Certificate PDF download: 2, 4, 6 and 8 images; long descriptions; UTC date; location accuracy; no map tiles");
 } finally {
   await browser?.close();
   server.kill();

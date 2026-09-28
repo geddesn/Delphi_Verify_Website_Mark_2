@@ -283,10 +283,11 @@ export async function createCertificatePdf(report: Report, media: Media[]) {
       write(page, font, `CERTIFICATE ${code}`, 34, 153, 8, muted);
       rule(page, 34, 176, 527);
     }
-    const last = Math.min(nextMedia + 2, media.length);
+    const last = Math.min(nextMedia + (locationPageAvailable ? 2 : 4), media.length);
     write(page, bold, `${nextMedia + 1}–${last} OF ${media.length}`, 493, locationPageAvailable ? 229 : 102, 8, muted, 68);
     for (let index = nextMedia; index < last; index++) {
-      card(page, images[index], media[index], index, report.captureVerification.verifiedCaptures, cardsTop, 34 + (index - nextMedia) * 272, bold, 254);
+      const position = index - nextMedia;
+      card(page, images[index], media[index], index, report.captureVerification.verifiedCaptures, cardsTop + Math.floor(position / 2) * 271, 34 + (position % 2) * 272, bold, 254);
     }
     nextMedia = last;
     locationPageAvailable = false;

@@ -169,8 +169,10 @@ function location(page: PDFPage, report: Report, qrImage: PDFImage, font: PDFFon
   write(page, font, "COORDINATES", 253, top + 80, 7, muted);
   write(page, bold, `${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}`, 253, top + 93, 10, ink, 185);
   rect(page, 456, top + 35, 0.7, 78, line);
-  page.drawImage(qrImage, { x: 476, y: H - top - 100, width: 64, height: 64 });
-  write(page, bold, "GOOGLE MAPS", 477, top + 105, 6, blue, 64);
+  const qrCenter = (456 + 561) / 2;
+  const caption = "GOOGLE MAPS";
+  page.drawImage(qrImage, { x: qrCenter - 32, y: H - top - 100, width: 64, height: 64 });
+  write(page, bold, caption, qrCenter - bold.widthOfTextAtSize(caption, 6) / 2, top + 105, 6, blue, 64);
 }
 
 export async function createCertificatePdf(report: Report, media: Media[]) {

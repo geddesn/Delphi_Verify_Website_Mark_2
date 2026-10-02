@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ActiveWork, Sidebar, TopBar } from "@/components/renderings/WebDashboard";
+import { Sidebar, TopBar } from "@/components/renderings/WebDashboard";
 import { ORG } from "@/content/dashboard";
 import { SiteProgress } from "@/components/enterprise/SiteProgress";
 import { AnalysisCharts } from "@/components/enterprise/AnalysisCharts";
 import { ReviewQueue } from "@/components/enterprise/ReviewQueue";
+import { JobsBoard } from "@/components/enterprise/JobsBoard";
 import { WorkOverTime } from "@/components/enterprise/WorkOverTime";
 import { CREW, TRADE } from "@/content/enterprise/world";
 import { useT } from "@/content/enterprise/lang";
@@ -170,16 +171,29 @@ function Crew() {
 
 /* ── Jobs ────────────────────────────────────────────────────────────────── */
 
+/** Who has been asked to photograph what, and whether they have.
+ *
+ *  ⚠️  THE LONDON TABLE IS GONE. This showed ActiveWork from the agency
+ *  fixture behind /platform/renderings — five invented London addresses,
+ *  workflow names and assignees that belong to a different product in a
+ *  different country, sitting inside an app whose every other screen is about
+ *  a development in Jamundí. It was the same fault as the assets map and the
+ *  crew list before it: a real-looking table that contradicted the thing it
+ *  sat next to.
+ *
+ *  ⚠️  AND THE PRODUCT STILL DOES NOT ASSIGN WORK. There is no job, assignee,
+ *  due date or schedule in Delphi — see the warnings at the top of JobsBoard.
+ *  This is the gap, drawn. */
 function Jobs() {
   return (
     <Shell
       active="Jobs"
       title="Jobs"
       eyebrow={ORG.workspace}
-      standfirst="Active work across your organisation."
+      standfirst="Apartment, room and trade — who has been asked, and what has come back."
     >
       <div className="mt-8">
-        <ActiveWork />
+        <JobsBoard />
       </div>
     </Shell>
   );

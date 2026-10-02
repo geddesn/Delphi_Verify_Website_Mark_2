@@ -2154,3 +2154,315 @@ export function peopleForJob(jobKey: string): Crossing[] {
 export function activityMonths(): string[] {
   return certificatesByMonth().map((m) => m.month);
 }
+
+/* ── Work still to do ────────────────────────────────────────────────────── */
+
+/* ⚠️  THE PRODUCT DOES NOT ASSIGN WORK. Delphi has no concept of a job, a
+   schedule, an assignee or a due date: somebody opens the app, takes a
+   photograph, and a certificate exists. Everything below is the thing a
+   developer with 70% of the work subcontracted actually needs in order to use
+   any of it at scale, and it does not exist yet. It belongs near the top of
+   the gap analysis — above the review queue, because you cannot review work
+   nobody was asked to do.
+
+   ⚠️  AND A JOB IS NOT A CERTIFICATE. Asking somebody to photograph a bathroom
+   is an instruction; the certificate is what comes back. The instruction can
+   be wrong, late, duplicated or ignored, and none of that touches the record —
+   which is exactly why the two must stay separate objects. Marking a job done
+   here would not make a certificate exist, and this screen never pretends
+   otherwise.
+
+   The unit is one checklist cell: apartment, room and trade together. That is
+   the grain somebody can actually be sent to do — "apartment 1134, bathroom,
+   plumbing" is a morning's work with a known answer, where "apartment 1134" is
+   four trades and three weeks. */
+
+/* The lifecycle of an instruction. It ends at "done", and "done" is not
+   something this screen can declare — see the note on openWork(). */
+export type WorkState =
+  /** Due, and nobody's name on it. */
+  | "unassigned"
+  /** Somebody has it, not started. */
+  | "pending"
+  /** Being worked on now. */
+  | "in-progress"
+  /** Captured, and the site team asked for a second look. */
+  | "inspection"
+  /** Captured, and the site team sent it back. */
+  | "rework"
+  /** The photograph exists, so the instruction is discharged. */
+  | "done";
+
+export type WorkItem = {
+  /** tower:unit:stage:trade:room — stable, so session edits survive a re-sort. */
+  id: string;
+  tower: Tower;
+  unit: UnitState;
+  requirement: Requirement;
+  stage: string;
+  trade: Trade;
+  room: string;
+  state: WorkState;
+  /** Who it falls to. Null when nobody has been given it. */
+  by: Capturer | null;
+  /** ISO date. Past TODAY means late. For finished work, the day it was
+   *  captured — a due date on something already done is noise. */
+  due: string;
+  /** Negative when it is still ahead, zero once it is done. */
+  daysLate: number;
+  /** The certificate this job's photograph belongs to, once one exists.
+   *
+   *  ⚠️  NULL UNTIL THERE IS A PHOTOGRAPH, and that is the honest half of the
+   *  model: an instruction nobody has carried out has no record behind it, and
+   *  a job screen that offered a certificate link on every row would be
+   *  offering to open something that does not exist. Sent-back work has one —
+   *  which is the point, because the first question about a rework is what the
+   *  photograph actually showed. */
+  certificate: string | null;
+};
+
+/** The crew who could take a given trade. */
+export function crewForTrade(trade: Trade): Capturer[] {
+  return CREW.filter((c) => c.trade === trade);
+}
+
+function addDays(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY)
+    .toISOString()
+    .slice(0, 10);
+}
+
+/** How far back finished jobs stay on the board. */
+const DONE_WINDOW_DAYS = 28;
+
+let workCache: WorkItem[] | null = null;
+
+/** Everything outstanding, across all three towers.
+ *
+ *  ⚠️  THE CURRENT STAGE ONLY, plus anything sent back. A list that also held
+ *  every cell of every stage a tower has not reached would be forty thousand
+ *  rows of work nobody can start, and would bury the eleven hundred somebody
+ *  can. Future stages are a programme, not a job list. */
+export function openWork(): WorkItem[] {
+  if (workCache) return workCache;
+
+  const out: WorkItem[] = [];
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      if (unit.sealed === 0) continue;
+
+      /* When each job was photographed, so finished work can be dated by the
+         capture rather than by an instruction nobody needs any more. */
+      const captured = new Map<string, string>();
+      for (const job of JOBS) {
+        const session = sessionFor(unit, tower, job);
+        if (session) captured.set(`${job.stage}:${job.trade}`, session.date);
+      }
+
+      for (const cell of capturesFor(unit, tower)) {
+        const r = cell.requirement;
+        const seed = `${tower.key}-${unit.code}-${r.stage}-${r.trade}-${r.room}`;
+        const when = captured.get(`${r.stage}:${r.trade}`);
+
+        /* ⚠️  FLAGGED FIRST, AND THAT ORDER IS THE WHOLE POINT. A capture the
+           site team sent back HAS a photograph — hasPhotograph() is true for
+           inspection and rework alike — so testing for the photograph first
+           filed every flagged job as finished and took inspection and rework
+           to zero on a board whose entire job is to surface them. The
+           photograph existing is not the instruction being discharged when
+           somebody has asked for it again. */
+        if (cell.status === "warning" || cell.status === "problem") {
+          out.push({
+            id: seed,
+            tower,
+            unit,
+            requirement: r,
+            stage: r.stage,
+            trade: r.trade,
+            room: r.room,
+            state: cell.status === "problem" ? "rework" : "inspection",
+            by: cell.by,
+            certificate: certificateCode(unit, tower, r.stage, r.trade),
+            /* Dated from when it was raised, so sent-back work surfaces as the
+               oldest thing on the board — which is what it is, and what nobody
+               wants to find at handover. */
+            due: addDays(TODAY, Math.round(hash01(`${seed}:due`) * 26) - 20),
+            daysLate: -Math.round(hash01(`${seed}:due`) * 26) + 20,
+          });
+          continue;
+        }
+
+        /* ⚠️  FINISHED WORK EARNS A PLACE, BUT ONLY RECENTLY. A job list that
+           hides everything the moment it is done cannot show you that the
+           hundred you raised last week came back — which is half of what
+           monitoring means. One that keeps all three thousand buries the
+           hundred that have not. Four weeks is the window somebody still
+           cares about. */
+        if (hasPhotograph(cell)) {
+          if (!when || ageInDays(when) > DONE_WINDOW_DAYS) continue;
+          out.push({
+            id: seed,
+            tower,
+            unit,
+            requirement: r,
+            stage: r.stage,
+            trade: r.trade,
+            room: r.room,
+            state: "done",
+            by: cell.by,
+            due: when,
+            daysLate: 0,
+            certificate: certificateCode(unit, tower, r.stage, r.trade),
+          });
+          continue;
+        }
+
+        const open = cell.status === "pending" || cell.status === "active";
+        if (!open) continue;
+        /* Pending in a stage the apartment has not reached is not work yet. */
+        if (cell.status === "pending" && unit.current !== r.stage) continue;
+
+        /* ⚠️  SOME OF IT HAS NOBODY ON IT, which is the point of the screen.
+           The fixture hands every cell a capturer, so without this the job
+           list would open with nothing to do and the create flow would have
+           no reason to exist. Roughly a third of what has not been started is
+           unallocated — which is also what a site office looks like on a
+           Monday. */
+        const loose =
+          cell.status === "pending" && hash01(`${seed}:assigned`) < 0.34;
+
+        const state: WorkState =
+          cell.status === "active"
+            ? "in-progress"
+            : loose
+              ? "unassigned"
+              : "pending";
+
+        /* Spread either side of today, so the list has work in hand and work
+           that has slipped. Sent-back work is dated from when it was raised,
+           so it surfaces as the oldest thing on the page — which is what it
+           is, and what nobody wants to discover at handover. */
+        const due = addDays(TODAY, Math.round(hash01(`${seed}:due`) * 34) - 12);
+
+        out.push({
+          id: seed,
+          tower,
+          unit,
+          requirement: r,
+          stage: r.stage,
+          trade: r.trade,
+          room: r.room,
+          state,
+          by: loose ? null : cell.by,
+          due,
+          daysLate: ageInDays(due),
+          /* Nothing captured yet, so nothing to open. */
+          certificate: null,
+        });
+      }
+    }
+  }
+
+  /* Latest first would bury what has slipped. Oldest due date first is the
+     order somebody works a list in. */
+  workCache = out.sort((a, b) => a.due.localeCompare(b.due));
+  return workCache;
+}
+
+/** The code of the certificate covering a job, if one has published. */
+function certificateCode(
+  unit: UnitState,
+  tower: Tower,
+  stage: string,
+  trade: Trade,
+): string | null {
+  const session = sessionFor(unit, tower, { stage, trade });
+  return session?.code ?? null;
+}
+
+/** The capture behind a job, so a row can open the photograph it is about. */
+export function captureFor(item: WorkItem): RequiredCapture | null {
+  return (
+    capturesFor(item.unit, item.tower).find(
+      (c) =>
+        c.requirement.stage === item.stage &&
+        c.requirement.trade === item.trade &&
+        c.requirement.room === item.room,
+    ) ?? null
+  );
+}
+
+/** How the backlog splits, for the figures above the table. */
+export function workSummary(items: WorkItem[]) {
+  const by = (s: WorkState) => items.filter((i) => i.state === s).length;
+  return {
+    total: items.length,
+    /* Outstanding is what somebody still has to do — "done" rows are on the
+       board to be seen, not to be counted as work. */
+    outstanding: items.filter((i) => i.state !== "done").length,
+    unassigned: by("unassigned"),
+    pending: by("pending"),
+    inProgress: by("in-progress"),
+    inspection: by("inspection"),
+    rework: by("rework"),
+    done: by("done"),
+    late: items.filter((i) => i.state !== "done" && i.daysLate > 0).length,
+  };
+}
+
+/** Work that could be raised but has not been: the forward pipeline.
+ *
+ *  ⚠️  THE TWO HALVES OF THIS SCREEN ARE DIFFERENT SETS. openWork() is what is
+ *  in flight — 127 cells across the two towers that have started. This is
+ *  everything else: Torre 3 has not begun a single apartment and 56 of Torre
+ *  2's have not either, which is some three hundred apartments of work nobody
+ *  has asked for yet. Monitoring is the first set; creating jobs is the
+ *  second, and conflating them would either bury the live work in forty
+ *  thousand rows or leave nothing to schedule.
+ *
+ *  Excludes anything already photographed, and anything already in flight. */
+export function candidateWork(opts: {
+  towerKey: string;
+  stage: string;
+  trade: Trade;
+  rooms?: string[];
+  floorFrom?: number;
+  floorTo?: number;
+}): { tower: Tower; unit: UnitState; requirement: Requirement }[] {
+  const tower = TOWERS.find((t) => t.key === opts.towerKey);
+  if (!tower) return [];
+
+  const live = new Set(openWork().map((w) => w.id));
+  const from = opts.floorFrom ?? 1;
+  const to = opts.floorTo ?? tower.floors;
+  const rooms = opts.rooms?.length ? new Set(opts.rooms) : null;
+
+  const out: { tower: Tower; unit: UnitState; requirement: Requirement }[] = [];
+  for (const unit of UNITS[tower.key]) {
+    if (unit.floor < from || unit.floor > to) continue;
+    for (const cell of capturesFor(unit, tower)) {
+      const r = cell.requirement;
+      if (r.stage !== opts.stage || r.trade !== opts.trade) continue;
+      if (rooms && !rooms.has(r.room)) continue;
+      if (hasPhotograph(cell)) continue;
+      const id = `${tower.key}-${unit.code}-${r.stage}-${r.trade}-${r.room}`;
+      if (live.has(id)) continue;
+      out.push({ tower, unit, requirement: r });
+    }
+  }
+  return out;
+}
+
+/** The rooms a given stage and trade actually asks for. A trade has no work in
+ *  most rooms, and offering all seven would invite jobs that cannot exist. */
+export function roomsForJob(stage: string, trade: Trade): string[] {
+  return REQUIREMENTS.filter((r) => r.stage === stage && r.trade === trade).map(
+    (r) => r.room,
+  );
+}
+
+/** Job types that can be raised: the unit-level ones. Plot, foundations and
+ *  structure are not somebody's morning. */
+export const SCHEDULABLE_JOBS = JOBS.filter((j) =>
+  REQUIREMENTS.some((r) => r.stage === j.stage && r.trade === j.trade),
+);

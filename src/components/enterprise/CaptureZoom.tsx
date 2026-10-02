@@ -61,10 +61,13 @@ function anchor(
 export function CaptureZoom({
   shots,
   start,
+  code,
   onClose,
 }: {
   shots: RequiredCapture[];
   start: number;
+  /** The certificate these captures belong to, when the caller knows it. */
+  code?: string;
   onClose: () => void;
 }) {
   const t = useT();
@@ -355,6 +358,11 @@ export function CaptureZoom({
       </div>
 
       <footer className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-line px-5 py-3">
+        {code && (
+          <span className="rounded-sm border border-line-strong px-2 py-0.5 font-mono text-[12px] text-ink">
+            {code}
+          </span>
+        )}
         <span className="font-mono text-[12px] text-ink-secondary">
           {stage ? t(stage.name) : cell.requirement.stage} ·{" "}
           {t(TRADE[cell.requirement.trade])} · {cell.by.name}

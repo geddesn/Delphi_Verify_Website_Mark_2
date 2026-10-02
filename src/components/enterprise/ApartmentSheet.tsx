@@ -2,45 +2,45 @@ import { useMemo, useState } from "react";
 import {
   APARTMENT,
   CAPTURE_ROOMS,
-  JOBS,
   TRADE,
   capturesFor,
-  sessionFor,
+  inFocus,
   shotSrc,
   stageByKey,
-  inFocus,
   type CaptureFocus,
   type RequiredCapture,
   type Tower,
   type UnitPhase,
   type UnitState,
 } from "@/content/enterprise/world";
-import { fmtDate, useLang, useT, type Bi } from "@/content/enterprise/lang";
+import { useT, type Bi } from "@/content/enterprise/lang";
 
 /* ============================================================================
-   APARTMENT SHEET
+   APARTMENT PANE
    ============================================================================
-   One apartment's checklist, as a grid: rooms down, trades across.
+   One apartment, drawn as its plan, with a marker on every required capture.
 
-   ⚠️  THE GRID IS THE POINT, and it took a wrong turn to find it. An earlier
-   version listed captures grouped by certificate, which reads well and is
-   useless on site — it answers "what did Mario photograph" and never answers
-   "has anybody done the bathroom plumbing". The work is a room and a trade
-   together: a bathroom needs plumbing, a living room does not, a kitchen
-   needs every trade there is. The blanks carry as much information as the
-   cells.
+   ⚠️  THE PLAN IS THE WHOLE THING NOW, and the grid it replaced is worth
+   recording. The captures were a table of rooms against trades with a
+   thumbnail in each cell, under a small plan that acted as its key. It was
+   accurate and it read as a spreadsheet: the picture of the apartment — the
+   thing that tells you instantly which room something is in — was the smallest
+   element on the screen, and the rest of it re-stated in words what the plan
+   already said in shape.
 
-   ⚠️  A COLUMN IS A CERTIFICATE. A capture session has one photographer, so
-   the plumber's two rooms publish as one certificate and the electrician's six
-   as another. The column header carries the person, the firm, the date and the
-   code; the cells under it are what that certificate contains. The grid and
-   the certificates are two readings of one set of facts, not two features.
+   So the plan fills the pane and the captures are markers on it, in the rooms
+   they are of. Colour is status, hover is the photograph. A supervisor sees
+   what is outstanding, and where, without reading a row.
 
-   ⚠️  A COLUMN WITH NO CERTIFICATE IS NOT A FAILURE. Work in progress has
-   captures but no published session yet — in the product they are a draft
-   until the session is published. The header says so rather than showing an
-   empty code.
+   ⚠️  A MARKER IS A REQUIRED CAPTURE, NOT A PHOTOGRAPH. Most have no image
+   behind them yet — that is what a checklist is — so a marker exists whether
+   or not the work is done, and its colour is the answer. Only the captured
+   ones have anything to show on hover, and the rest say so.
    ========================================================================= */
+
+/* The hover preview, in metres of the plan it is drawn on. Sized to sit inside
+   a room without burying the markers either side of it. */
+const PREVIEW = { w: 4.6, h: 3.1 };
 
 export function ApartmentPane({
   unit,
@@ -51,62 +51,18 @@ export function ApartmentPane({
   unit: UnitState;
   tower: Tower;
   onBack: () => void;
-  /** The table's current selection — a room, a task, or a person. */
+  /** The progress table's selection. Markers outside it are dropped, so the
+   *  plan shows exactly what was asked for. */
   focus: CaptureFocus | null;
 }) {
   const t = useT();
   const [open, setOpen] = useState<RequiredCapture | null>(null);
-  /* Which room the plan has been clicked on. Null means the whole apartment,
-     which is how it opens. */
-  const [room, setRoom] = useState<string | null>(null);
+  const [hover, setHover] = useState<RequiredCapture | null>(null);
 
   const cells = useMemo(() => capturesFor(unit, tower), [unit, tower]);
-
-  const sessions = useMemo(
-    () => JOBS.map((job) => sessionFor(unit, tower, job)),
-    [unit, tower],
-  );
-
-  /* Photographs per room, for the plan above the grid. Only captures that
-     exist are counted — a room with four requirements and none met should not
-     advertise a four. */
-  const perRoom = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const c of cells) {
-      if (c.status !== "complete" && c.status !== "problem") continue;
-      counts.set(c.requirement.room, (counts.get(c.requirement.room) ?? 0) + 1);
-    }
-    return counts;
-  }, [cells]);
-
-  const at = (room: string, stage: string, trade: string) =>
-    cells.find(
-      (c) =>
-        c.requirement.room === room &&
-        c.requirement.stage === stage &&
-        c.requirement.trade === trade,
-    ) ?? null;
-
-  /* ⚠️  WHAT IS SHOWN IS WHAT IS SELECTED, from either direction: the room
-     clicked on the plan and the row clicked in the progress table, together.
-     Pick Mario and you see Mario's captures; pick the kitchen and you see the
-     kitchen's; pick both and you see his work in that room.
-
-     They FILTER rather than dim. Dimming was the first attempt and it keeps
-     the shape of the whole checklist on screen, which is honest but useless at
-     this size — twenty-two cells at thirty percent opacity around the four you
-     asked for. The header keeps counting the whole apartment, so the total
-     never silently shrinks with the view. */
-  const shown = cells.filter(
-    (c) => inFocus(c, focus) && (!room || c.requirement.room === room),
-  );
-  const shownRooms = CAPTURE_ROOMS.filter((r) =>
-    shown.some((c) => c.requirement.room === r.key),
-  );
-  const shownJobs = JOBS.filter((j) =>
-    shown.some(
-      (c) => c.requirement.stage === j.stage && c.requirement.trade === j.trade,
-    ),
+  const shown = useMemo(
+    () => cells.filter((c) => inFocus(c, focus)),
+    [cells, focus],
   );
 
   const done = cells.filter((c) => c.status === "complete").length;
@@ -114,16 +70,16 @@ export function ApartmentPane({
   const chasing = cells.filter((c) => c.status === "warning").length;
 
   return (
-    <div className="flex h-full w-full flex-col bg-canvas">
-      <header className="flex shrink-0 items-center gap-4 border-b border-line px-5 py-3">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-canvas">
+      <header className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-2.5">
         <button
           type="button"
           onClick={onBack}
           className="cursor-pointer font-mono text-mono-sm uppercase text-ink-muted transition-colors hover:text-ink"
         >
-          ← {tower.name} · {t({ en: "floor", es: "piso" })} {unit.floor}
+          ← {t({ en: "floor", es: "piso" })} {unit.floor}
         </button>
-        <h2 className="text-heading text-ink">
+        <h2 className="text-body font-semibold text-ink">
           {t({ en: "Apartment", es: "Apartamento" })} {unit.code}
         </h2>
         <span className="font-mono text-mono-sm text-ink-muted">
@@ -131,6 +87,9 @@ export function ApartmentPane({
         </span>
 
         <div className="ml-auto flex items-baseline gap-4">
+          {/* Counted over the whole apartment, never over what the filter
+              leaves — a total that shrinks with the view is one nobody can
+              trust. */}
           <Figure
             value={`${done}/${cells.length}`}
             label={t({ en: "Captures", es: "Capturas" })}
@@ -152,101 +111,304 @@ export function ApartmentPane({
         </div>
       </header>
 
-      {/* ⚠️  THE PLAN TAKES A FIXED SLICE AND THE CAPTURES TAKE THE REST. This
-          pane is far narrower than the full-screen sheet it replaced — the
-          progress panel keeps its place on the right — so both halves cannot
-          be given room to breathe. The plan is the one that gives way: it is
-          an index, and you only have to recognise a room in it. */}
-      {/* ⚠️  THE PLAN IS THE CONTROL, not an illustration. It was a 132px
-          thumbnail under the header and the grid below it showed all 22 cells
-          at once — which is the whole checklist whether or not you care about
-          the kitchen. Clicking a room now narrows what is shown, so the plan
-          earns the room it takes. */}
-      <div className="shrink-0 border-b border-line px-4 py-3">
-        <RoomPlan
-          counts={perRoom}
-          selected={room}
-          onSelect={(key) => setRoom(key === room ? null : key)}
+      <div className="min-h-0 flex-1 p-4">
+        <PlanBoard
+          cells={shown}
+          hover={hover}
+          onHover={setHover}
+          onOpen={setOpen}
         />
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-4">
-        {/* ⚠️  AN EMPTY RESULT HAS TO SAY SO. A person focus can legitimately
-            match nothing in one apartment — Mario plumbed the kitchen on this
-            floor and Luigi did the one next door — and a blank pane reads as
-            a bug rather than as an answer. */}
-        {shown.length === 0 && (
-          <p className="text-body-sm text-ink-secondary">
-            {t({
-              en: "Nothing in this apartment matches the current selection.",
-              es: "Nada en este apartamento coincide con la selección actual.",
-            })}
-          </p>
-        )}
-
-        <table className="w-full border-separate border-spacing-0">
-          <thead>
-            <tr>
-              <th className="sticky left-0 z-10 w-28 bg-canvas pb-2 pr-3 text-left align-bottom">
-                <span className="font-mono text-mono-sm uppercase text-ink-muted">
-                  {t({ en: "Room", es: "Ambiente" })}
-                </span>
-              </th>
-              {shownJobs.map((job) => (
-                <th key={`${job.stage}-${job.trade}`} className="pb-2 pl-3 text-left align-bottom">
-                  <JobHeader
-                    job={job}
-                    session={sessions[JOBS.indexOf(job)]}
-                  />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {shownRooms.map((row) => (
-              <tr key={row.key}>
-                <th
-                  scope="row"
-                  className="sticky left-0 z-10 border-t border-line bg-canvas py-2 pr-3 text-left align-middle"
-                >
-                  <span className="text-body-sm text-ink">{t(row.name)}</span>
-                </th>
-                {shownJobs.map((job) => {
-                  const cell = at(row.key, job.stage, job.trade);
-                  return (
-                    <td
-                      key={`${job.stage}-${job.trade}`}
-                      className="border-t border-line py-2 pl-3 align-middle"
-                    >
-                      {cell ? (
-                        <Cell cell={cell} onOpen={() => setOpen(cell)} />
-                      ) : (
-                        /* No work of this trade in this room. A dash, not an
-                           empty box — "nothing required here" and "required
-                           and not done" must never look alike. */
-                        <span
-                          aria-label={t({
-                            en: "Not required",
-                            es: "No aplica",
-                          })}
-                          className="block text-center font-mono text-mono-sm text-ink-muted"
-                        >
-                          —
-                        </span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {shown.length === 0 && (
+        <p className="shrink-0 px-4 pb-4 text-body-sm text-ink-secondary">
+          {t({
+            en: "Nothing in this apartment matches the current selection.",
+            es: "Nada en este apartamento coincide con la selección actual.",
+          })}
+        </p>
+      )}
 
       {open && <Lightbox cell={open} onClose={() => setOpen(null)} />}
     </div>
   );
 }
+
+/* ── The plan, with its markers ──────────────────────────────────────────── */
+
+type Area = { key: string; name: Bi; x: number; z: number; w: number; d: number };
+
+/** Where a room's markers sit: a row across the middle of it.
+ *
+ *  Laid out rather than scattered, because a room carries between one and four
+ *  required captures and a scatter overlaps in the small ones. Spacing is
+ *  bounded by the room's own width, so the kitchen's four and the balcony's two
+ *  both sit comfortably. */
+function markerPositions(area: Area, n: number) {
+  const gap = Math.min(0.95, (area.w - 0.6) / Math.max(1, n));
+  const startX = area.x + area.w / 2 - ((n - 1) * gap) / 2;
+  return Array.from({ length: n }, (_, i) => ({
+    x: startX + i * gap,
+    y: area.z + area.d / 2 + 0.5,
+  }));
+}
+
+function areasOf(): Area[] {
+  const { balcony } = APARTMENT;
+  return [
+    ...APARTMENT.rooms.map((r) => ({
+      key: r.key,
+      name: r.name,
+      x: r.x,
+      z: r.z,
+      w: r.w,
+      d: r.d,
+    })),
+    {
+      /* Not one of APARTMENT.rooms — it hangs off the structure rather than
+         sitting inside it — so it carries its own rectangle here. */
+      key: "balcon",
+      name: { en: "Balcony", es: "Balcón" },
+      x: balcony.x,
+      z: -balcony.depth,
+      w: balcony.width,
+      d: balcony.depth,
+    },
+  ];
+}
+
+function PlanBoard({
+  cells,
+  hover,
+  onHover,
+  onOpen,
+}: {
+  cells: RequiredCapture[];
+  hover: RequiredCapture | null;
+  onHover: (c: RequiredCapture | null) => void;
+  onOpen: (c: RequiredCapture) => void;
+}) {
+  const t = useT();
+  const { width, depth, balcony } = APARTMENT;
+  const areas = areasOf();
+
+  /* The balcony hangs off the structure, so the drawing is taller than the
+     apartment and the viewBox has to take it in. */
+  const pad = 0.5;
+  const viewBox = `${-pad} ${-balcony.depth - pad} ${width + pad * 2} ${
+    depth + balcony.depth + pad * 2
+  }`;
+
+  return (
+    <svg
+      viewBox={viewBox}
+      className="h-full w-full"
+      role="img"
+      aria-label={t({ en: "Apartment plan", es: "Planta del apartamento" })}
+    >
+      {areas.map((area) => {
+        const mine = cells.filter((c) => c.requirement.room === area.key);
+        const spots = markerPositions(area, mine.length);
+
+        return (
+          <g key={area.key}>
+            <rect
+              x={area.x}
+              y={area.z}
+              width={area.w}
+              height={area.d}
+              fill={
+                area.key === "balcon" ? "var(--surface-sunken)" : "var(--surface)"
+              }
+              stroke="var(--line-strong)"
+              strokeWidth={0.06}
+            />
+            <text
+              x={area.x + area.w / 2}
+              y={area.z + area.d / 2 - 0.3}
+              textAnchor="middle"
+              className="font-mono"
+              fontSize={0.4}
+              fill="var(--ink-secondary)"
+            >
+              {t(area.name)}
+            </text>
+
+            {mine.map((cell, i) => (
+              <Marker
+                key={`${cell.requirement.stage}-${cell.requirement.trade}`}
+                cell={cell}
+                at={spots[i]}
+                on={hover === cell}
+                onHover={onHover}
+                onOpen={onOpen}
+              />
+            ))}
+          </g>
+        );
+      })}
+
+      {/* The outline last, over the interior walls, so the apartment reads as
+          one dwelling rather than six rooms that happen to be adjacent. */}
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={depth}
+        fill="none"
+        stroke="var(--ink-muted)"
+        strokeWidth={0.1}
+      />
+
+      {/* ⚠️  DRAWN LAST, OUTSIDE THE ROOM GROUPS. Inside one it would be
+          painted over by every room after it — SVG has no z-index, only
+          document order. */}
+      {hover && <Preview cell={hover} cells={cells} />}
+    </svg>
+  );
+}
+
+/* ── One marker ──────────────────────────────────────────────────────────── */
+
+const MARKER: Record<UnitPhase, string> = {
+  pending: "var(--line-strong)",
+  active: "var(--accent)",
+  complete: "var(--verified)",
+  warning: "var(--pending)",
+  problem: "var(--failed)",
+};
+
+function Marker({
+  cell,
+  at,
+  on,
+  onHover,
+  onOpen,
+}: {
+  cell: RequiredCapture;
+  at: { x: number; y: number };
+  on: boolean;
+  onHover: (c: RequiredCapture | null) => void;
+  onOpen: (c: RequiredCapture) => void;
+}) {
+  const t = useT();
+  const has = cell.status === "complete" || cell.status === "problem";
+
+  return (
+    <g
+      className={has ? "cursor-pointer" : undefined}
+      onPointerEnter={() => onHover(cell)}
+      onPointerLeave={() => onHover(null)}
+      onClick={() => has && onOpen(cell)}
+    >
+      {/* A disc under the dot, so a marker still reads against whatever the
+          room is filled with. */}
+      <circle cx={at.x} cy={at.y} r={on ? 0.42 : 0.3} fill="var(--surface)" />
+      <circle
+        cx={at.x}
+        cy={at.y}
+        r={on ? 0.34 : 0.23}
+        fill={MARKER[cell.status]}
+        stroke="var(--surface)"
+        strokeWidth={0.06}
+      />
+      {/* ⚠️  A CAPTURED MARKER IS RINGED, not merely a different colour.
+          Colour alone puts the whole distinction on hue, which is precisely
+          what somebody who cannot separate green from amber cannot use. */}
+      {has && (
+        <circle
+          cx={at.x}
+          cy={at.y}
+          r={0.45}
+          fill="none"
+          stroke={MARKER[cell.status]}
+          strokeWidth={0.07}
+        />
+      )}
+      <title>
+        {t(cell.requirement.what)} · {t(TRADE[cell.requirement.trade])}
+      </title>
+    </g>
+  );
+}
+
+/* ── Hover preview ───────────────────────────────────────────────────────── */
+
+function Preview({
+  cell,
+  cells,
+}: {
+  cell: RequiredCapture;
+  cells: RequiredCapture[];
+}) {
+  const t = useT();
+  const areas = areasOf();
+  const area = areas.find((a) => a.key === cell.requirement.room);
+  if (!area) return null;
+
+  const mine = cells.filter((c) => c.requirement.room === area.key);
+  const spot = markerPositions(area, mine.length)[mine.indexOf(cell)];
+  if (!spot) return null;
+
+  const has = cell.status === "complete" || cell.status === "problem";
+
+  /* Above the marker, and clamped to the drawing: a preview running off the
+     edge is a preview of nothing. */
+  const x = Math.min(
+    Math.max(spot.x - PREVIEW.w / 2, -0.3),
+    APARTMENT.width + 0.3 - PREVIEW.w,
+  );
+  const y = Math.max(
+    spot.y - PREVIEW.h - 0.7,
+    -APARTMENT.balcony.depth - 0.35,
+  );
+
+  return (
+    <g pointerEvents="none">
+      <rect
+        x={x}
+        y={y}
+        width={PREVIEW.w}
+        height={PREVIEW.h}
+        fill="var(--canvas)"
+        stroke="var(--line-strong)"
+        strokeWidth={0.07}
+      />
+      {has ? (
+        <image
+          href={shotSrc(cell.requirement.image, 480)}
+          x={x + 0.1}
+          y={y + 0.1}
+          width={PREVIEW.w - 0.2}
+          height={PREVIEW.h - 0.75}
+          preserveAspectRatio="xMidYMid slice"
+        />
+      ) : (
+        <text
+          x={x + PREVIEW.w / 2}
+          y={y + (PREVIEW.h - 0.5) / 2}
+          textAnchor="middle"
+          className="font-mono"
+          fontSize={0.34}
+          fill="var(--ink-muted)"
+        >
+          {t({ en: "Not captured yet", es: "Aún sin capturar" })}
+        </text>
+      )}
+      <text
+        x={x + 0.18}
+        y={y + PREVIEW.h - 0.22}
+        className="font-mono"
+        fontSize={0.3}
+        fill="var(--ink)"
+      >
+        {t(cell.requirement.what)}
+      </text>
+    </g>
+  );
+}
+
+/* ── Chrome ──────────────────────────────────────────────────────────────── */
 
 function Figure({
   value,
@@ -272,248 +434,7 @@ function Figure({
   );
 }
 
-/* ── A column: one job, one certificate ──────────────────────────────────── */
-
-/** The apartment in plan, as an index to the grid below it. Small on purpose:
- *  the grid is the content and this is the key to it. */
-function RoomPlan({
-  counts,
-  selected,
-  onSelect,
-}: {
-  counts: Map<string, number>;
-  selected: string | null;
-  onSelect: (key: string) => void;
-}) {
-  const t = useT();
-  const { width, depth, balcony } = APARTMENT;
-
-  return (
-    <svg
-      viewBox={`-0.3 ${-balcony.depth - 0.3} ${width + 0.6} ${depth + balcony.depth + 0.6}`}
-      className="h-[232px] w-full"
-      role="img"
-      aria-label={t({ en: "Apartment plan", es: "Planta del apartamento" })}
-    >
-      <g className="cursor-pointer" onClick={() => onSelect("balcon")}>
-        <rect
-          x={balcony.x}
-          y={-balcony.depth}
-          width={balcony.width}
-          height={balcony.depth}
-          fill={selected === "balcon" ? "var(--accent-subtle)" : "var(--surface-sunken)"}
-          stroke={selected === "balcon" ? "var(--accent)" : "var(--line-strong)"}
-          strokeWidth={selected === "balcon" ? 0.14 : 0.06}
-        />
-        <text
-          x={balcony.x + balcony.width / 2}
-          y={-balcony.depth / 2 + 0.14}
-          textAnchor="middle"
-          className="font-mono"
-          fontSize={0.34}
-          fill="var(--ink-muted)"
-        >
-          {t({ en: "Balcony", es: "Balcón" })}
-        </text>
-      </g>
-      {APARTMENT.rooms.map((r) => (
-        <g
-          key={r.key}
-          className="cursor-pointer"
-          onClick={() => onSelect(r.key)}
-        >
-          <rect
-            x={r.x}
-            y={r.z}
-            width={r.w}
-            height={r.d}
-            fill={selected === r.key ? "var(--accent-subtle)" : "var(--surface)"}
-            stroke={selected === r.key ? "var(--accent)" : "var(--line-strong)"}
-            strokeWidth={selected === r.key ? 0.14 : 0.06}
-          />
-          <text
-            x={r.x + r.w / 2}
-            y={r.z + r.d / 2 + 0.1}
-            textAnchor="middle"
-            className="font-mono"
-            fontSize={0.36}
-            fill="var(--ink-secondary)"
-          >
-            {t(r.name)}
-          </text>
-          {(counts.get(r.key) ?? 0) > 0 && (
-            <text
-              x={r.x + r.w / 2}
-              y={r.z + r.d / 2 + 0.72}
-              textAnchor="middle"
-              className="font-mono"
-              fontSize={0.32}
-              fill="var(--ink-muted)"
-            >
-              {counts.get(r.key)}
-            </text>
-          )}
-        </g>
-      ))}
-      <rect
-        x={0}
-        y={0}
-        width={width}
-        height={depth}
-        fill="none"
-        stroke="var(--ink-muted)"
-        strokeWidth={0.09}
-      />
-    </svg>
-  );
-}
-
-/* ── A column: one job, one certificate ──────────────────────────────────── */
-
-function JobHeader({
-  job,
-  session,
-}: {
-  job: { stage: string; trade: string };
-  session: ReturnType<typeof sessionFor>;
-}) {
-  const t = useT();
-  const { lang } = useLang();
-  const stage = stageByKey.get(job.stage);
-
-  return (
-    <div className="flex min-w-44 flex-col gap-1">
-      <span className="text-body-sm text-ink">
-        {t(TRADE[job.trade as keyof typeof TRADE])}
-      </span>
-      <span className="font-mono text-mono-sm text-ink-muted">
-        {stage ? t(stage.name) : job.stage}
-      </span>
-
-      {session ? (
-        <span className="flex items-center gap-1.5">
-          <span
-            aria-hidden
-            className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-sunken font-mono text-ink-secondary"
-            style={{ fontSize: "0.5rem" }}
-          >
-            {session.by.initials}
-          </span>
-          <span className="truncate text-body-sm text-ink-secondary">
-            {session.by.name}
-          </span>
-        </span>
-      ) : (
-        <span className="text-body-sm text-ink-muted">
-          {t({ en: "Not published yet", es: "Aún sin publicar" })}
-        </span>
-      )}
-
-      {session && (
-        <span className="flex items-center gap-2">
-          <span className="rounded-sm border border-line px-1.5 py-0.5 font-mono text-mono-sm text-ink">
-            {session.code}
-          </span>
-          <span className="font-mono text-mono-sm text-ink-muted">
-            {fmtDate(session.date, lang)}
-          </span>
-        </span>
-      )}
-    </div>
-  );
-}
-
-/* ── A cell: one room, one trade ─────────────────────────────────────────── */
-
-/* The same five states as the tower, and the same rule: colour is for what
-   needs a person. A captured cell shows the photograph and no colour at all —
-   the picture is the status. */
-const CELL: Record<UnitPhase, { border: string; label: Bi }> = {
-  pending: {
-    border: "var(--line)",
-    label: { en: "Not started", es: "Sin iniciar" },
-  },
-  active: {
-    border: "var(--accent)",
-    label: { en: "In progress", es: "En ejecución" },
-  },
-  complete: {
-    border: "var(--line-strong)",
-    label: { en: "Captured", es: "Capturado" },
-  },
-  warning: {
-    border: "var(--pending)",
-    label: { en: "Overdue", es: "Vencido" },
-  },
-  problem: {
-    border: "var(--failed)",
-    label: { en: "Rejected — retake", es: "Rechazada — repetir" },
-  },
-};
-
-function Cell({
-  cell,
-  onOpen,
-}: {
-  cell: RequiredCapture;
-  onOpen: () => void;
-}) {
-  const t = useT();
-  const style = CELL[cell.status];
-  const shown = cell.status === "complete" || cell.status === "problem";
-
-  if (!shown) {
-    return (
-      <span
-        className="flex h-[68px] w-full items-center justify-center rounded-sm border px-2 text-center"
-        style={{
-          borderColor: style.border,
-          backgroundColor:
-            cell.status === "active" ? "var(--accent-subtle)" : "var(--surface)",
-        }}
-      >
-        <span className="text-body-sm text-ink-secondary">{t(style.label)}</span>
-      </span>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group flex w-full cursor-pointer items-center gap-2.5 rounded-sm border p-1 text-left transition-colors"
-      style={{
-        borderColor: style.border,
-        /* A rejected capture keeps its photograph — somebody has to look at it
-           to see why screening refused it — but the frame says it cannot be
-           used. */
-        borderWidth: cell.status === "problem" ? 1.5 : 1,
-      }}
-    >
-      <img
-        alt={t(cell.requirement.what)}
-        src={shotSrc(cell.requirement.image, 240)}
-        srcSet={`${shotSrc(cell.requirement.image, 240)} 240w, ${shotSrc(cell.requirement.image, 480)} 480w`}
-        sizes="90px"
-        width={240}
-        height={160}
-        loading="lazy"
-        className="block h-[60px] w-[90px] shrink-0 rounded-xs object-cover"
-      />
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate text-body-sm text-ink">
-          {t(cell.requirement.what)}
-        </span>
-        <span className="truncate font-mono text-mono-sm text-ink-muted">
-          {cell.status === "problem" ? t(style.label) : cell.time}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-/* ── One capture, large ──────────────────────────────────────────────────── */
-
+/** One capture, large, with who made it and when. */
 function Lightbox({
   cell,
   onClose,
@@ -523,13 +444,14 @@ function Lightbox({
 }) {
   const t = useT();
   const room = CAPTURE_ROOMS.find((r) => r.key === cell.requirement.room);
+  const stage = stageByKey.get(cell.requirement.stage);
 
   return (
     <div
-      className="absolute inset-0 z-20 flex items-center justify-center p-10"
+      className="absolute inset-0 z-30 flex items-center justify-center p-8"
       style={{ backgroundColor: "var(--canvas)" }}
     >
-      <div className="flex max-h-full w-full max-w-3xl flex-col gap-3">
+      <div className="flex max-h-full w-full max-w-2xl flex-col gap-3">
         <div className="flex items-baseline gap-3">
           <span className="text-heading text-ink">
             {room ? t(room.name) : cell.requirement.room}
@@ -549,9 +471,14 @@ function Lightbox({
         <img
           alt={t(cell.requirement.what)}
           src={shotSrc(cell.requirement.image, 960)}
-          className="block max-h-[60vh] w-full rounded-sm border border-line object-cover"
+          className="block max-h-[55vh] w-full rounded-sm border border-line object-cover"
         />
 
+        <p className="font-mono text-mono-sm text-ink-muted">
+          {stage ? t(stage.name) : cell.requirement.stage} ·{" "}
+          {t(TRADE[cell.requirement.trade])} · {cell.by.name}
+          {cell.time ? ` · ${cell.time}` : ""}
+        </p>
         <p className="text-body-sm text-ink-muted">
           {t({
             en: "Capture time, location and device are sealed with the image. This is a rendering; the photograph is from the Delphi library.",

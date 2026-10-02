@@ -20,6 +20,7 @@ import {
 } from "@/content/enterprise/world";
 import { useLang, useT, type Bi } from "@/content/enterprise/lang";
 import { ApartmentSheet } from "@/components/enterprise/ApartmentSheet";
+import { TowerProgress } from "@/components/enterprise/SiteProgress";
 import { cn } from "@/lib/cn";
 
 /* ============================================================================
@@ -803,14 +804,13 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 </button>
               </div>
 
-              <StageLadder units={plate} tower={tower} floor={shownFloor} />
-
-              <p className="text-body-sm text-ink-muted">
-                {t({
-                  en: "Open an apartment on the floor plan to see its rooms.",
-                  es: "Abra un apartamento en la planta para ver sus ambientes.",
-                })}
-              </p>
+              {/* ⚠️  THE TOWER'S PROGRESS, NOT THE FLOOR'S SIX STAGES. The
+                  ladder that was here reported "Rough-in 0/8 flats" for
+                  whichever floor happened to be selected, which says nothing
+                  about the asset somebody has just drilled into. This is the
+                  Analysis table filtered to this tower — same rows, same
+                  arithmetic, outstanding work first. */}
+              <TowerProgress tower={tower} />
             </>
           )}
 
@@ -1734,97 +1734,6 @@ function NotBuiltYet({ tower, floor }: { tower: Tower; floor: number }) {
         })}
       </p>
     </div>
-  );
-}
-
-/* ── Stage ladder ────────────────────────────────────────────────────────── */
-
-function StageLadder({
-  units,
-  tower,
-  floor,
-}: {
-  units: UnitState[];
-  tower: Tower;
-  floor: number;
-}) {
-  const t = useT();
-
-  return (
-    <ul className="flex flex-col gap-2">
-      {STAGES.map((stage, i) => {
-        /* ⚠️  A STAGE'S COUNT HAS TO SAY WHAT IT COUNTS. These were all shown
-           as "n/8", as though every stage were eight separate certificates
-           belonging to the eight apartments on the floor. Three of them are
-           not: plot and foundations are ONE certificate for the whole tower,
-           and the slab is ONE for this floor — the apartments inherit them.
-
-           Writing those as 8/8 inflates the count by exactly the factor this
-           product exists to argue down, on the screen where the argument is
-           being made. So a tower-level or floor-level stage now reports what
-           it is and whether it is sealed, and only the three stages that
-           really are per apartment carry a tally. */
-        const perApartment = stage.level === "unit";
-
-        const sealed =
-          stage.level === "tower"
-            ? tower.siteworks[stage.key as "plot" | "foundations"] &&
-              floor <= tower.front.structure
-            : stage.level === "floor"
-              ? floor <= tower.front.structure
-              : false;
-
-        const done = perApartment
-          ? units.filter((u) => u.sealed > i).length
-          : 0;
-
-        const all = perApartment
-          ? units.length > 0 && done === units.length
-          : sealed;
-
-        return (
-          <li key={stage.key} className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="size-2 shrink-0 rounded-full"
-              style={{
-                backgroundColor: all
-                  ? "var(--ink-muted)"
-                  : done > 0
-                    ? "var(--accent)"
-                    : "var(--line-strong)",
-                opacity: all ? 0.55 : 1,
-              }}
-            />
-            <span className="min-w-0 flex-1 truncate text-body-sm text-ink-secondary">
-              {t(stage.name)}
-            </span>
-
-            {perApartment ? (
-              <span className="shrink-0 font-mono text-mono-sm tabular-nums text-ink-muted">
-                {t({
-                  en: `${done}/${units.length} flats`,
-                  es: `${done}/${units.length} aptos`,
-                })}
-              </span>
-            ) : (
-              <span className="shrink-0 font-mono text-mono-sm text-ink-muted">
-                {/* The level is the point: one certificate, inherited. */}
-                {t(
-                  stage.level === "tower"
-                    ? sealed
-                      ? { en: "tower · sealed", es: "torre · sellado" }
-                      : { en: "tower · —", es: "torre · —" }
-                    : sealed
-                      ? { en: "floor · sealed", es: "piso · sellado" }
-                      : { en: "floor · —", es: "piso · —" },
-                )}
-              </span>
-            )}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 

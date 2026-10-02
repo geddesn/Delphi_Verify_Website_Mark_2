@@ -11,14 +11,21 @@ for (const path of ["/platform/app", "/platform/app/"]) {
   assert.doesNotMatch(html, /<header|<footer/);
 }
 const map = render("/platform/app/assets", routes);
-assert.equal((map.match(/Building · /g) ?? []).length, 3);
-assert.match(map, /\/assets\/maps\/demo-london\.jpg/);
+/* Three towers, each listed beside the map with its own height and unit count.
+   This used to assert three "Building · " labels and the path of a Google Maps
+   screenshot; the screenshot is gone (unlicensed, and in the wrong language and
+   the wrong country) and the assets are the development's real towers. The map
+   itself is Leaflet, which mounts in an effect, so there is nothing of it in
+   the server HTML to assert on — the list is the SSR-visible contract. */
+assert.equal((map.match(/ floors · /g) ?? []).length, 3);
+assert.doesNotMatch(map, /demo-london/);
+assert.match(map, /Ciudadela Altavista/);
 for (const route of routeTable.filter((item) => item.path.startsWith("/platform/app/assets/"))) {
   assert.ok(map.includes(`href="${route.path}"`), `Missing marker for ${route.path}`);
   const detail = render(route.path, routes);
   assert.match(detail, /Back to assets/);
   assert.doesNotMatch(detail, /Ciudadela Altavista/);
-  assert.doesNotMatch(detail, /<footer|demo-london\.jpg/);
+  assert.doesNotMatch(detail, /<footer|demo-london/);
 }
 const marketing = render("/platform/renderings", routes);
 assert.match(marketing, /<header/);

@@ -1129,10 +1129,18 @@ export type ProgressRow = {
   total: number;
 };
 
-let progressCache: ProgressRow[] | null = null;
+const progressCache = new Map<string, ProgressRow[]>();
 
-export function siteProgress(): ProgressRow[] {
-  if (progressCache) return progressCache;
+/** Progress across whichever towers you ask for.
+ *
+ *  The whole development by default, or one tower when the asset view has
+ *  drilled into it — the same rows, the same arithmetic, a narrower scope.
+ *  Two tallies computed different ways would eventually disagree, and the
+ *  disagreement would be between two screens a reader can hold side by side. */
+export function siteProgress(towers: Tower[] = TOWERS): ProgressRow[] {
+  const key = towers.map((t) => t.key).join(",");
+  const hit = progressCache.get(key);
+  if (hit) return hit;
 
   /* Keyed by room and trade together, because that pair IS the unit of work —
      a bathroom needs plumbing and a living room does not. See REQUIREMENTS. */
@@ -1151,7 +1159,7 @@ export function siteProgress(): ProgressRow[] {
     });
   }
 
-  for (const tower of TOWERS) {
+  for (const tower of towers) {
     for (const unit of UNITS[tower.key]) {
       /* An apartment whose slab is not poured has no checklist yet. Counting
          its captures as "pending" would bury the real backlog under thousands
@@ -1170,15 +1178,16 @@ export function siteProgress(): ProgressRow[] {
     }
   }
 
-  progressCache = [...rows.values()];
-  return progressCache;
+  const out = [...rows.values()];
+  progressCache.set(key, out);
+  return out;
 }
 
 /** Apartments the site progress is drawn from — those that physically exist.
  *  Quoted beside the table so a reader can check the arithmetic. */
-export function apartmentsStarted(): number {
+export function apartmentsStarted(towers: Tower[] = TOWERS): number {
   let n = 0;
-  for (const tower of TOWERS) {
+  for (const tower of towers) {
     n += UNITS[tower.key].filter((u) => u.sealed > 0).length;
   }
   return n;

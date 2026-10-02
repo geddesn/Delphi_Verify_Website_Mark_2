@@ -123,7 +123,7 @@ export const routes: RouteDef[] = [
     },
     indexable: false as const,
   })),
-  ...(["jobs", "team"] as const).map((section) => ({
+  ...(["jobs", "analysis"] as const).map((section) => ({
     path: `/platform/app/${section}`,
     load: () => import("@/pages/PlatformAppSection"),
     seo: {

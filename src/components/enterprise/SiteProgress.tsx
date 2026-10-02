@@ -6,6 +6,7 @@ import {
   siteProgress,
   stageByKey,
   type ProgressRow,
+  type Tower,
 } from "@/content/enterprise/world";
 import { useT, type Bi } from "@/content/enterprise/lang";
 import { cn } from "@/lib/cn";
@@ -243,5 +244,116 @@ function Cell({
         {value}
       </span>
     </td>
+  );
+}
+
+/* ── The same table, scoped and small ─────────────────────────────────────
+   For the panel beside a tower, where the full table will not fit and is not
+   the question anyway: having drilled into an asset, you want to know where
+   THAT asset stands.
+
+   ⚠️  IT REPLACED THE STAGE LADDER, which answered a narrower question badly.
+   The ladder reported the six stages for one floor — "Rough-in 0/8 flats" —
+   which tells you nothing about the tower you are looking at and everything
+   about a floor you may have selected by accident. Same rows as the full
+   table, same arithmetic, one tower's worth.
+
+   Zero columns are dropped rather than drawn as a column of noughts: on a
+   panel this narrow, four digits of nothing crowd out the two that matter. */
+export function TowerProgress({ tower }: { tower: Tower }) {
+  const t = useT();
+  const rows = useMemo(() => siteProgress([tower]), [tower]);
+  const started = useMemo(() => apartmentsStarted([tower]), [tower]);
+
+  const roomName = (key: string) =>
+    CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
+
+  /* Outstanding first: a summary that opens with what is finished is a report,
+     and a report is not what somebody opening a tower wants. */
+  const sorted = useMemo(
+    () =>
+      [...rows].sort(
+        (a, b) =>
+          b.problem - a.problem ||
+          b.warning - a.warning ||
+          b.pending - a.pending,
+      ),
+    [rows],
+  );
+
+  if (started === 0) {
+    return (
+      <p className="text-body-sm text-ink-secondary">
+        {t({
+          en: "No apartments started in this tower yet — it is at foundations.",
+          es: "Aún no hay apartamentos iniciados en esta torre — está en cimentación.",
+        })}
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex min-h-0 flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="font-mono text-mono-sm uppercase text-ink-muted">
+          {t({ en: "Capture progress", es: "Avance de capturas" })}
+        </h3>
+        <span className="font-mono text-mono-sm text-ink-muted">
+          {t({ en: `${started} flats`, es: `${started} aptos` })}
+        </span>
+      </div>
+
+      <div className="min-h-0 overflow-y-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="pb-1 text-left font-mono text-mono-sm uppercase text-ink-muted">
+                {t({ en: "Room · trade", es: "Ambiente · oficio" })}
+              </th>
+              {COLUMNS.map((c) => (
+                <th
+                  key={c.key}
+                  /* Initials, because five words will not fit across 23rem and
+                     the colour under each number says which is which. */
+                  title={t(c.label)}
+                  className="pb-1 pl-1 text-right font-mono text-mono-sm uppercase text-ink-muted"
+                >
+                  {t(c.label).slice(0, 1)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((row) => (
+              <tr key={`${row.room}-${row.trade}`} className="border-t border-line">
+                <td className="py-1 pr-2 text-body-sm text-ink-secondary">
+                  <span className="block truncate">
+                    {t(roomName(row.room))}
+                  </span>
+                  <span className="block truncate font-mono text-mono-sm text-ink-muted">
+                    {t(TRADE[row.trade])}
+                  </span>
+                </td>
+                {COLUMNS.map((c) => (
+                  <td
+                    key={c.key}
+                    className="py-1 pl-1 text-right align-middle font-mono text-mono-sm tabular-nums"
+                  >
+                    <span
+                      style={{
+                        color: row[c.key] === 0 ? "var(--ink-muted)" : (c.tone ?? "var(--ink)"),
+                        opacity: row[c.key] === 0 ? 0.35 : 1,
+                      }}
+                    >
+                      {row[c.key]}
+                    </span>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

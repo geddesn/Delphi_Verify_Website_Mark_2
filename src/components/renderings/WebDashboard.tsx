@@ -90,7 +90,7 @@ export function Sidebar({ active = "Home" }: { active?: string }) {
     ["Home", "/platform/app"],
     ["Jobs", "/platform/app/jobs"],
     ["Assets", "/platform/app/assets"],
-    ["Team", "/platform/app/team"],
+    ["Analysis", "/platform/app/analysis"],
   ];
   return (
     <div

@@ -87,6 +87,28 @@ export const routes: RouteDef[] = [
     indexable: false,
   },
   {
+    /* Enterprise-scale renderings for a large residential developer: one
+       504-apartment development navigated as a tower, a floor and an
+       apartment, plus the arithmetic of how many certificates that comes to.
+
+       NOT INDEXABLE, and more deliberately than /platform/renderings is. This
+       page runs ahead of the product — there is no development/tower/floor/unit
+       hierarchy, no customer web dashboard, no photographer assignment and no
+       submission sign-off — so it is reachable from the renderings page and
+       from nowhere else. It is in no nav and no footer. `indexable: false`
+       keeps it out of sitemap.xml and writes a robots Disallow for it, which
+       together are the only honest way to publish renderings this far in
+       front of what ships. */
+    path: "/platform/enterprise",
+    load: () => import("@/pages/PlatformEnterprise"),
+    seo: {
+      title: "Enterprise scale renderings | Delphi Verify",
+      description:
+        "Interface renderings of verified construction evidence across a 504-apartment residential development — tower, floor and apartment, with the certificate arithmetic behind it.",
+    },
+    indexable: false,
+  },
+  {
     path: "/industries",
     load: () => import("@/pages/Industries"),
     seo: {

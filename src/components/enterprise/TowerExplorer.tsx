@@ -142,6 +142,9 @@ const VIEW = { w: 560, h: 620 };
 
 const DEFAULT_ANGLE = -0.62;
 
+/* Left margin for the selected-floor label, in viewBox units. */
+const LABEL_X = 10;
+
 const W = BUILDING_WIDTH;
 const D = BUILDING_DEPTH;
 
@@ -235,6 +238,45 @@ const ELEVATIONS: Elevation[] = [
   },
 ];
 
+/* ── Light ────────────────────────────────────────────────────────────────
+   ⚠️  WITHOUT THIS THE BLOCK IS FLAT, and no amount of adjusting the fills
+   fixes it. Every face was painted at the same value whichever way it pointed,
+   so the two visible elevations met at the corner with nothing to separate
+   them and the tower read as a pale silhouette rather than a solid. The
+   apartments were not hard to see because they were too light; they were hard
+   to see because the building had no form.
+
+   A fixed light in the viewer's world, not the building's, so turning the
+   tower swings the shadow across it — which is the cue that tells the eye it
+   is looking at something three-dimensional. Front-left and slightly toward
+   the camera, the convention for architectural massing. */
+const LIGHT = { x: -0.55, z: -0.84 };
+
+/** How much to darken an elevation, 0 for the lit face and up to MAX for the
+ *  one turned away. Lambert against the rotated normal: the same arithmetic
+ *  that decides whether a face is visible at all, reused. */
+const MAX_SHADE = 0.3;
+
+/* ⚠️  AMBIENT, OR THE LIT FACE RENDERS AS PAPER. With shading driven purely by
+   the lambert term, the face square to the light gets a shadow of exactly zero
+   and every white surface on it — and a facade of this plan has four balcony
+   slabs per floor — stays pure --surface. The whole front of the building went
+   back to washing out however dark the wall behind it was made.
+
+   Real daylight has a sky term as well as a sun term. This is that: a floor
+   under everything, so nothing in the drawing is ever quite paper-white. */
+const AMBIENT = 0.12;
+
+function shadeFor(e: Elevation, angle: number) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const nx = e.normal.x * c - e.normal.z * s;
+  const nz = e.normal.x * s + e.normal.z * c;
+  const lambert = nx * LIGHT.x + nz * LIGHT.z;
+  /* lambert runs -1 (facing away from the light) to 1 (square to it). */
+  return AMBIENT + (0.5 - lambert * 0.5) * MAX_SHADE;
+}
+
 /** Does this elevation face the camera at this angle? Computed from the
  *  rotated normal rather than switched on quadrant — a quadrant table is four
  *  chances to get a sign wrong. */
@@ -274,36 +316,85 @@ const PHASE: Record<UnitPhase, PhaseStyle> = {
   pending: {
     fill: "var(--surface)",
     fillOpacity: 1,
-    stroke: "var(--line)",
-    strokeWidth: 0.5,
+    stroke: "var(--line-strong)",
+    strokeWidth: 0.6,
   },
   active: {
-    fill: "var(--accent-subtle)",
-    fillOpacity: 1,
+    /* The solid accent rather than --accent-subtle. The subtle token is
+       delphi-50, which is almost white: on a 20-storey elevation the working
+       floors were indistinguishable from the empty ones above them. Raised
+       again when the fabric went darker — a state colour has to beat the
+       material it sits in. */
+    fill: "var(--accent)",
+    fillOpacity: 0.55,
     stroke: "var(--accent)",
-    strokeWidth: 1.2,
+    strokeWidth: 1.3,
   },
   complete: {
-    /* A mid neutral rather than another near-white, or completed and pending
-       are the same panel at this size. */
+    /* ⚠️  THIS VALUE IS THE DIFFERENCE BETWEEN BUILT AND NOT BUILT, and it was
+       set far too low. At 0.18 a finished apartment and an untouched one were
+       both pale grey rectangles a few percent apart, so the tower read as one
+       flat mass and the build front — the single most useful edge on the
+       picture — disappeared. Colour is still reserved for what needs a person;
+       that was never an argument for the two commonest states being the same
+       shade. */
     fill: "var(--ink-muted)",
-    fillOpacity: 0.18,
+    fillOpacity: 0.34,
     stroke: "var(--line-strong)",
-    strokeWidth: 0.5,
+    strokeWidth: 0.6,
   },
   warning: {
-    fill: "var(--pending-tint)",
-    fillOpacity: 1,
+    fill: "var(--pending)",
+    fillOpacity: 0.55,
     stroke: "var(--pending)",
     strokeWidth: 1.4,
   },
   problem: {
-    fill: "var(--failed-tint)",
-    fillOpacity: 1,
+    fill: "var(--failed)",
+    fillOpacity: 0.55,
     stroke: "var(--failed)",
     strokeWidth: 1.4,
   },
 };
+
+/** How an apartment is drawn, from its state AND how much of it is done.
+ *
+ *  ⚠️  PHASE ALONE WAS NOT ENOUGH, and the tower proved it. An apartment with
+ *  five of its six stages sealed — rough-in and finishes complete, waiting
+ *  only on handover — is not "in progress" and is certainly not "not started",
+ *  so phaseFor() classed it pending and drew it the same white as a storey
+ *  whose slab had only just been poured. Torre 1 is nearly finished and
+ *  rendered as an empty box.
+ *
+ *  So the two quiet states carry a DENSITY as well: neutral grey deepening
+ *  with the number of sealed certificates. The build front is visible, partial
+ *  progress is visible, and colour is still spent only on the three states
+ *  that are a call to action — which was the whole point of the change.
+ */
+function styleFor(unit: UnitState): PhaseStyle {
+  const base = PHASE[unit.phase];
+  if (unit.phase !== "pending" && unit.phase !== "complete") return base;
+
+  /* Nothing at all: an apartment above the poured slab. Left white so the
+     top of a part-built tower is unmistakably empty. */
+  if (unit.sealed === 0) return PHASE.pending;
+
+  /* ⚠️  THE BAND IS NARROW AND DARK ON PURPOSE. Only apartments below the
+     poured slab are ever drawn, and those always carry at least three
+     certificates — the tower's two siteworks plus their own floor — so a ramp
+     starting near white wasted most of its range on states that cannot occur
+     and left the ones that do a few percent apart. Starting at a mid value
+     makes the fabric read as masonry rather than as paper, and the difference
+     between a shell and a finished flat is then visible across the width of a
+     facade. */
+  return {
+    ...base,
+    fill: "var(--ink-muted)",
+    fillOpacity: 0.26 + (unit.sealed / STAGES.length) * 0.34,
+    stroke: "var(--line-strong)",
+    strokeWidth: 0.6,
+  };
+}
 
 const PHASE_LABEL: Record<UnitPhase, Bi> = {
   pending: { en: "Not started", es: "Sin iniciar" },
@@ -557,8 +648,15 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                   to(W * 1.6, 0, D * 2.1),
                   to(-W * 1.6, 0, D * 2.1),
                 ])}
-                fill="var(--surface-sunken)"
-                stroke="var(--line)"
+                /* ⚠️  THE GROUND CARRIES THE WHOLE VALUE STRUCTURE. At
+                   --surface-sunken it was within a few percent of the canvas
+                   behind it and of the building standing on it, so the tower
+                   had nothing to sit on and no silhouette. It wants to be the
+                   darkest large area on the screen after the unlit elevation:
+                   everything else is read relative to it. */
+                fill="var(--ink)"
+                fillOpacity={0.14}
+                stroke="var(--line-strong)"
                 strokeWidth={1}
               />
 
@@ -570,6 +668,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 <Elevation
                   key={`w${i}`}
                   fade={otherFloors}
+                  shade={shadeFor(e, flyAngle)}
                   elevation={e}
                   tower={tower}
                   units={units}
@@ -586,6 +685,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                   <Balconies
                     key={`b${i}`}
                     fade={otherFloors}
+                    shade={shadeFor(e, flyAngle)}
                     elevation={e}
                     tower={tower}
                     units={units}
@@ -608,6 +708,20 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 fill="var(--surface)"
                 stroke="var(--line-strong)"
                 strokeWidth={1.25}
+              />
+              {/* The deck faces straight up, so it is the lightest plane in
+                  the drawing — but it still takes the ambient, or it reads as
+                  a hole cut in the top of the building. */}
+              <path
+                d={path([
+                  to(-W / 2, deck, -D / 2),
+                  to(W / 2, deck, -D / 2),
+                  to(W / 2, deck, D / 2),
+                  to(-W / 2, deck, D / 2),
+                ])}
+                fill="var(--ink)"
+                opacity={AMBIENT * 0.5}
+                pointerEvents="none"
               />
 
               <GhostEnvelope tower={tower} to={to} path={path} />
@@ -792,6 +906,7 @@ function Elevation({
   units,
   floor,
   fade,
+  shade,
   to,
   path,
   onFloor,
@@ -805,6 +920,8 @@ function Elevation({
    *  time the camera is overhead — the floor being opened is left alone on
    *  screen before the plan arrives to replace it. */
   fade: number;
+  /** How far this elevation is turned away from the light. */
+  shade: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
   onFloor: (f: number) => void;
@@ -834,9 +951,7 @@ function Elevation({
 
       /* A bay with no apartment behind it is the gable wall at either end of
          the plate. Drawn, never styled as though it held evidence. */
-      const style: PhaseStyle = unit
-        ? PHASE[unit.phase]
-        : PHASE.pending;
+      const style: PhaseStyle = unit ? styleFor(unit) : PHASE.pending;
 
       /* The selected storey is outlined in ink over whatever the apartment's
          own state is, so picking a floor never hides a blocked apartment on
@@ -908,7 +1023,25 @@ function Elevation({
     }
   }
 
-  return <>{quads}</>;
+  /* The shadow goes over the whole elevation at once rather than into each
+     panel's fill: one translucent quad is cheaper than recolouring 150
+     rectangles, and it keeps a face's shading independent of what the
+     apartments behind it happen to be doing. */
+  const corner = (bay: number, y: number) =>
+    to(e.origin.x + e.step.x * bay, y, e.origin.z + e.step.z * bay);
+  const top = tower.front.structure * GEOMETRY.floorHeight;
+
+  return (
+    <>
+      {quads}
+      <path
+        d={path([corner(0, 0), corner(e.bays, 0), corner(e.bays, top), corner(0, top)])}
+        fill="var(--ink)"
+        opacity={shade}
+        pointerEvents="none"
+      />
+    </>
+  );
 }
 
 /* ── The part that is not built yet ──────────────────────────────────────── */
@@ -994,6 +1127,7 @@ function Balconies({
   tower,
   units,
   fade,
+  shade,
   to,
   path,
 }: {
@@ -1001,6 +1135,12 @@ function Balconies({
   tower: Tower;
   units: UnitState[];
   fade: number;
+  /** ⚠️  BALCONIES ARE LIT TOO, and leaving them out undid the shading. They
+   *  are drawn in a pass after the elevations so they can overlap the wall
+   *  they hang off, which also put them in front of its shadow — two hundred
+   *  white slabs and parapets covering the very surface that had just been
+   *  darkened. The tower went back to looking flat. */
+  shade: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
 }) {
@@ -1077,13 +1217,26 @@ function Balconies({
       for (let i = 0; i < faceKeys.length; i++) {
         const [a, b] = faceCorners[i];
         const [ta, tb] = faceTops[i];
+        const d = path([a, b, tb, ta]);
         parts.push(
           <path
             key={`p-${storey}-${bay}-${faceKeys[i]}`}
-            d={path([a, b, tb, ta])}
+            d={d}
             fill="var(--surface-sunken)"
             stroke="var(--line-strong)"
             strokeWidth={0.5}
+            pointerEvents="none"
+          />,
+        );
+        /* The outer parapet shares the elevation's normal and takes its
+           shading; the two returns face sideways, so they sit between the lit
+           and unlit extremes whichever way the block is turned. */
+        parts.push(
+          <path
+            key={`sh-${storey}-${bay}-${faceKeys[i]}`}
+            d={d}
+            fill="var(--ink)"
+            opacity={i === 0 ? shade : (shade + MAX_SHADE * 0.5) / 2}
             pointerEvents="none"
           />,
         );
@@ -1124,18 +1277,24 @@ function SelectedSlab({
   return (
     <g pointerEvents="none">
       <path d={path(ring)} fill="none" stroke="var(--accent)" strokeWidth={2} />
+      {/* ⚠️  PINNED TO THE EDGE OF THE FRAME, NOT OFFSET FROM THE SLAB. A
+          fixed offset is a guess about how wide the tower will draw, and it
+          was wrong as soon as the explorer was embedded somewhere with
+          different proportions — the label landed on the building it was
+          naming. Anchored at the left margin it cannot overlap anything,
+          whatever the container. */}
       <line
         x1={anchor.x}
         y1={anchor.y}
-        x2={anchor.x - 52}
-        y2={anchor.y + 13}
+        x2={LABEL_X + 6}
+        y2={anchor.y + 4}
         stroke="var(--accent)"
         strokeWidth={1}
       />
       <text
-        x={anchor.x - 56}
-        y={anchor.y + 17}
-        textAnchor="end"
+        x={LABEL_X}
+        y={anchor.y + 8}
+        textAnchor="start"
         className="font-mono"
         fontSize={13}
         fill="var(--ink)"
@@ -1390,7 +1549,7 @@ function ApartmentPlan({
   onSelect: () => void;
 }) {
   const t = useT();
-  const style = PHASE[unit.phase];
+  const style = styleFor(unit);
   const { width, depth, balcony } = APARTMENT;
   const cells = capturesFor(unit, tower);
 

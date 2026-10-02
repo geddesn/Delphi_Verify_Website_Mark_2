@@ -190,6 +190,19 @@ const GROUPS = [
       { file: "co-bedroom-finished.png", name: "co-bedroom-finished" },
       { file: "co-balcony-finished.png", name: "co-balcony-finished" },
       { file: "co-hall-finished.png", name: "co-hall-finished" },
+      /* Reshot in a third grid, over the same four names, plus these two.
+         The bathroom had its WC inside the shower enclosure, the consumer unit
+         carried gibberish pseudo-lettering on the breakers, the kitchen's wall
+         cabinets came back in two misaligned groups, and the entrance hall was
+         a white door on a white wall — nothing at thumbnail size.
+
+         The two handover frames are new: the sala and the main bedroom
+         photographed AGAIN from a different corner, so the handover column of
+         the apartment sheet stops showing the finishes photograph of the same
+         room twice. See co-reshoot-grid.prompt.txt, which records what was
+         wrong with each. */
+      { file: "co-sala-handover.png", name: "co-sala-handover" },
+      { file: "co-bedroom-handover.png", name: "co-bedroom-handover" },
 
       /* PLACEHOLDER, and named for the slot rather than the picture so that
          replacing it is a file drop and nothing else. Nick is supplying a

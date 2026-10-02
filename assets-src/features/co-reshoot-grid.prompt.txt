@@ -1,0 +1,78 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  addb8635-0f1f-4646-bbdd-cb0a265fa19c
+
+Photorealistic interior photography presented as a 3x2 GRID OF SIX SEPARATE
+PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell
+to all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE APARTMENT
+A newly completed modest apartment in a Colombian mid-rise tower, handed over
+empty, about 58 square metres. White painted walls, pale ceramic floor tiles,
+white skirting, simple white doors, aluminium windows. Economical, NOT luxury:
+no marble, no stone, no timber panelling, no styling, no furniture.
+
+THE SIX
+
+1 TOP-LEFT. BATHROOM. A small rectangular bathroom seen square-on from the
+doorway, the whole room in frame. Along the LEFT wall, a white basin on a
+simple vanity with a mirror above it. Against the BACK wall and standing
+clear in the open floor, a white WC — fully outside any enclosure, nothing in
+front of it. In the FAR RIGHT CORNER and only there, a shower: a raised white
+shower tray with a low kerb, two clear glass panels meeting at the corner in
+slim aluminium frames, sitting squarely on the tray with the frame meeting the
+floor and the wall cleanly. Pale ceramic tiles on walls and floor. The WC and
+the shower are plainly separate fixtures with floor between them.
+
+2 TOP-CENTRE. CONSUMER UNIT. A white plastic electrical consumer unit on a
+white wall, cover swung open, a neat row of breaker switches inside. THE
+BREAKERS ARE COMPLETELY BLANK: smooth plastic with no printing, no lettering,
+no numbers, no symbols, no label strip, no stickers anywhere on or near the
+unit. Square-on, close enough to read it as a board.
+
+3 TOP-RIGHT. KITCHEN. A small fitted kitchen along one wall, square-on. ONE
+SINGLE CONTINUOUS RUN of white wall cabinets at one height, flat fronted, all
+doors the same size, the run ending flush at both ends and perfectly aligned
+with the base units below it. A light worktop, stainless sink, white tiled
+splashback, a gas hob. No appliances, no food, no utensils.
+
+4 BOTTOM-LEFT. ENTRANCE HALL. A wider view of the small entrance hall: a plain
+white apartment front door with a simple lever handle, and beside it a white
+metal meter cupboard STANDING OPEN on the wall, showing a water meter and
+pipework inside. Tiled floor, white walls, skirting. Square-on.
+
+5 BOTTOM-CENTRE. LIVING ROOM AT HANDOVER. The main room, empty, photographed
+from a DIFFERENT CORNER than an estate agent would choose: closer in, the
+aluminium sliding balcony door standing open at the left of frame with
+daylight coming through, a plain white wall and the tiled floor filling the
+rest.
+
+6 BOTTOM-RIGHT. MAIN BEDROOM AT HANDOVER. The empty bedroom from the opposite
+corner to its wardrobe: the aluminium window on the left, the closed white
+built-in wardrobe seen at an angle on the right, pale tiled floor, a single
+ceiling light fitting.
+
+HOW THEY ARE PHOTOGRAPHED
+Handover record photographs, not a brochure. Each cell 16:9 landscape, eye
+level, square-on, verticals true, no converging distortion or fisheye. Even
+light, everything legible including corners and floor. Taken on a phone by
+someone documenting an empty flat: no shafts of sun, no vignette, no shallow
+depth of field, no staging.
+
+STRICTLY NOT
+No people, including reflections. No furniture or decoration. NO WRITING
+ANYWHERE IN ANY FRAME. All six are straight photographs with nothing
+superimposed: no panels, labels, callouts, annotations, user interface,
+diagrams, markers, arrows or lines over any picture.
+
+LIGHT AND COLOUR
+Bright flat neutral daylight throughout, consistent across all six. Clean
+white and pale grey palette. Neutral grade, no saturation push, no HDR.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Fixtures
+overlapping or passing through one another. Any visible seam between cells.

@@ -860,7 +860,7 @@ export const REQUIREMENTS: Requirement[] = [
   { room: "principal", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
   { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
   { room: "cocina", trade: "electrical", stage: "rough-in", image: "co-kitchen-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" } },
-  { room: "bano", trade: "electrical", stage: "rough-in", image: "co-bath-plumbing", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
+  { room: "bano", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
   { room: "hall", trade: "electrical", stage: "rough-in", image: "co-hall-board", what: { en: "Board and feed", es: "Tablero y acometida" } },
 
   { room: "sala", trade: "finishes", stage: "finishes", image: "co-sala-finished", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" } },
@@ -871,9 +871,9 @@ export const REQUIREMENTS: Requirement[] = [
   { room: "hall", trade: "finishes", stage: "finishes", image: "co-hall-finished", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" } },
   { room: "balcon", trade: "finishes", stage: "finishes", image: "co-balcony-finished", what: { en: "Floor and handrail", es: "Piso y pasamanos" } },
 
-  { room: "sala", trade: "own", stage: "handover", image: "co-sala-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "principal", trade: "own", stage: "handover", image: "co-bedroom-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "alcoba2", trade: "own", stage: "handover", image: "co-bedroom-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "sala", trade: "own", stage: "handover", image: "co-sala-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "principal", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "alcoba2", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
   { room: "cocina", trade: "own", stage: "handover", image: "co-kitchen-finished", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" } },
   { room: "bano", trade: "own", stage: "handover", image: "co-bath-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
   { room: "hall", trade: "own", stage: "handover", image: "co-hall-finished", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" } },

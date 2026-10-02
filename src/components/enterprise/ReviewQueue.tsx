@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { CaptureZoom } from "./CaptureZoom";
 import {
   CAPTURE_ROOMS,
   TRADE,
@@ -140,7 +141,13 @@ function Card({
   const t = useT();
   const { lang } = useLang();
   const stage = stageByKey.get(item.job.stage);
-  const flagged = item.shots.filter((s) => s.status === "problem").length;
+  /* Which capture is open full screen, if any. A reviewer cannot judge a weld
+     at 150px, so every thumbnail is a way into the zoom viewer. */
+  const [zoom, setZoom] = useState<number | null>(null);
+  /* Both human-raised states count. Counting only rework hid every
+     inspection flag from the reviewer, who is the one person who needs it. */
+  const rework = item.shots.filter((s) => s.status === "problem").length;
+  const inspect = item.shots.filter((s) => s.status === "warning").length;
 
   return (
     <section
@@ -180,7 +187,7 @@ function Card({
       </header>
 
       <div className="flex gap-2 overflow-x-auto p-3">
-        {item.shots.map((cell) => {
+        {item.shots.map((cell, n) => {
           const room = CAPTURE_ROOMS.find(
             (r) => r.key === cell.requirement.room,
           );
@@ -189,20 +196,37 @@ function Card({
               key={cell.requirement.room}
               className="flex w-[150px] shrink-0 flex-col gap-1"
             >
-              <img
-                alt={t(cell.requirement.what)}
-                src={shotSrc(imageFor(cell), 480)}
-                width={480}
-                height={320}
-                loading="lazy"
-                className="block aspect-[3/2] w-full rounded-sm border object-cover"
-                style={{
-                  borderColor:
-                    cell.status === "problem"
-                      ? "var(--failed)"
-                      : "var(--line)",
-                }}
-              />
+              <button
+                type="button"
+                onClick={() => setZoom(n)}
+                title={t({
+                  en: "Open full screen to zoom",
+                  es: "Abrir a pantalla completa para ampliar",
+                })}
+                className="group relative block w-full cursor-zoom-in"
+              >
+                <img
+                  alt={t(cell.requirement.what)}
+                  src={shotSrc(imageFor(cell), 480)}
+                  width={480}
+                  height={320}
+                  loading="lazy"
+                  className="block aspect-[3/2] w-full rounded-sm border object-cover"
+                  style={{
+                    borderColor:
+                      cell.status === "problem"
+                        ? "var(--failed)"
+                        : cell.status === "warning"
+                          ? "var(--pending)"
+                          : "var(--line)",
+                  }}
+                />
+                {/* The affordance has to be visible: a photograph that can be
+                    opened looks exactly like one that cannot. */}
+                <span className="pointer-events-none absolute bottom-1 right-1 rounded-sm border border-line bg-surface px-1.5 py-0.5 font-mono text-[10px] text-ink-secondary opacity-0 transition-opacity group-hover:opacity-100">
+                  {t({ en: "Zoom", es: "Ampliar" })}
+                </span>
+              </button>
               <figcaption className="truncate text-[11px] text-ink-secondary">
                 {room ? t(room.name) : cell.requirement.room}
               </figcaption>
@@ -212,11 +236,19 @@ function Card({
       </div>
 
       <footer className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-2.5">
-        {flagged > 0 && (
+        {rework > 0 && (
           <span className="text-[12px]" style={{ color: "var(--failed)" }}>
             {t({
-              en: `${flagged} already flagged on site`,
-              es: `${flagged} ya marcadas en obra`,
+              en: `${rework} rework raised on site`,
+              es: `${rework} con corrección solicitada en obra`,
+            })}
+          </span>
+        )}
+        {inspect > 0 && (
+          <span className="text-[12px]" style={{ color: "var(--pending)" }}>
+            {t({
+              en: `${inspect} inspection raised on site`,
+              es: `${inspect} con inspección solicitada en obra`,
             })}
           </span>
         )}
@@ -253,6 +285,14 @@ function Card({
           })}
         </span>
       </footer>
+
+      {zoom !== null && (
+        <CaptureZoom
+          shots={item.shots}
+          start={zoom}
+          onClose={() => setZoom(null)}
+        />
+      )}
     </section>
   );
 }

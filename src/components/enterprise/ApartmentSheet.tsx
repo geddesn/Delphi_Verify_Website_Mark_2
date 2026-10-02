@@ -6,6 +6,7 @@ import {
   JOBS,
   TRADE,
   capturesFor,
+  hasPhotograph,
   imageFor,
   inFocus,
   sessionFor,
@@ -367,11 +368,9 @@ function Marker({
   onOpen: (c: RequiredCapture) => void;
 }) {
   const t = useT();
-  /* ⚠️  PUBLISHED, not merely captured. A stage still being worked on holds
-     its media in a draft session, so there is no certificate and nothing to
-     show — see RequiredCapture.published. */
-  const has =
-    cell.published && (cell.status === "complete" || cell.status === "problem");
+  /* Published AND photographed — see hasPhotograph(), which is also what
+     decides whether an inspection flag has an image behind it. */
+  const has = hasPhotograph(cell);
 
   return (
     <g
@@ -429,8 +428,7 @@ function Preview({
   const spot = markerPositions(area, mine.length)[mine.indexOf(cell)];
   if (!spot) return null;
 
-  const has =
-    cell.published && (cell.status === "complete" || cell.status === "problem");
+  const has = hasPhotograph(cell);
 
   /* Above the marker, and clamped to the drawing: a preview running off the
      edge is a preview of nothing. */
@@ -658,10 +656,9 @@ function Certificates({
         session: sessionFor(unit, tower, job),
         shots: cells.filter(
           (c) =>
-            c.published &&
+            hasPhotograph(c) &&
             c.requirement.stage === job.stage &&
-            c.requirement.trade === job.trade &&
-            (c.status === "complete" || c.status === "problem"),
+            c.requirement.trade === job.trade,
         ),
       })).filter((x) => x.session && x.shots.length > 0),
     [unit, tower, cells],

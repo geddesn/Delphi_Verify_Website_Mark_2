@@ -741,6 +741,27 @@ export type Capturer = {
   /* The firm, because accountability runs to the company rather than to the
      individual — which is the whole point of the contractor screen. */
   org: Bi;
+  /** This person's own contribution to how often something is raised against
+   *  their captures. Multiplied by the job's difficulty to get the rate for
+   *  any one cell — see flagRateFor().
+   *
+   *  ⚠️  NOT THE RATE YOU WILL SEE ON SCREEN. Difficulty is centred on 1
+   *  across all twenty-two cells but not within any one trade: the plumbers'
+   *  two cells average 1.95 and the handover crew's seven average 0.49, so the
+   *  same base comes out four times higher for a plumber. That is deliberate,
+   *  and it is the thing the by-job-type view exists to expose.
+   *
+   *  ⚠️  A FIXTURE DIAL, AND IT IS NOT A CLAIM ABOUT ANY REAL FIRM. Every
+   *  name on this page is invented. The spread exists because a demo where
+   *  everybody sits between 0.8% and 3.5% shows a screen that cannot tell
+   *  anybody apart, which is the opposite of what a developer with 70% of the
+   *  work subcontracted opens it for.
+   *
+   *  ⚠️  AND IT IS NOT A QUALITY SCORE EITHER, even here. It is the rate at
+   *  which OTHER PEOPLE raised something against the record. Delphi does not
+   *  judge the work; the number is a tally of site-team decisions, and every
+   *  screen that shows it has to say so. */
+  flagRate: number;
 };
 
 export const CREW: Capturer[] = [
@@ -750,13 +771,21 @@ export const CREW: Capturer[] = [
     initials: "MR",
     trade: "plumbing",
     org: { en: "Instalaciones Restrepo Ltda.", es: "Instalaciones Restrepo Ltda." },
+    flagRate: 0.018,
   },
   {
+    /* ⚠️  THE REASON THE PER-PERSON SCREEN EXISTS. Restrepo looks like an
+       ordinary firm at firm level — Mario is one of the steadier people on
+       site — and the firm average hides that one of its two plumbers is
+       raised against five times as often as anybody else here. A dashboard
+       that only ever rolls up to the company cannot show this, and it is the
+       single most useful thing on the page. */
     id: "luigi",
     name: "Luigi Bernal",
     initials: "LB",
     trade: "plumbing",
     org: { en: "Instalaciones Restrepo Ltda.", es: "Instalaciones Restrepo Ltda." },
+    flagRate: 0.072,
   },
   {
     id: "nelson",
@@ -764,6 +793,8 @@ export const CREW: Capturer[] = [
     initials: "NQ",
     trade: "electrical",
     org: { en: "Electricidad Quintero S.A.S.", es: "Electricidad Quintero S.A.S." },
+    /* The best firm on the development, and both of its people are. */
+    flagRate: 0.011,
   },
   {
     id: "yesica",
@@ -771,6 +802,7 @@ export const CREW: Capturer[] = [
     initials: "YA",
     trade: "electrical",
     org: { en: "Electricidad Quintero S.A.S.", es: "Electricidad Quintero S.A.S." },
+    flagRate: 0.008,
   },
   {
     id: "diana",
@@ -778,6 +810,9 @@ export const CREW: Capturer[] = [
     initials: "DO",
     trade: "finishes",
     org: { en: "Acabados del Valle", es: "Acabados del Valle" },
+    /* The firm with a problem: both of its people, not one of them, which is
+       what makes it a procurement conversation rather than a staffing one. */
+    flagRate: 0.078,
   },
   {
     id: "fabian",
@@ -785,6 +820,7 @@ export const CREW: Capturer[] = [
     initials: "FL",
     trade: "finishes",
     org: { en: "Acabados del Valle", es: "Acabados del Valle" },
+    flagRate: 0.095,
   },
   {
     id: "camila",
@@ -792,6 +828,9 @@ export const CREW: Capturer[] = [
     initials: "CR",
     trade: "own",
     org: { en: "Constructora Aldamar", es: "Constructora Aldamar" },
+    /* The developer's own staff: middling, which is the honest place to put
+       the people who cannot be swapped out. */
+    flagRate: 0.041,
   },
   {
     /* ⚠️  A SECOND RESIDENTE, because one was not credible. Handover is the
@@ -806,6 +845,7 @@ export const CREW: Capturer[] = [
     initials: "AV",
     trade: "own",
     org: { en: "Constructora Aldamar", es: "Constructora Aldamar" },
+    flagRate: 0.057,
   },
 ];
 
@@ -846,6 +886,24 @@ export type Requirement = {
   what: Bi;
   /** Basename under /assets/features or /assets/captures, no size suffix. */
   image: string;
+  /** How much trouble this particular job gives, as a multiplier on whoever
+   *  is doing it.
+   *
+   *  ⚠️  NOT EVERY JOB IS THE SAME JOB. Bathroom waterproofing and a handover
+   *  photograph of a balcony are both one cell of this grid and nothing else
+   *  about them is alike: one is the single most-rectified item in residential
+   *  construction, the other is a picture of a finished floor. A model that
+   *  gave them the same flag rate made the by-job-type view pointless, because
+   *  every row came out the same.
+   *
+   *  ⚠️  AND IT IS WHY THE PER-PERSON NUMBERS NEED READING WITH CARE. Somebody
+   *  on wet areas all year gets raised against more often than somebody on
+   *  handover condition, with no difference in how well either of them works.
+   *  That is the whole argument for the by-job-type breakdown sitting next to
+   *  the by-person one, and the screen says so.
+   *
+   *  Centred on 1 across the twenty-two cells. */
+  difficulty: number;
 };
 
 /* ⚠️  THE IMAGE IS CHOSEN BY ROOM AND TRADE, NOT AT RANDOM. A viewer who sees
@@ -863,32 +921,39 @@ export type Requirement = {
 export const REQUIREMENTS: Requirement[] = [
   /* Plumbing goes only where there is water. Two rooms out of seven, which is
      the whole reason this is a grid rather than a list. */
-  { room: "cocina", trade: "plumbing", stage: "rough-in", image: "co-kitchen-plumbing", what: { en: "Water, waste and gas points", es: "Puntos de agua, desagüe y gas" } },
-  { room: "bano", trade: "plumbing", stage: "rough-in", image: "co-bath-plumbing", what: { en: "Sanitary points and waterproofing", es: "Puntos sanitarios e impermeabilización" } },
+  /* Water, waste and gas in one wall, and the gas point is signed off separately. */
+  { room: "cocina", trade: "plumbing", stage: "rough-in", image: "co-kitchen-plumbing", what: { en: "Water, waste and gas points", es: "Puntos de agua, desagüe y gas" }, difficulty: 1.5 },
+  /* Waterproofing. The most-rectified item in residential construction, and the one that costs the most to find late. */
+  { room: "bano", trade: "plumbing", stage: "rough-in", image: "co-bath-plumbing", what: { en: "Sanitary points and waterproofing", es: "Puntos sanitarios e impermeabilización" }, difficulty: 2.4 },
 
   /* Electrical goes everywhere, including the hall. */
-  { room: "sala", trade: "electrical", stage: "rough-in", image: "co-sala-electrical", what: { en: "Conduit and outlet boxes", es: "Ductería y cajas de salida" } },
-  { room: "principal", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
-  { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
-  { room: "cocina", trade: "electrical", stage: "rough-in", image: "co-kitchen-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" } },
-  { room: "bano", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
-  { room: "hall", trade: "electrical", stage: "rough-in", image: "co-hall-board", what: { en: "Board and feed", es: "Tablero y acometida" } },
+  { room: "sala", trade: "electrical", stage: "rough-in", image: "co-sala-electrical", what: { en: "Conduit and outlet boxes", es: "Ductería y cajas de salida" }, difficulty: 0.8 },
+  { room: "principal", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" }, difficulty: 0.7 },
+  { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" }, difficulty: 0.7 },
+  /* Appliance circuits: more of them, heavier, and they have to miss the plumbing. */
+  { room: "cocina", trade: "electrical", stage: "rough-in", image: "co-kitchen-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" }, difficulty: 1.3 },
+  { room: "bano", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Lighting and extractor", es: "Iluminación y extractor" }, difficulty: 1.1 },
+  /* The board is the fiddliest thing an electrician does in an apartment. */
+  { room: "hall", trade: "electrical", stage: "rough-in", image: "co-hall-board", what: { en: "Board and feed", es: "Tablero y acometida" }, difficulty: 1.6 },
 
-  { room: "sala", trade: "finishes", stage: "finishes", image: "co-sala-finished", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" } },
-  { room: "principal", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
-  { room: "alcoba2", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
-  { room: "cocina", trade: "finishes", stage: "finishes", image: "co-kitchen-finished", what: { en: "Cabinetry and worktop", es: "Mobiliario y mesón" } },
-  { room: "bano", trade: "finishes", stage: "finishes", image: "co-bath-finished", what: { en: "Tiling and fittings", es: "Enchape y aparatos" } },
-  { room: "hall", trade: "finishes", stage: "finishes", image: "co-hall-finished", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" } },
-  { room: "balcon", trade: "finishes", stage: "finishes", image: "co-balcony-finished", what: { en: "Floor and handrail", es: "Piso y pasamanos" } },
+  { room: "sala", trade: "finishes", stage: "finishes", image: "co-sala-finished", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" }, difficulty: 1.2 },
+  { room: "principal", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" }, difficulty: 1.0 },
+  { room: "alcoba2", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" }, difficulty: 1.0 },
+  /* Cabinetry and a worktop have to meet a wall that is never square. */
+  { room: "cocina", trade: "finishes", stage: "finishes", image: "co-kitchen-finished", what: { en: "Cabinetry and worktop", es: "Mobiliario y mesón" }, difficulty: 1.8 },
+  /* Tiling: every defect is visible from the door and none of it can be touched up. */
+  { room: "bano", trade: "finishes", stage: "finishes", image: "co-bath-finished", what: { en: "Tiling and fittings", es: "Enchape y aparatos" }, difficulty: 2.2 },
+  { room: "hall", trade: "finishes", stage: "finishes", image: "co-hall-finished", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" }, difficulty: 1.4 },
+  /* A handrail is a fixing nobody is allowed to get wrong. */
+  { room: "balcon", trade: "finishes", stage: "finishes", image: "co-balcony-finished", what: { en: "Floor and handrail", es: "Piso y pasamanos" }, difficulty: 1.3 },
 
-  { room: "sala", trade: "own", stage: "handover", image: "co-sala-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "principal", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "alcoba2", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "cocina", trade: "own", stage: "handover", image: "co-kitchen-finished", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" } },
-  { room: "bano", trade: "own", stage: "handover", image: "co-bath-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "hall", trade: "own", stage: "handover", image: "co-hall-finished", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" } },
-  { room: "balcon", trade: "own", stage: "handover", image: "co-balcony-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "sala", trade: "own", stage: "handover", image: "co-sala-handover", what: { en: "Condition at handover", es: "Estado de entrega" }, difficulty: 0.4 },
+  { room: "principal", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" }, difficulty: 0.4 },
+  { room: "alcoba2", trade: "own", stage: "handover", image: "co-bedroom-handover", what: { en: "Condition at handover", es: "Estado de entrega" }, difficulty: 0.4 },
+  { room: "cocina", trade: "own", stage: "handover", image: "co-kitchen-finished", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" }, difficulty: 0.7 },
+  { room: "bano", trade: "own", stage: "handover", image: "co-bath-finished", what: { en: "Condition at handover", es: "Estado de entrega" }, difficulty: 0.5 },
+  { room: "hall", trade: "own", stage: "handover", image: "co-hall-finished", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" }, difficulty: 0.6 },
+  { room: "balcon", trade: "own", stage: "handover", image: "co-balcony-finished", what: { en: "Condition at handover", es: "Estado de entrega" }, difficulty: 0.4 },
 ];
 
 /** The columns of the grid: one per (stage, trade), in build order. Each is
@@ -921,13 +986,15 @@ export const CAPTURE_ROOMS: { key: string; name: Bi }[] = [
 /** Which image library a basename lives in. The room shots came from the
  *  Cadogan capture set and the concealed-work shots from the feature set; both
  *  are on disk at 240, 480, 960 and 1920. */
-export function shotSrc(image: string, width: 240 | 480 | 960) {
+export function shotSrc(image: string, width: 240 | 480 | 960 | 1920) {
   /* ⚠️  EVERY CAPTURE IMAGE LIVES IN `features`, and must. The cadogan-*
      capture set is built at 240 and 878 only — it exists to be thumbnails on
      the evidence record — so asking it for 480 or 960 returned 404s that
      showed as empty frames with no console error. The apartment sheet asks
      for both. Anything added here has to be registered in the `features`
-     group of scripts/optimise-images.mjs, which builds 240/480/960/1920. */
+     group of scripts/optimise-images.mjs, which builds 240/480/960/1920.
+     1920 is what the zoom viewer asks for, and was checked present for every
+     capture image this fixture can reference before being allowed in here. */
   return `/assets/features/${image}-${width}.webp`;
 }
 
@@ -952,6 +1019,22 @@ export type RequiredCapture = {
    *  hasCertificate(). Every image shown anywhere is gated on it, so there is
    *  never a photograph without a record behind it. */
   published: boolean;
+  /** What the site team raised against this capture, ever.
+   *
+   *  ⚠️  HISTORY, NOT STATE. `status` says where the cell is NOW; a stage the
+   *  apartment has moved past is uniformly complete, because it could not have
+   *  sealed otherwise. `raised` says what happened on the way, and it does not
+   *  disappear when the work is put right.
+   *
+   *  Without this the whole record was amnesiac: flags existed only in the one
+   *  stage being worked on, so every month before the current one showed a
+   *  clean sheet for everybody, and a chart of anyone's work over time was
+   *  empty until its last two columns. A development that has raised four
+   *  hundred flags cannot show nothing happened. */
+  raised: "none" | "inspection" | "rework";
+  /** A raised flag that has since been closed out. Open flags are the ones
+   *  somebody still has to do something about. */
+  resolved: boolean;
 };
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1076,6 +1159,41 @@ export function sessionFor(
  *  retaken before the certificate can publish. Collapsing that to a single
  *  apartment state is what makes a progress report useless to the person who
  *  has to act on it. */
+/** Was anything raised against a capture that is now complete, and closed?
+ *
+ *  Drawn on its own seed so it is independent of the status draw — sharing one
+ *  would tie "did this finish" to "did it finish first time", which are not the
+ *  same question and would correlate every chart on the page with every other.
+ *
+ *  The inspection / rework split is 11:9 across everybody. Rework is the rarer
+ *  call because it costs somebody a day. */
+/** How often this person, on this job, gets something raised against them.
+ *
+ *  ⚠️  BOTH TERMS MATTER, and separating them is the point of the two views on
+ *  the team screen. Who did it is one thing; what they were asked to do is
+ *  another, and a rate that mixes them silently is how a tiler on bathrooms
+ *  comes to look worse than a labourer photographing balconies. */
+export function flagRateFor(by: Capturer, requirement: Requirement): number {
+  return by.flagRate * requirement.difficulty;
+}
+
+function history(
+  seed: string,
+  by: Capturer,
+  requirement: Requirement,
+  photographed: boolean,
+): readonly ["none" | "inspection" | "rework", boolean] {
+  if (!photographed) return ["none", false] as const;
+  const rate = flagRateFor(by, requirement);
+  const r = hash01(`${seed}:raised`);
+  if (r >= rate) return ["none", false] as const;
+  /* Rescaled within the band so the kind does not correlate with how close the
+     draw came to the threshold. Rework is the rarer call, because it costs
+     somebody a day. */
+  const kind = r / rate < 0.55 ? "inspection" : "rework";
+  return [kind, true] as const;
+}
+
 const capturesCache = new Map<string, RequiredCapture[]>();
 
 export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
@@ -1107,38 +1225,86 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
        A stage the apartment has got PAST is uniformly complete. The stage it
        is on is the only interesting one, and it is handled below. */
     if (unit.sealed > stageIndex) {
+      /* It finished — but whether it finished first time is a separate draw,
+         and a separate fact. The stage could not have sealed with a flag still
+         open, so anything raised here was closed out. */
+      const [raised, resolved] = history(seed, by, requirement, true);
       return {
         requirement,
         status: "complete" as const,
         by,
         time: timeFrom(seed),
         published,
+        raised,
+        resolved,
       };
     }
 
     /* The stage being worked on now: a mixed column, which is the only
        interesting state on the whole sheet. */
     if (unit.current === requirement.stage) {
+      /* ⚠️  THE OPEN-FLAG BAND IS THE CAPTURER'S, NOT A CONSTANT. It used to be
+         a fixed 12% inspection and 7% rework for everybody, which drew a tower
+         where every trade looked alike and made the per-person screen pointless
+         — the thing a developer with 70% of the work subcontracted is actually
+         trying to see.
+
+         It runs at three times their settled rate because this is the stage
+         nobody has closed out yet: open flags are over-represented by
+         definition, and the ones that get resolved leave the band as the work
+         moves on. Capped so that even the worst firm's live column is mostly
+         work rather than mostly flags. */
+      const band = Math.min(0.36, flagRateFor(by, requirement) * 3);
+      const rest = 1 - band;
+      /* The remainder keeps the old complete / active / pending proportions,
+         so changing the band moves flags in and out without quietly changing
+         how much work appears done. */
+      const complete = rest * 0.641;
+      const active = complete + rest * 0.197;
+      const warning = active + band * 0.6;
+      const problem = warning + band * 0.4;
+
       const status: UnitPhase =
-        h < 0.52
+        h < complete
           ? "complete"
-          : h < 0.68
+          : h < active
             ? "active"
-            : h < 0.8
+            : h < warning
               ? "warning"
-              : h < 0.87
+              : h < problem
                 ? "problem"
                 : "pending";
+
+      /* An open flag IS the history, still running. A cell that came through
+         clean this time may still carry an older, closed one. */
+      const [raised, resolved] =
+        status === "warning"
+          ? (["inspection", false] as const)
+          : status === "problem"
+            ? (["rework", false] as const)
+            : history(seed, by, requirement, status === "complete");
+
       return {
         requirement,
         status,
         by,
         time: status === "complete" || status === "problem" ? timeFrom(seed) : null,
         published,
+        raised,
+        resolved,
       };
     }
 
-    return { requirement, status: "pending" as const, by, time: null, published };
+    /* Nobody has been yet, so there is nothing to have raised anything about. */
+    return {
+      requirement,
+      status: "pending" as const,
+      by,
+      time: null,
+      published,
+      raised: "none" as const,
+      resolved: false,
+    };
   });
 
   capturesCache.set(key, out);
@@ -1424,6 +1590,25 @@ export function defectImage(requirement: Requirement): string {
   );
 }
 
+/** Does a photograph exist for this capture?
+ *
+ *  ⚠️  A FLAGGED CAPTURE HAS ONE. Inspection and rework are judgements raised
+ *  by looking at a photograph, so a cell in either state must have one — this
+ *  test excluded "warning" at first, which meant the inspection defect images
+ *  were generated, wired and never once displayed. Only "pending" (nobody has
+ *  been) and "active" (somebody is there now) have nothing to show.
+ *
+ *  Publication is the other half: a stage still being worked on holds its
+ *  media in a draft, so there is no certificate and nothing to show. */
+export function hasPhotograph(cell: RequiredCapture): boolean {
+  return (
+    cell.published &&
+    (cell.status === "complete" ||
+      cell.status === "warning" ||
+      cell.status === "problem")
+  );
+}
+
 /** The image a capture actually shows: its defect photograph when one has been
  *  raised against it, otherwise the ordinary record shot. */
 export function imageFor(cell: RequiredCapture): string {
@@ -1625,10 +1810,9 @@ export function reviewQueue(): ReviewItem[] {
 
         const shots = cells.filter(
           (c) =>
-            c.published &&
+            hasPhotograph(c) &&
             c.requirement.stage === job.stage &&
-            c.requirement.trade === job.trade &&
-            (c.status === "complete" || c.status === "problem"),
+            c.requirement.trade === job.trade,
         );
         if (shots.length === 0) continue;
 
@@ -1646,4 +1830,294 @@ export function reviewQueue(): ReviewItem[] {
 
   queueCache = out.sort((a, b) => b.session.date.localeCompare(a.session.date));
   return queueCache;
+}
+/* ── Work over time ──────────────────────────────────────────────────────── */
+
+/* ⚠️  THIS IS A RECORD OF HUMAN JUDGEMENTS, NOT A VERDICT ON ANYBODY. Delphi
+   does not certify construction quality, so nothing here says a person's work
+   is poor. What it says is how many of their captures the SITE TEAM later
+   raised for inspection or rework — a count of decisions other people made,
+   which is a fact about the record rather than an opinion about the tradesman.
+
+   The distinction matters more here than anywhere else on the page, because
+   this is the screen somebody would misread as a performance score. The copy
+   has to keep saying whose judgement is being counted.
+
+   ⚠️  AND IT IS COUNTED TWO WAYS ON PURPOSE. A rate per person mixes together
+   who did the work and how hard the work was: the bathroom waterproofing cell
+   is raised against several times more often than a handover photograph, so
+   whoever is on wet areas carries a worse-looking number for doing a harder
+   job. Neither view is the truth on its own, which is why both are built here
+   from one pass and shown side by side. */
+
+export type ActivityMonth = {
+  month: string;
+  captures: number;
+  /** Raised for a closer look. */
+  inspection: number;
+  /** Raised to be done again. */
+  rework: number;
+  /** inspection + rework, kept so callers need not add up to sort. */
+  flagged: number;
+  /** Of those, the ones still waiting on somebody. */
+  open: number;
+};
+
+/** Kept for the callers that named it this before job rows existed. */
+export type PersonMonth = ActivityMonth;
+
+type Tally = {
+  months: ActivityMonth[];
+  captures: number;
+  inspection: number;
+  rework: number;
+  flagged: number;
+  open: number;
+  /** Months between the first and last capture, inclusive. */
+  activeMonths: number;
+};
+
+export type PersonActivity = Tally & {
+  id: string;
+  name: string;
+  initials: string;
+  trade: Trade;
+  firm: string;
+};
+
+export type JobActivity = Tally & {
+  key: string;
+  stage: string;
+  trade: Trade;
+  /** The requirements this job is made of, hardest first — the "some jobs are
+   *  harder than others" detail behind the row. */
+  cells: CellActivity[];
+};
+
+/** One square of the checklist grid: a room and a trade together. */
+export type CellActivity = {
+  room: string;
+  what: Bi;
+  difficulty: number;
+  captures: number;
+  inspection: number;
+  rework: number;
+  flagged: number;
+};
+
+/** A person's work on one job type, or a job type's work by one person —
+ *  the same cross-tabulation read from either side. */
+export type Crossing = {
+  personId: string;
+  jobKey: string;
+  stage: string;
+  trade: Trade;
+  name: string;
+  captures: number;
+  inspection: number;
+  rework: number;
+  flagged: number;
+};
+
+type Built = {
+  people: PersonActivity[];
+  jobs: JobActivity[];
+  crossings: Crossing[];
+};
+
+let built: Built | null = null;
+
+function blankMonths(all: string[]): ActivityMonth[] {
+  return all.map((month) => ({
+    month,
+    captures: 0,
+    inspection: 0,
+    rework: 0,
+    flagged: 0,
+    open: 0,
+  }));
+}
+
+function totalsOf(months: ActivityMonth[]): Tally {
+  const captures = months.reduce((n, m) => n + m.captures, 0);
+  const inspection = months.reduce((n, m) => n + m.inspection, 0);
+  const rework = months.reduce((n, m) => n + m.rework, 0);
+  const open = months.reduce((n, m) => n + m.open, 0);
+  const first = months.findIndex((m) => m.captures > 0);
+  const last = months.map((m) => m.captures > 0).lastIndexOf(true);
+  return {
+    months,
+    captures,
+    inspection,
+    rework,
+    flagged: inspection + rework,
+    open,
+    activeMonths: first === -1 ? 0 : last - first + 1,
+  };
+}
+
+/** Walks the development once and fills every tally the team screen needs.
+ *
+ *  One pass because there are three of them over half a million cells, and
+ *  because three passes is three chances for them to disagree. */
+function buildActivity(): Built {
+  if (built) return built;
+
+  /* Every month the development has seen, so the strips line up across rows —
+     a sparkline whose x-axis differs per row lies by omission. */
+  const allMonths = certificatesByMonth().map((m) => m.month);
+  const index = new Map(allMonths.map((m, i) => [m, i]));
+
+  const personMonths = new Map<string, ActivityMonth[]>();
+  const jobMonths = new Map<string, ActivityMonth[]>();
+  const cells = new Map<string, CellActivity>();
+  const cross = new Map<string, Crossing>();
+
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      if (unit.sealed === 0) continue;
+      const captures = capturesFor(unit, tower);
+
+      for (const job of JOBS) {
+        const session = sessionFor(unit, tower, job);
+        if (!session) continue;
+
+        const i = index.get(session.date.slice(0, 7));
+        if (i === undefined) continue;
+
+        const jobKey = `${job.stage}:${job.trade}`;
+        const personId = session.by.id;
+        const crossKey = `${personId}:${jobKey}`;
+
+        if (!personMonths.has(personId)) {
+          personMonths.set(personId, blankMonths(allMonths));
+        }
+        if (!jobMonths.has(jobKey)) jobMonths.set(jobKey, blankMonths(allMonths));
+        if (!cross.has(crossKey)) {
+          cross.set(crossKey, {
+            personId,
+            jobKey,
+            stage: job.stage,
+            trade: job.trade,
+            name: session.by.name,
+            captures: 0,
+            inspection: 0,
+            rework: 0,
+            flagged: 0,
+          });
+        }
+
+        const pm = personMonths.get(personId)![i];
+        const jm = jobMonths.get(jobKey)![i];
+        const xs = cross.get(crossKey)!;
+
+        for (const cell of captures) {
+          if (cell.requirement.stage !== job.stage) continue;
+          if (cell.requirement.trade !== job.trade) continue;
+          if (!hasPhotograph(cell)) continue;
+
+          const cellKey = `${jobKey}:${cell.requirement.room}`;
+          if (!cells.has(cellKey)) {
+            cells.set(cellKey, {
+              room: cell.requirement.room,
+              what: cell.requirement.what,
+              difficulty: cell.requirement.difficulty,
+              captures: 0,
+              inspection: 0,
+              rework: 0,
+              flagged: 0,
+            });
+          }
+          const cs = cells.get(cellKey)!;
+
+          pm.captures += 1;
+          jm.captures += 1;
+          xs.captures += 1;
+          cs.captures += 1;
+
+          /* ⚠️  `raised`, NOT `status`. Status is where the cell is now, and a
+             stage that has sealed is uniformly complete — counting that way
+             threw away every flag the moment it was closed, so every month
+             before the current one showed a clean sheet for everybody and the
+             whole history was blank. What a record holds is what was raised
+             against the work, whether or not it has since been put right. */
+          if (cell.raised === "inspection") {
+            pm.inspection += 1;
+            jm.inspection += 1;
+            xs.inspection += 1;
+            cs.inspection += 1;
+          } else if (cell.raised === "rework") {
+            pm.rework += 1;
+            jm.rework += 1;
+            xs.rework += 1;
+            cs.rework += 1;
+          } else {
+            continue;
+          }
+
+          pm.flagged += 1;
+          jm.flagged += 1;
+          xs.flagged += 1;
+          cs.flagged += 1;
+          if (!cell.resolved) {
+            pm.open += 1;
+            jm.open += 1;
+          }
+        }
+      }
+    }
+  }
+
+  const people: PersonActivity[] = CREW.map((person) => ({
+    id: person.id,
+    name: person.name,
+    initials: person.initials,
+    trade: person.trade,
+    firm: person.org.en,
+    ...totalsOf(personMonths.get(person.id) ?? blankMonths(allMonths)),
+  })).sort((a, b) => b.captures - a.captures);
+
+  const jobs: JobActivity[] = JOBS.map((job) => {
+    const key = `${job.stage}:${job.trade}`;
+    return {
+      key,
+      stage: job.stage,
+      trade: job.trade,
+      cells: [...cells.entries()]
+        .filter(([k]) => k.startsWith(`${key}:`))
+        .map(([, c]) => c)
+        .sort((a, b) => b.difficulty - a.difficulty),
+      ...totalsOf(jobMonths.get(key) ?? blankMonths(allMonths)),
+    };
+  }).sort((a, b) => b.captures - a.captures);
+
+  built = { people, jobs, crossings: [...cross.values()] };
+  return built;
+}
+
+export function personActivity(): PersonActivity[] {
+  return buildActivity().people;
+}
+
+export function jobActivity(): JobActivity[] {
+  return buildActivity().jobs;
+}
+
+/** One person's work split by job type. */
+export function jobsForPerson(personId: string): Crossing[] {
+  return buildActivity()
+    .crossings.filter((c) => c.personId === personId)
+    .sort((a, b) => b.captures - a.captures);
+}
+
+/** One job type's work split by the people who did it. */
+export function peopleForJob(jobKey: string): Crossing[] {
+  return buildActivity()
+    .crossings.filter((c) => c.jobKey === jobKey)
+    .sort((a, b) => b.captures - a.captures);
+}
+
+/** Every month the strips span, so all rows share one axis. */
+export function activityMonths(): string[] {
+  return certificatesByMonth().map((m) => m.month);
 }

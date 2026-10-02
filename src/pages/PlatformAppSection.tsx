@@ -5,6 +5,7 @@ import { ORG } from "@/content/dashboard";
 import { SiteProgress } from "@/components/enterprise/SiteProgress";
 import { AnalysisCharts } from "@/components/enterprise/AnalysisCharts";
 import { ReviewQueue } from "@/components/enterprise/ReviewQueue";
+import { WorkOverTime } from "@/components/enterprise/WorkOverTime";
 import { CREW, TRADE } from "@/content/enterprise/world";
 import { useT } from "@/content/enterprise/lang";
 import { cn } from "@/lib/cn";
@@ -81,10 +82,38 @@ function Analysis() {
         ) : tab === "review" ? (
           <ReviewQueue />
         ) : (
-          <Crew />
+          <Team />
         )}
       </div>
     </Shell>
+  );
+}
+
+/** Who did what, when — then the roster.
+ *
+ *  ⚠️  THE STRIPS COME FIRST. A tab that only lists eight names answers a
+ *  question nobody opens a dashboard with. What the head of construction wants
+ *  from the people tab is how much each of them recorded and when, so the
+ *  activity table leads and the firm roster sits under it for the phone
+ *  numbers. */
+function Team() {
+  const t = useT();
+  return (
+    <div className="flex flex-col gap-10">
+      <WorkOverTime />
+      <div>
+        <h2 className="text-[18px] font-semibold">
+          {t({ en: "Who is on site", es: "Quién está en obra" })}
+        </h2>
+        <p className="mt-0.5 mb-4 max-w-prose text-[12px] text-ink-secondary">
+          {t({
+            en: "Grouped by firm, because accountability runs to the company that was contracted rather than to the person holding the phone.",
+            es: "Agrupado por empresa, porque la responsabilidad corresponde a la empresa contratada y no a la persona que sostiene el teléfono.",
+          })}
+        </p>
+        <Crew />
+      </div>
+    </div>
   );
 }
 
@@ -98,8 +127,7 @@ function Analysis() {
 function Crew() {
   const t = useT();
 
-  /* Grouped by firm, because accountability runs to the company rather than to
-     the individual — which is the point of the contractor story. */
+  /* Grouped by firm — see the note in Team(). */
   const firms = [...new Map(CREW.map((c) => [t(c.org), c])).keys()];
 
   return (

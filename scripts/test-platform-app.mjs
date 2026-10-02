@@ -6,7 +6,14 @@ const routes = await loadRoutes();
 for (const path of ["/platform/app", "/platform/app/"]) {
   const html = render(path, routes);
   assert.doesNotMatch(html, /Ellerby London/);
-  assert.match(html, /Evidence operations/);
+  /* The home page used to be WebDashboard — the London agency demo, with
+     "Evidence operations", Cadogan Square, a yacht and a villa in the
+     Maldives — inside an app about a development in Jamundi. It is now read
+     off the same fixture as every other screen, so the assertions are that
+     the development is named and that London is nowhere in it. */
+  assert.match(html, /Ciudadela Altavista/);
+  assert.match(html, /Needs you today/);
+  assert.doesNotMatch(html, /Evidence operations|Cadogan|Eaton Place|Grosvenor/);
   assert.match(html, /h-dvh w-full overflow-x-auto/);
   assert.doesNotMatch(html, /<header|<footer/);
 }

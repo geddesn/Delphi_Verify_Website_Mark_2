@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Sidebar, TopBar } from "@/components/renderings/WebDashboard";
 import { ORG } from "@/content/dashboard";
+import { AppShell } from "@/components/enterprise/AppShell";
 import { SiteProgress } from "@/components/enterprise/SiteProgress";
 import { AnalysisCharts } from "@/components/enterprise/AnalysisCharts";
 import { ReviewQueue } from "@/components/enterprise/ReviewQueue";
@@ -50,7 +50,7 @@ function Analysis() {
   const [tab, setTab] = useState<TabKey>("overview");
 
   return (
-    <Shell active="Analysis" title="Analysis" eyebrow={ORG.workspace}>
+    <AppShell active="Analysis" title="Analysis" eyebrow={ORG.workspace}>
       <div
         role="tablist"
         aria-label="Analysis"
@@ -86,7 +86,7 @@ function Analysis() {
           <Team />
         )}
       </div>
-    </Shell>
+    </AppShell>
   );
 }
 
@@ -186,7 +186,7 @@ function Crew() {
  *  This is the gap, drawn. */
 function Jobs() {
   return (
-    <Shell
+    <AppShell
       active="Jobs"
       title="Jobs"
       eyebrow={ORG.workspace}
@@ -195,46 +195,7 @@ function Jobs() {
       <div className="mt-8">
         <JobsBoard />
       </div>
-    </Shell>
+    </AppShell>
   );
 }
 
-/* ── Shared chrome ───────────────────────────────────────────────────────── */
-
-function Shell({
-  active,
-  title,
-  eyebrow,
-  standfirst,
-  children,
-}: {
-  active: string;
-  title: string;
-  eyebrow: string;
-  standfirst?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      data-theme="light"
-      className="h-dvh min-w-[1440px] overflow-hidden bg-surface-sunken text-ink"
-    >
-      <div className="flex h-full">
-        <Sidebar active={active} />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar />
-          <main className="flex-1 overflow-y-auto px-10 py-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-              {eyebrow}
-            </p>
-            <h1 className="mt-2 text-[26px] font-semibold">{title}</h1>
-            {standfirst && (
-              <p className="mt-2 text-[13px] text-ink-secondary">{standfirst}</p>
-            )}
-            {children}
-          </main>
-        </div>
-      </div>
-    </div>
-  );
-}

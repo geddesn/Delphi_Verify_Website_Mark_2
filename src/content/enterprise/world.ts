@@ -2466,3 +2466,75 @@ export function roomsForJob(stage: string, trade: Trade): string[] {
 export const SCHEDULABLE_JOBS = JOBS.filter((j) =>
   REQUIREMENTS.some((r) => r.stage === j.stage && r.trade === j.trade),
 );
+
+/* ── What has just happened ──────────────────────────────────────────────── */
+
+/** A certificate, with the captures inside it. */
+export type Published = {
+  tower: Tower;
+  unit: UnitState;
+  job: { stage: string; trade: Trade };
+  session: PublishedSession;
+  cells: RequiredCapture[];
+  flagged: number;
+  ageDays: number;
+};
+
+let recentCache: Published[] | null = null;
+
+/** The certificates that published most recently, newest first.
+ *
+ *  ⚠️  EVERY ONE OF THESE IS A REAL ROW OF THE FIXTURE, not a hand-written
+ *  feed. The home page this replaced listed "Evidence record W1MQ-E4ML
+ *  sealed · 18 Cadogan Square" beside three London photographs, in an app
+ *  whose every other screen is about a development in Jamundí. A recent-
+ *  activity list is the easiest thing on a dashboard to invent and the
+ *  quickest to give the game away, because the viewer can click it. */
+export function recentCertificates(limit = 24): Published[] {
+  if (!recentCache) {
+    const out: Published[] = [];
+    for (const tower of TOWERS) {
+      for (const unit of UNITS[tower.key]) {
+        if (unit.sealed === 0) continue;
+        const cells = capturesFor(unit, tower);
+        for (const job of JOBS) {
+          const session = sessionFor(unit, tower, job);
+          if (!session) continue;
+          const mine = cells.filter(
+            (c) =>
+              hasPhotograph(c) &&
+              c.requirement.stage === job.stage &&
+              c.requirement.trade === job.trade,
+          );
+          if (mine.length === 0) continue;
+          out.push({
+            tower,
+            unit,
+            job,
+            session,
+            cells: mine,
+            flagged: mine.filter((c) => c.status !== "complete").length,
+            ageDays: ageInDays(session.date),
+          });
+        }
+      }
+    }
+    recentCache = out.sort((a, b) => b.session.date.localeCompare(a.session.date));
+  }
+  return recentCache.slice(0, limit);
+}
+
+/** How far each tower has got, as a share of the captures it will ever need. */
+export function towerProgress(tower: Tower) {
+  let required = 0;
+  let done = 0;
+  let flagged = 0;
+  for (const unit of UNITS[tower.key]) {
+    for (const cell of capturesFor(unit, tower)) {
+      required += 1;
+      if (hasPhotograph(cell)) done += 1;
+      if (cell.status === "warning" || cell.status === "problem") flagged += 1;
+    }
+  }
+  return { required, done, flagged, share: required === 0 ? 0 : done / required };
+}

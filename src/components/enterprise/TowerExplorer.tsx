@@ -537,6 +537,12 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      a 1440px canvas by whatever the layout gives it, so raw client pixels
      would turn the block at different speeds on a phone and a monitor. */
   const drag = useRef<{ x: number; angle: number; width: number } | null>(null);
+  /* ⚠️  A ROTATE ENDS IN A CLICK. Turning the tower is a pointer-down, a lot of
+     movement and a pointer-up, and the browser fires `click` after that like
+     any other — so without this every drag that happened to finish over empty
+     sky would clear the floor selection. Set on pointer-up, read by the click
+     handler a moment later. */
+  const dragged = useRef(false);
 
   /* ── Dragging the divider ──
      ⚠️  THE DELTA IS DIVIDED BY THE STAGE'S OWN SCALE. On /platform/enterprise
@@ -575,12 +581,15 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
       angle,
       width: e.currentTarget.getBoundingClientRect().width,
     };
+    dragged.current = false;
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     const d = drag.current;
     if (!d) return;
+    /* A few pixels of travel is a click with a shaky hand, not a drag. */
+    if (Math.abs(e.clientX - d.x) > 3) dragged.current = true;
     setAngle(d.angle + ((e.clientX - d.x) / d.width) * Math.PI * 2);
   };
 
@@ -701,6 +710,14 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
+              /* Clicking off the building goes back to the whole tower. The
+                 apartments stop this reaching here — see the panel handler —
+                 so anything that arrives is the ground or the sky. */
+              onClick={() => {
+                if (dragged.current) return;
+                setFloor(null);
+                setPosition(null);
+              }}
               onKeyDown={onKeyDown}
             >
               <path
@@ -822,7 +839,6 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             </div>
           )}
 
-          <FloorRail floor={shownFloor} tower={tower} onFloor={setFloor} />
         </div>
 
         {/* The handle. A hairline with a generous hit area either side of it —
@@ -860,58 +876,65 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
           style={{ width: asideWidth }}
           className="flex shrink-0 flex-col gap-4 overflow-hidden p-5"
         >
+          <div>
+            <p className="font-mono text-mono-sm uppercase text-ink-muted">
+              {tower.name}
+            </p>
+            <p className="mt-1 text-heading text-ink">
+              {shownFloor === null
+                ? t({
+                    en: `${unitsIn(tower)} apartments`,
+                    es: `${unitsIn(tower)} apartamentos`,
+                  })
+                : t({
+                    en: `Floor ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartments`,
+                    es: `Piso ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartamentos`,
+                  })}
+            </p>
+            <p className="mt-1 text-body-sm text-ink-secondary">
+              {shownFloor === null
+                ? t({
+                    en: `${tower.floors} floors · ${APPTS_LINE}`,
+                    es: `${tower.floors} pisos · ${APPTS_LINE_ES}`,
+                  })
+                : t({
+                    en: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} rooms and a balcony each`,
+                    es: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} ambientes y un balcón cada uno`,
+                  })}
+            </p>
+          </div>
+
+          {/* ⚠️  THE ONLY FLOOR CONTROL, and it belongs to both views. It was a
+              rail of 21 rows floating over the stage, which was tolerable above
+              the block and ran straight under the floor plan — the plate is far
+              wider than the tower is. A select costs one line here and works
+              the same whichever view is showing. */}
+          <FloorSelect
+            tower={tower}
+            floor={shownFloor}
+            onFloor={setFloor}
+          />
+
+          <button
+            type="button"
+            onClick={() => setView(view === "plan" ? "block" : "plan")}
+            className="cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
+          >
+            {view === "plan"
+              ? t({ en: "← Back to the tower", es: "← Volver a la torre" })
+              : t({
+                  en: `Floor ${planFloor} details →`,
+                  es: `Detalles del piso ${planFloor} →`,
+                })}
+          </button>
+
+          {/* The selector stays reachable whatever is selected, so a storey
+              above the build front narrows only the panel below it rather than
+              replacing the control that would let you leave. */}
           {shownFloor !== null && shownFloor > tower.front.structure ? (
-            /* A floor above the poured structure has no apartments on it, so
-               describing it as "8 apartments, 58 m²" with six zeros beside it
-               is wrong twice over — the apartments do not exist, and the
-               tower's siteworks certificates, which do, are reported as
-               absent. */
             <NotBuiltYet tower={tower} floor={shownFloor} />
           ) : (
-            <>
-              <div>
-                <p className="font-mono text-mono-sm uppercase text-ink-muted">
-                  {tower.name}
-                </p>
-                <p className="mt-1 text-heading text-ink">
-                  {shownFloor === null
-                    ? t({
-                        en: `${unitsIn(tower)} apartments`,
-                        es: `${unitsIn(tower)} apartamentos`,
-                      })
-                    : t({
-                        en: `Floor ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartments`,
-                        es: `Piso ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartamentos`,
-                      })}
-                </p>
-                <p className="mt-1 text-body-sm text-ink-secondary">
-                  {shownFloor === null
-                    ? t({
-                        en: `${tower.floors} floors · ${APPTS_LINE}`,
-                        es: `${tower.floors} pisos · ${APPTS_LINE_ES}`,
-                      })
-                    : t({
-                        en: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} rooms and a balcony each`,
-                        es: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} ambientes y un balcón cada uno`,
-                      })}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setView(view === "plan" ? "block" : "plan")}
-                  className="mt-3 cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
-                >
-                  {view === "plan"
-                    ? t({ en: "← Back to the tower", es: "← Volver a la torre" })
-                    : t({
-                        en: `Floor ${planFloor} details →`,
-                        es: `Detalles del piso ${planFloor} →`,
-                      })}
-                </button>
-              </div>
-
-              <TowerProgress tower={tower} floor={shownFloor} />
-            </>
+            <TowerProgress tower={tower} floor={shownFloor} />
           )}
 
           <div className="mt-auto border-t border-line pt-4">
@@ -1069,7 +1092,10 @@ function Elevation({
           stroke={on ? "var(--ink)" : style.stroke}
           strokeWidth={on ? 1.6 : style.strokeWidth}
           className="cursor-pointer"
-          onClick={() => {
+          onClick={(e) => {
+            /* Or it would reach the stage's own handler, which clears the
+               selection this click just made. */
+            e.stopPropagation();
             onFloor(storey);
             onPosition(position ?? null);
           }}
@@ -1406,100 +1432,75 @@ function SelectedSlab({
   );
 }
 
-/* ── Floor rail ──────────────────────────────────────────────────────────── */
+/* ── Floor selector ──────────────────────────────────────────────────────── */
 
-function FloorRail({
-  floor,
+/** Which storey the panel and the stage are showing.
+ *
+ *  ⚠️  IT CARRIES WHAT THE RAIL CARRIED. The rail it replaced was not only a
+ *  list of numbers — it showed a progress bar per storey and a dot where
+ *  something needed chasing, which is how you found the floor worth opening.
+ *  A bare list of 21 numbers would have lost that, so each option says what is
+ *  wrong with its floor. The information survives the control changing shape.
+ */
+function FloorSelect({
   tower,
+  floor,
   onFloor,
 }: {
-  floor: number | null;
   tower: Tower;
+  floor: number | null;
   onFloor: (f: number | null) => void;
 }) {
   const t = useT();
-  const floors = Array.from({ length: tower.floors }, (_, i) => tower.floors - i);
+  const units = UNITS[tower.key];
+
+  const label = (f: number) => {
+    const on = units.filter((u) => u.floor === f);
+    if (f > tower.front.structure) {
+      return t({ en: `Floor ${f} · not built`, es: `Piso ${f} · sin construir` });
+    }
+    const rejected = on.filter((u) => u.phase === "problem").length;
+    const chasing = on.filter((u) => u.phase === "warning").length;
+    if (rejected) {
+      return t({
+        en: `Floor ${f} · ${rejected} rejected`,
+        es: `Piso ${f} · ${rejected} rechazada${rejected > 1 ? "s" : ""}`,
+      });
+    }
+    if (chasing) {
+      return t({
+        en: `Floor ${f} · ${chasing} to chase`,
+        es: `Piso ${f} · ${chasing} por revisar`,
+      });
+    }
+    return t({ en: `Floor ${f}`, es: `Piso ${f}` });
+  };
 
   return (
-    <div className="absolute right-3 top-3 bottom-3 flex w-24 flex-col justify-center gap-px">
-      {/* ⚠️  THE WAY BACK OUT. Without this the rail is a one-way door: every
-          row narrows the panel to one storey and nothing widens it again, so a
-          viewer who clicked a floor could never see the tower's own figures
-          without reloading. */}
-      <button
-        type="button"
-        onClick={() => onFloor(null)}
-        aria-current={floor === null ? "true" : undefined}
-        className={cn(
-          "mb-1 cursor-pointer rounded-sm px-1 py-0.5 text-left font-mono text-mono-sm uppercase transition-colors",
-          floor === null
-            ? "bg-surface-sunken text-ink"
-            : "text-ink-muted hover:text-ink-secondary",
-        )}
+    <label className="flex flex-col gap-1">
+      <span className="font-mono text-mono-sm uppercase text-ink-muted">
+        {t({ en: "Showing", es: "Mostrando" })}
+      </span>
+      <select
+        value={floor ?? "all"}
+        onChange={(e) =>
+          onFloor(e.target.value === "all" ? null : Number(e.target.value))
+        }
+        className="w-full cursor-pointer rounded-sm border border-line bg-surface px-2.5 py-1.5 text-body-sm text-ink transition-colors hover:border-line-strong"
       >
-        {t({ en: "All floors", es: "Todos" })}
-      </button>
-      {floors.map((f) => {
-        const on = UNITS[tower.key].filter((u) => u.floor === f);
-        /* The bar is how much of the floor is FINISHED, not how many
-           certificates it has accumulated. A part-sealed apartment is work in
-           progress, and a bar that creeps forward on every certificate makes a
-           floor look nearly done when none of its apartments are. */
-        const sealed = on.reduce((n, u) => n + u.sealed, 0);
-        const max = on.length * STAGES.length;
-        const issue = on.some((u) => u.phase === "problem")
-          ? "problem"
-          : on.some((u) => u.phase === "warning")
-            ? "warning"
-            : null;
-        const working = on.some((u) => u.phase === "active");
-        return (
-          <button
-            key={f}
-            type="button"
-            onClick={() => onFloor(f)}
-            aria-current={f === floor ? "true" : undefined}
-            className={cn(
-              "flex cursor-pointer items-center gap-1.5 rounded-sm px-1 text-left",
-              f === floor && "bg-surface-sunken",
-            )}
-          >
-            <span
-              className={cn(
-                "w-4 shrink-0 font-mono text-mono-sm tabular-nums",
-                f === floor ? "text-ink" : "text-ink-muted",
-              )}
-            >
-              {f}
-            </span>
-            <span className="relative h-1.5 flex-1 bg-surface-sunken">
-              <span
-                className="absolute inset-y-0 left-0"
-                style={{
-                  width: `${(sealed / max) * 100}%`,
-                  /* Neutral while a floor is merely progressing; accent only
-                     once somebody is actually working on it. */
-                  backgroundColor: working
-                    ? "var(--accent)"
-                    : "var(--ink-muted)",
-                  opacity: working ? 1 : 0.45,
-                }}
-              />
-            </span>
-            {issue && (
-              <span
-                aria-hidden
-                className="size-1.5 shrink-0 rounded-full"
-                style={{
-                  backgroundColor:
-                    issue === "problem" ? "var(--failed)" : "var(--pending)",
-                }}
-              />
-            )}
-          </button>
-        );
-      })}
-    </div>
+        <option value="all">
+          {t({ en: "All floors", es: "Todos los pisos" })}
+        </option>
+        {/* Top down, the way the rail read and the way a tower is drawn. */}
+        {Array.from({ length: tower.floors }, (_, i) => tower.floors - i).map(
+          (f) => (
+            <option key={f} value={f}>
+              {label(f)}
+            </option>
+          ),
+        )}
+      </select>
+    </label>
   );
 }
 

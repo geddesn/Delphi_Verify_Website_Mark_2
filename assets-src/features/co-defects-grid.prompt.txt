@@ -1,0 +1,74 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  2ec34583-c7e7-4107-b8f1-60f2e9f1194e
+
+Photorealistic construction record photography presented as a 3x2 GRID OF SIX
+SEPARATE PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell to
+all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE BUILDING
+An ordinary new-build apartment in Colombia, inland tropical city, mid-rise
+residential tower. Grey concrete block, poured slabs, plain white paint and
+pale ceramic tile where finished. Economical, NOT luxury. Flat working
+daylight. These are snags photographed by a site supervisor on a phone: close
+enough that the fault is unmistakable, wide enough to see which room it is in.
+
+THE SIX DEFECTS
+
+1 TOP-LEFT. LEAKING JOINT. A white PVC pipe joint on bare blockwork with a wet
+dark stain spreading down the wall beneath it and a small puddle on the
+concrete floor. Mineral staining around the fitting. Square-on, close.
+
+2 TOP-CENTRE. CRACKED TILE. A finished pale ceramic floor with one tile
+clearly cracked across its face and the grout around it crumbling and uneven,
+a visible lippage step between neighbouring tiles. Looking down at a shallow
+angle.
+
+3 TOP-RIGHT. UNSAFE WIRING. An electrical outlet box on a block wall with no
+cover plate, bare conductor ends twisted together and hanging loose out of the
+box, orange conduit poorly fixed and sagging away from the wall. Square-on,
+close.
+
+4 BOTTOM-LEFT. DAMP. A block wall with a broad irregular damp patch darkening
+it from the floor upward, white salt efflorescence blooming across the blocks
+and paint beginning to lift and blister at the edge of the patch.
+
+5 BOTTOM-CENTRE. BAD PLASTER. A white painted wall that is visibly uneven —
+shallow waves and trowel ridges catching the light — with two or three dried
+paint runs down it and a patch where the plaster has been filled and not sanded
+flush. Raking light so the unevenness reads.
+
+6 BOTTOM-RIGHT. MISALIGNED DOOR. A plain white internal door hung badly in its
+frame: a wide tapering gap down the latch side, the door visibly out of square
+with the frame, scuffed paint at the bottom edge and a gap under it.
+
+HOW THEY ARE PHOTOGRAPHED
+Snag photographs, not architecture. Square-on or slightly angled, verticals
+true, even light, the fault filling a good part of the frame. Taken on a phone.
+No shafts of sun, no vignette, no shallow depth of field, no artful crops.
+
+STRICTLY NOT
+No people anywhere, including reflections. No hands, no tools being held. No
+labels, captions, arrows, circles, numbering or watermarks drawn on the
+pictures. NO WRITING ANYWHERE IN ANY FRAME.
+
+CRITICAL - SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, labels, callouts, annotations, user interface, diagrams, markers,
+arrows or lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level or slightly above. Verticals true, no
+converging distortion, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Flat neutral daylight throughout, consistent across all six. Grey, dusty,
+unglamorous. Neutral grade, no saturation push, no HDR.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Any visible seam
+between cells. Anything that looks staged or expensive.

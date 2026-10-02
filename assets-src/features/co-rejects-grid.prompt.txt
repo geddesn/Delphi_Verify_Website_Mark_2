@@ -1,0 +1,73 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  f1ed5522-9b23-4c41-b469-ecfed6d51723
+
+Photorealistic photography presented as a 3x2 GRID OF SIX SEPARATE
+PHOTOGRAPHS in one image.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell to
+all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+THE SETTING
+An ordinary new-build apartment in Colombia under construction or just
+finished: grey blockwork, poured slabs, plain white paint, pale ceramic tile.
+Economical, not luxury. These are failed phone captures from a site.
+
+THE SIX
+
+1 TOP-LEFT. A PHOTOGRAPH OF A SCREEN. A laptop screen on a desk, and on the
+screen is a photograph of a tiled bathroom. The screen's bezel and part of the
+keyboard are visible around it, there is a reflection of the room across the
+glass, and fine moire banding runs through the on-screen image. Unmistakably a
+picture of a picture.
+
+2 TOP-CENTRE. SOMEBODY IN FRAME. A bare blockwork room with a construction
+worker standing in the middle of it in a hard hat and high-visibility vest,
+facing the camera, caught mid-turn. The room is the subject and the person is
+in the way of it.
+
+3 TOP-RIGHT. PAPERWORK IN FRAME. A kitchen worktop in a finished apartment with
+a printed form, a clipboard and an open notebook lying on it, clearly the
+subject of the lower half of the picture. The writing on them is illegible and
+out of focus — no readable words or numbers anywhere.
+
+4 BOTTOM-LEFT. MOTION BLUR. A bathroom under construction photographed while
+the phone was moving: strong horizontal smearing across the whole frame,
+nothing in it sharp, the shapes of the sanitary points still just readable.
+
+5 BOTTOM-CENTRE. TOO DARK. A room interior badly underexposed — nearly black
+across most of the frame with one blown-out window at the side, the walls and
+floor barely emerging from the shadow, heavy noise in the darks.
+
+6 BOTTOM-RIGHT. THE WRONG SUBJECT. The view out across a construction site
+compound: parked vehicles, stacked block pallets, a site fence and the base of
+a tower crane. Plainly not the inside of an apartment at all.
+
+HOW THEY ARE PHOTOGRAPHED
+Failed phone captures. Hand-held, casual framing, no composition. Flat tropical
+daylight except where the cell calls for otherwise.
+
+STRICTLY NOT
+NO READABLE WRITING ANYWHERE IN ANY FRAME — no words, names, numbers, document
+text, screen text, signage or labels, in any cell. No identity documents, no
+cards, no passports, no faces on any document. No labels, captions, arrows or
+watermarks drawn over the pictures. The only person is the one in cell 2.
+
+CRITICAL - SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, callouts, annotations, user interface, diagrams, markers, arrows or
+lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Hand-held eye level. No fisheye, no wide-angle
+stretch at the edges.
+
+LIGHT AND COLOUR
+Neutral and unglamorous. Neutral grade, no saturation push, no HDR, except
+cell 5 which is deliberately underexposed.
+
+AVOID
+Lettering, numbers or logos of any kind. Any visible seam between cells.
+Anything that looks staged or expensive.

@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/cn";
 import {
   APARTMENT,
   CAPTURE_ROOMS,
+  JOBS,
   TRADE,
   capturesFor,
   inFocus,
+  sessionFor,
   shotSrc,
   stageByKey,
   type CaptureFocus,
@@ -13,7 +16,7 @@ import {
   type UnitPhase,
   type UnitState,
 } from "@/content/enterprise/world";
-import { useT, type Bi } from "@/content/enterprise/lang";
+import { fmtDate, useLang, useT, type Bi } from "@/content/enterprise/lang";
 
 /* ============================================================================
    APARTMENT PANE
@@ -68,6 +71,11 @@ export function ApartmentPane({
   const t = useT();
   const [open, setOpen] = useState<RequiredCapture | null>(null);
   const [hover, setHover] = useState<RequiredCapture | null>(null);
+  /* Two readings of one apartment: where the work is, and what was produced.
+     The plan answers "which room still owes me something"; the certificates
+     answer "what exactly am I holding, and who signed it". Neither contains
+     the other. */
+  const [tab, setTab] = useState<"plan" | "certificates">("plan");
 
   const cells = useMemo(() => capturesFor(unit, tower), [unit, tower]);
   const shown = useMemo(
@@ -95,6 +103,35 @@ export function ApartmentPane({
         <span className="font-mono text-mono-sm text-ink-muted">
           {APARTMENT.area.toFixed(0)} m²
         </span>
+
+        <div
+          role="tablist"
+          aria-label={t({ en: "Apartment", es: "Apartamento" })}
+          className="ml-4 flex rounded-sm border border-line"
+        >
+          {(
+            [
+              ["plan", { en: "Plan", es: "Planta" }],
+              ["certificates", { en: "Certificates", es: "Certificados" }],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className={cn(
+                "cursor-pointer px-3 py-1 text-body-sm transition-colors",
+                tab === key
+                  ? "bg-surface-sunken text-ink"
+                  : "text-ink-muted hover:text-ink-secondary",
+              )}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </div>
 
         <div className="ml-auto flex items-baseline gap-4">
           {/* Counted over the whole apartment, never over what the filter
@@ -126,20 +163,29 @@ export function ApartmentPane({
           fill their box, so a click on the margin round the drawing lands on
           one of them, while a click on a room or a marker lands on a child and
           must be left alone. */}
-      <div
-        className="min-h-0 flex-1 p-4"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClearFocus();
-        }}
-      >
-        <PlanBoard
+      {tab === "plan" ? (
+        <div
+          className="min-h-0 flex-1 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClearFocus();
+          }}
+        >
+          <PlanBoard
+            cells={shown}
+            hover={hover}
+            onHover={setHover}
+            onOpen={setOpen}
+            onClearFocus={onClearFocus}
+          />
+        </div>
+      ) : (
+        <Certificates
+          unit={unit}
+          tower={tower}
           cells={shown}
-          hover={hover}
-          onHover={setHover}
           onOpen={setOpen}
-          onClearFocus={onClearFocus}
         />
-      </div>
+      )}
 
       {shown.length === 0 && (
         <p className="shrink-0 px-4 pb-4 text-body-sm text-ink-secondary">
@@ -320,7 +366,11 @@ function Marker({
   onOpen: (c: RequiredCapture) => void;
 }) {
   const t = useT();
-  const has = cell.status === "complete" || cell.status === "problem";
+  /* ⚠️  PUBLISHED, not merely captured. A stage still being worked on holds
+     its media in a draft session, so there is no certificate and nothing to
+     show — see RequiredCapture.published. */
+  const has =
+    cell.published && (cell.status === "complete" || cell.status === "problem");
 
   return (
     <g
@@ -378,7 +428,8 @@ function Preview({
   const spot = markerPositions(area, mine.length)[mine.indexOf(cell)];
   if (!spot) return null;
 
-  const has = cell.status === "complete" || cell.status === "problem";
+  const has =
+    cell.published && (cell.status === "complete" || cell.status === "problem");
 
   /* Above the marker, and clamped to the drawing: a preview running off the
      edge is a preview of nothing. */
@@ -420,7 +471,14 @@ function Preview({
           fontSize={0.18}
           fill="var(--ink-muted)"
         >
-          {t({ en: "Not captured yet", es: "Aún sin capturar" })}
+          {/* Two different nothings: no photograph taken, versus one taken
+              and sitting in a draft that has not been published. */}
+          {cell.status === "pending"
+            ? t({ en: "Not captured yet", es: "Aún sin capturar" })
+            : t({
+                en: "Captured — certificate not published",
+                es: "Capturado — certificado sin publicar",
+              })}
         </text>
       )}
       <text
@@ -513,6 +571,168 @@ function Lightbox({
             es: "La hora, la ubicación y el dispositivo quedan sellados con la imagen. Esta es una representación; la fotografía proviene de la biblioteca de Delphi.",
           })}
         </p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Certificates ────────────────────────────────────────────────────────── */
+
+/** What this apartment has actually produced: one card per published session.
+ *
+ *  ⚠️  A CERTIFICATE IS WHAT A COUNTERPARTY IS GIVEN, so this view is built
+ *  around the things that make it checkable — the eight-character code, who
+ *  captured it, the day, the media count — rather than around the checklist.
+ *  The plan answers "who still owes me something"; this answers "what am I
+ *  holding and can somebody else verify it".
+ *
+ *  ⚠️  THE IMAGES ARE THE CONTENT. Everything else on a card is one line of
+ *  monospace above them. A certificate whose photographs are thumbnails is a
+ *  certificate nobody can check by looking, which is the only way most people
+ *  will ever check one.
+ *
+ *  ⚠️  AN UNPUBLISHED JOB IS NOT A CERTIFICATE. Work in progress has captures
+ *  and no session yet, so it does not appear here at all — showing it with a
+ *  blank code would invent a record that does not exist. The plan is where
+ *  outstanding work lives. */
+function Certificates({
+  unit,
+  tower,
+  cells,
+  onOpen,
+}: {
+  unit: UnitState;
+  tower: Tower;
+  cells: RequiredCapture[];
+  onOpen: (c: RequiredCapture) => void;
+}) {
+  const t = useT();
+  const { lang } = useLang();
+
+  const issued = useMemo(
+    () =>
+      JOBS.map((job) => ({
+        job,
+        session: sessionFor(unit, tower, job),
+        shots: cells.filter(
+          (c) =>
+            c.published &&
+            c.requirement.stage === job.stage &&
+            c.requirement.trade === job.trade &&
+            (c.status === "complete" || c.status === "problem"),
+        ),
+      })).filter((x) => x.session && x.shots.length > 0),
+    [unit, tower, cells],
+  );
+
+  if (issued.length === 0) {
+    return (
+      <div className="min-h-0 flex-1 p-6">
+        <p className="text-body-sm text-ink-secondary">
+          {t({
+            en: "No certificates published for this apartment yet.",
+            es: "Aún no hay certificados publicados para este apartamento.",
+          })}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="flex flex-col gap-5">
+        {issued.map(({ job, session, shots }) => {
+          const stage = stageByKey.get(job.stage);
+          return (
+            <section
+              key={`${job.stage}-${job.trade}`}
+              className="overflow-hidden rounded-lg border border-line bg-surface"
+            >
+              <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 py-2.5">
+                <span className="rounded-sm border border-line-strong px-2 py-0.5 font-mono text-mono text-ink">
+                  {session!.code}
+                </span>
+                <span className="text-body-sm font-semibold text-ink">
+                  {stage ? t(stage.name) : job.stage}
+                </span>
+                <span className="text-body-sm text-ink-secondary">
+                  {t(TRADE[job.trade])}
+                </span>
+
+                <span className="ml-auto flex items-center gap-3 font-mono text-mono-sm text-ink-muted">
+                  <span
+                    aria-hidden
+                    className="flex size-6 items-center justify-center rounded-full bg-surface-sunken text-ink-secondary"
+                  >
+                    {session!.by.initials}
+                  </span>
+                  <span className="text-ink-secondary">{session!.by.name}</span>
+                  <span>{fmtDate(session!.date, lang)}</span>
+                  <span>
+                    {t({
+                      en: `${shots.length} captures`,
+                      es: `${shots.length} capturas`,
+                    })}
+                  </span>
+                </span>
+              </header>
+
+              {/* Two across, which on this pane is roughly 300px a side —
+                  large enough to see what the photograph is of, which is the
+                  whole purpose of showing it. */}
+              <div className="grid grid-cols-2 gap-3 p-3">
+                {shots.map((cell) => (
+                  <figure key={cell.requirement.room} className="flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onOpen(cell)}
+                      className="block cursor-pointer overflow-hidden rounded-sm border"
+                      style={{
+                        borderColor:
+                          cell.status === "problem"
+                            ? "var(--failed)"
+                            : "var(--line)",
+                      }}
+                    >
+                      <img
+                        alt={t(cell.requirement.what)}
+                        src={shotSrc(cell.requirement.image, 480)}
+                        srcSet={`${shotSrc(cell.requirement.image, 480)} 480w, ${shotSrc(cell.requirement.image, 960)} 960w`}
+                        sizes="320px"
+                        width={480}
+                        height={320}
+                        loading="lazy"
+                        className="block aspect-[3/2] w-full object-cover"
+                      />
+                    </button>
+                    <figcaption className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-body-sm text-ink">
+                        {t(
+                          CAPTURE_ROOMS.find(
+                            (r) => r.key === cell.requirement.room,
+                          )?.name ?? { en: cell.requirement.room, es: cell.requirement.room },
+                        )}
+                      </span>
+                      <span className="shrink-0 font-mono text-mono-sm text-ink-muted">
+                        {cell.time}
+                      </span>
+                    </figcaption>
+                    <span className="truncate font-mono text-mono-sm text-ink-muted">
+                      {t(cell.requirement.what)}
+                    </span>
+                  </figure>
+                ))}
+              </div>
+
+              <p className="border-t border-line px-4 py-2 font-mono text-mono-sm text-ink-muted">
+                {t({
+                  en: "Sealed with capture time, location and device. Open the code to verify without an account.",
+                  es: "Sellado con hora, ubicación y dispositivo de captura. Abra el código para verificar sin cuenta.",
+                })}
+              </p>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

@@ -967,6 +967,19 @@ export type RequiredCapture = {
   by: Capturer;
   /** Only once it exists. */
   time: string | null;
+  /** ⚠️  WHETHER ITS SESSION HAS PUBLISHED, which is whether a photograph may
+   *  be shown for it.
+   *
+   *  A capture in a stage still being worked on lives in a DRAFT session: the
+   *  media exists on the device, the certificate does not exist at all. The
+   *  apartment plan was drawing photographs for those, so apartment 308 showed
+   *  three handover images with no certificate behind them — evidence that
+   *  nobody could check, which is the one thing this product must never
+   *  depict. Every image shown anywhere comes from a published certificate.
+   *
+   *  The STATUS is still meaningful without it: captured-awaiting-publication
+   *  is a real and useful thing to know, it simply has nothing to show yet. */
+  published: boolean;
 };
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1082,13 +1095,15 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
     /* The stage is sealed, so every cell in it is captured — a certificate
        cannot publish with a rejected or missing capture in it. */
     const by = capturerFor(unit, tower, requirement.stage, requirement.trade);
+    const published = unit.sealed > stageIndex;
 
-    if (unit.sealed > stageIndex) {
+    if (published) {
       return {
         requirement,
         status: "complete" as const,
         by,
         time: timeFrom(seed),
+        published,
       };
     }
 
@@ -1110,10 +1125,11 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
         status,
         by,
         time: status === "complete" || status === "problem" ? timeFrom(seed) : null,
+        published,
       };
     }
 
-    return { requirement, status: "pending" as const, by, time: null };
+    return { requirement, status: "pending" as const, by, time: null, published };
   });
 }
 

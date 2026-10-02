@@ -1,0 +1,90 @@
+model: seedream5_pro
+ratio: 2720:1530
+cells: 3x2, reading order
+names: co-kitchen-plumbing-b, co-bath-plumbing-b, co-sala-electrical-b,
+       co-kitchen-finished-b, co-bath-finished-b, co-bedroom-finished-b
+
+why this exists — 504 apartments share fourteen photographs, so every kitchen
+rough-in in the development is the same picture. One alternate for each of the
+most repeated subjects lets neighbouring apartments differ, which is what a
+real set of captures looks like.
+
+Same apartment type, same building, a different flat: another wall, another
+angle, the same hand.
+
+---
+
+Photorealistic construction and interior photography presented as a 3x2 GRID OF
+SIX SEPARATE PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell to
+all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE BUILDING
+An ordinary new-build apartment in Colombia, inland tropical city, mid-rise
+residential tower. Grey concrete block and poured slabs where unfinished; white
+paint, pale ceramic tile and plain white joinery where finished. Economical,
+NOT luxury: no marble, no stone, no timber panelling, no styling, no furniture.
+Flat working daylight.
+
+THE SIX
+
+1 TOP-LEFT. KITCHEN PLUMBING, ANOTHER WALL. Bare blockwork with white PVC waste
+pipe rising from the slab and two capped water points chased in beside it,
+lower down the wall than usual, with the floor and skirting line visible.
+Square-on.
+
+2 TOP-CENTRE. BATHROOM PLUMBING, FROM THE CORNER. A small bathroom in bare
+block seen from a corner rather than the doorway, showing two walls at once:
+the sanitary stub in the floor on one, supply points on the other, grey
+waterproofing turned up both.
+
+3 TOP-RIGHT. LIVING ROOM ELECTRICAL, CEILING. Looking up at a concrete soffit
+with orange conduit running across it to a ceiling rose box, coiled wire
+hanging from the box, the tops of two block walls meeting at the corner of
+frame.
+
+4 BOTTOM-LEFT. KITCHEN FINISHED, FROM THE DOORWAY. The same kind of small
+fitted kitchen seen from further back through the doorway: one continuous run
+of plain white cabinets, light worktop, stainless sink, white tiled
+splashback, pale tiled floor in the foreground. Empty.
+
+5 BOTTOM-CENTRE. BATHROOM FINISHED, FROM INSIDE. A small finished bathroom
+photographed from inside beside the shower rather than from the door: pale
+large-format tiles, white WC and basin on the far wall, a mirror above the
+basin. Empty, nothing on any surface.
+
+6 BOTTOM-RIGHT. BEDROOM FINISHED, WINDOW WALL. An empty bedroom shot toward
+the aluminium window with white walls either side, pale tiled floor, the edge
+of a built-in white wardrobe just entering the left of frame.
+
+HOW THEY ARE PHOTOGRAPHED
+Record photographs, not architecture. Square-on where stated, verticals true,
+even light, everything legible including corners and floor. Taken on a phone by
+somebody documenting their own work. No shafts of sun, no vignette, no shallow
+depth of field, no staging.
+
+STRICTLY NOT
+No people anywhere, including reflections. No furniture, decoration, plants or
+towels. No labels, captions, arrows, numbering or watermarks. NO WRITING
+ANYWHERE IN ANY FRAME.
+
+CRITICAL - SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, callouts, annotations, user interface, diagrams, markers, arrows or
+lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level except cell 3, which looks up.
+Verticals true, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Flat neutral daylight in every frame, consistent across all six and matching a
+grey dusty shell in cells 1-3 and a clean white finish in cells 4-6. Neutral
+grade, no saturation push, no HDR.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Any visible seam
+between cells. Anything that looks expensive or styled.

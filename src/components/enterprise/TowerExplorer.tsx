@@ -1753,29 +1753,37 @@ function StageLadder({
   return (
     <ul className="flex flex-col gap-2">
       {STAGES.map((stage, i) => {
-        /* A stage's level decides what "done" even means here. Siteworks are
-           the tower's and the whole floor inherits them; the slab is the
-           floor's own; only the last three are counted per apartment. */
-        const done =
+        /* ⚠️  A STAGE'S COUNT HAS TO SAY WHAT IT COUNTS. These were all shown
+           as "n/8", as though every stage were eight separate certificates
+           belonging to the eight apartments on the floor. Three of them are
+           not: plot and foundations are ONE certificate for the whole tower,
+           and the slab is ONE for this floor — the apartments inherit them.
+
+           Writing those as 8/8 inflates the count by exactly the factor this
+           product exists to argue down, on the screen where the argument is
+           being made. So a tower-level or floor-level stage now reports what
+           it is and whether it is sealed, and only the three stages that
+           really are per apartment carry a tally. */
+        const perApartment = stage.level === "unit";
+
+        const sealed =
           stage.level === "tower"
             ? tower.siteworks[stage.key as "plot" | "foundations"] &&
               floor <= tower.front.structure
-              ? units.length
-              : 0
             : stage.level === "floor"
               ? floor <= tower.front.structure
-                ? units.length
-                : 0
-              : units.filter((u) => u.sealed > i).length;
+              : false;
 
-        const all = units.length > 0 && done === units.length;
+        const done = perApartment
+          ? units.filter((u) => u.sealed > i).length
+          : 0;
+
+        const all = perApartment
+          ? units.length > 0 && done === units.length
+          : sealed;
 
         return (
           <li key={stage.key} className="flex items-center gap-2.5">
-            {/* Same palette as the drawing: a finished stage goes quiet, a
-                stage with work in it takes the accent. Green here would
-                reintroduce exactly the wall of colour the apartments were
-                changed to avoid. */}
             <span
               aria-hidden
               className="size-2 shrink-0 rounded-full"
@@ -1791,9 +1799,28 @@ function StageLadder({
             <span className="min-w-0 flex-1 truncate text-body-sm text-ink-secondary">
               {t(stage.name)}
             </span>
-            <span className="shrink-0 font-mono text-mono-sm tabular-nums text-ink-muted">
-              {done}/{units.length}
-            </span>
+
+            {perApartment ? (
+              <span className="shrink-0 font-mono text-mono-sm tabular-nums text-ink-muted">
+                {t({
+                  en: `${done}/${units.length} flats`,
+                  es: `${done}/${units.length} aptos`,
+                })}
+              </span>
+            ) : (
+              <span className="shrink-0 font-mono text-mono-sm text-ink-muted">
+                {/* The level is the point: one certificate, inherited. */}
+                {t(
+                  stage.level === "tower"
+                    ? sealed
+                      ? { en: "tower · sealed", es: "torre · sellado" }
+                      : { en: "tower · —", es: "torre · —" }
+                    : sealed
+                      ? { en: "floor · sealed", es: "piso · sellado" }
+                      : { en: "floor · —", es: "piso · —" },
+                )}
+              </span>
+            )}
           </li>
         );
       })}

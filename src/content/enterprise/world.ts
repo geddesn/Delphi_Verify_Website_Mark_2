@@ -318,6 +318,13 @@ export type Tower = {
      poured, and the explorer would draw a lie if these were not ordered. */
   front: { structure: number; "rough-in": number; finishes: number; handover: number };
   siteworks: { plot: boolean; foundations: boolean };
+  /* Where it stands. Three towers on one site, about 150 m apart, on the
+     north edge of Jamundí where this kind of development actually goes.
+
+     Real coordinates for a real town, because a town is not a brand — the
+     same reasoning as the cities named at the top of this file. The developer
+     is invented; the place is not. */
+  at: { lat: number; lng: number };
   /* Days after the development broke ground that THIS tower started. Three
      towers on one site are not begun together — the crane moves. Without this
      every tower's certificates carried the same dates, which made the build
@@ -333,6 +340,7 @@ export const TOWERS: Tower[] = [
     /* Topped out and handing over — the tower that proves the far end of the
        process exists. */
     front: { structure: 18, "rough-in": 18, finishes: 15, handover: 9 },
+    at: { lat: 3.2689, lng: -76.5392 },
     startOffsetDays: 0,
     siteworks: { plot: true, foundations: true },
   },
@@ -344,6 +352,7 @@ export const TOWERS: Tower[] = [
     name: "Torre 2",
     floors: 21,
     front: { structure: 14, "rough-in": 9, finishes: 5, handover: 2 },
+    at: { lat: 3.2698, lng: -76.5378 },
     startOffsetDays: 150,
     siteworks: { plot: true, foundations: true },
   },
@@ -354,6 +363,7 @@ export const TOWERS: Tower[] = [
     /* Foundations only. Present so the portfolio is not three copies of the
        same picture, and so "nothing captured yet" is a visible state. */
     front: { structure: 0, "rough-in": 0, finishes: 0, handover: 0 },
+    at: { lat: 3.2706, lng: -76.5365 },
     startOffsetDays: 330,
     siteworks: { plot: true, foundations: true },
   },
@@ -377,6 +387,12 @@ export const DEVELOPMENT = {
      apartment than every stage of it. */
   soldOffPlan: 0.86,
   started: "2025-02-17",
+  /* The site, for a map that has to centre on something. Averaged from the
+     towers rather than typed, so moving one moves the view with it. */
+  at: {
+    lat: TOWERS.reduce((n, t) => n + t.at.lat, 0) / TOWERS.length,
+    lng: TOWERS.reduce((n, t) => n + t.at.lng, 0) / TOWERS.length,
+  },
 } as const;
 
 /* ── Granularity: the answer to "how many Delphi Verifies?" ──────────────── */

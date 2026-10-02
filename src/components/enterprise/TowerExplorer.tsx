@@ -746,6 +746,16 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
   const plate = units.filter((u) => u.floor === planFloor);
   const selected = plate.find((u) => u.position === position) ?? null;
 
+  /* ⚠️  THE PLAN IS ALWAYS ONE FLOOR, so entering it has to settle which. With
+     nothing selected the plan opened on the build front while the selector
+     still read "All floors" and the panel still summarised the whole tower —
+     three parts of the screen describing different scopes at once. Entering
+     the plan now commits to the storey it is about to draw. */
+  const show = (next: "block" | "plan") => {
+    if (next === "plan" && floor === null) setFloor(planFloor);
+    setView(next);
+  };
+
   const selectTower = (key: string) => {
     setTowerKey(key);
     setPosition(null);
@@ -777,7 +787,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
           tower={tower}
           onTower={selectTower}
           view={view}
-          onView={setView}
+          onView={show}
         />
       )}
 
@@ -1014,7 +1024,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
           <button
             type="button"
-            onClick={() => setView(view === "plan" ? "block" : "plan")}
+            onClick={() => show(view === "plan" ? "block" : "plan")}
             className="cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
           >
             {view === "plan"

@@ -1102,3 +1102,84 @@ export const firstHandover = (() => {
 export const MEDIA_PER_CERTIFICATE = Math.round(
   REQUIREMENTS.length / JOBS.length,
 );
+
+/* ── Progress across the whole site ───────────────────────────────────────
+   Every required capture in the development, tallied by room and trade.
+
+   This is the question a head of construction actually opens a dashboard to
+   ask: not "how is apartment 1402" but "who still owes me bathroom plumbing,
+   and how much of it". One row per cell of the apartment checklist, summed
+   over all 504 apartments in all three towers.
+
+   ⚠️  COMPUTED FROM THE SAME capturesFor() THE APARTMENT SHEET DRAWS. If a
+   row here said 134 complete and the sheet showed a different state for an
+   apartment in that row, one of them would be lying — so neither keeps its
+   own tally. It costs 504 x 22 hashes, which is why the result is memoised
+   below rather than recomputed per render. */
+
+export type ProgressRow = {
+  room: string;
+  trade: Trade;
+  stage: string;
+  pending: number;
+  active: number;
+  warning: number;
+  problem: number;
+  complete: number;
+  total: number;
+};
+
+let progressCache: ProgressRow[] | null = null;
+
+export function siteProgress(): ProgressRow[] {
+  if (progressCache) return progressCache;
+
+  /* Keyed by room and trade together, because that pair IS the unit of work —
+     a bathroom needs plumbing and a living room does not. See REQUIREMENTS. */
+  const rows = new Map<string, ProgressRow>();
+  for (const r of REQUIREMENTS) {
+    rows.set(`${r.room}:${r.trade}`, {
+      room: r.room,
+      trade: r.trade,
+      stage: r.stage,
+      pending: 0,
+      active: 0,
+      warning: 0,
+      problem: 0,
+      complete: 0,
+      total: 0,
+    });
+  }
+
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      /* An apartment whose slab is not poured has no checklist yet. Counting
+         its captures as "pending" would bury the real backlog under thousands
+         of rooms that do not exist — Torre 3 alone would contribute 192
+         apartments of nothing. */
+      if (unit.sealed === 0) continue;
+
+      for (const cell of capturesFor(unit, tower)) {
+        const row = rows.get(
+          `${cell.requirement.room}:${cell.requirement.trade}`,
+        );
+        if (!row) continue;
+        row[cell.status] += 1;
+        row.total += 1;
+      }
+    }
+  }
+
+  progressCache = [...rows.values()];
+  return progressCache;
+}
+
+/** Apartments the site progress is drawn from — those that physically exist.
+ *  Quoted beside the table so a reader can check the arithmetic. */
+export function apartmentsStarted(): number {
+  let n = 0;
+  for (const tower of TOWERS) {
+    n += UNITS[tower.key].filter((u) => u.sealed > 0).length;
+  }
+  return n;
+}

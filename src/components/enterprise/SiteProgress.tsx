@@ -74,6 +74,25 @@ type Sort = Column["key"] | "room";
    subtotal line sums. */
 type Grouping = "room" | "trade";
 
+/** What to call a row in the Task view.
+ *
+ *  ⚠️  NOT THE TRADE ON ITS OWN. The trade field says who does the work, and
+ *  for handover that is "the developer's own crew" — which rendered as a task
+ *  called "Own workforce", which is not a task. The task is the STAGE, with
+ *  the trade added only where a stage is split between two of them, which
+ *  rough-in is and nothing else is. So: Rough-in · plumbing, Rough-in ·
+ *  electrical, Finishes, Handover condition. It also puts the view in build
+ *  order rather than alphabetical-by-accident. */
+export function taskLabel(stageKey: string, trade: Trade): Bi {
+  const stage = stageByKey.get(stageKey);
+  if (!stage) return { en: stageKey, es: stageKey };
+  if (stage.sessions < 2) return stage.name;
+  return {
+    en: `${stage.name.en} · ${TRADE[trade].en.toLowerCase()}`,
+    es: `${stage.name.es} · ${TRADE[trade].es.toLowerCase()}`,
+  };
+}
+
 type Section = {
   key: string;
   label: Bi;
@@ -86,14 +105,18 @@ function sectionsFor(
   rows: ProgressRow[],
   grouping: Grouping,
   roomName: (key: string) => Bi,
-  tradeName: (key: Trade) => Bi,
 ): Section[] {
   const out = new Map<string, Section>();
 
   for (const row of rows) {
-    const key = grouping === "room" ? row.room : row.trade;
+    /* Keyed by stage AND trade in the task view, so rough-in's two trades stay
+       the two separate jobs they are rather than collapsing into one. */
+    const key =
+      grouping === "room" ? row.room : `${row.stage}:${row.trade}`;
     const label =
-      grouping === "room" ? roomName(row.room) : tradeName(row.trade);
+      grouping === "room"
+        ? roomName(row.room)
+        : taskLabel(row.stage, row.trade);
 
     let section = out.get(key);
     if (!section) {
@@ -128,11 +151,10 @@ export function SiteProgress({ className }: { className?: string }) {
 
   const roomName = (key: string) =>
     CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
-  const tradeName = (key: Trade) => TRADE[key];
 
   const sections = useMemo(() => {
     const all = siteProgress();
-    const grouped = sectionsFor(all, grouping, roomName, tradeName);
+    const grouped = sectionsFor(all, grouping, roomName);
     if (sort === "room") return grouped;
     /* Sorting runs INSIDE each group and over the groups themselves, so the
        worst group comes first and the worst row inside it comes first.
@@ -157,7 +179,7 @@ export function SiteProgress({ className }: { className?: string }) {
 
   /* A member row is labelled by whichever dimension is NOT the grouping. */
   const memberLabel = (row: ProgressRow) =>
-    grouping === "room" ? tradeName(row.trade) : roomName(row.room);
+    grouping === "room" ? taskLabel(row.stage, row.trade) : roomName(row.room);
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
@@ -382,6 +404,8 @@ export function TowerProgress({
   floor: number | null;
 }) {
   const t = useT();
+  const [grouping, setGrouping] = useState<Grouping>("room");
+
   const scope = floor ?? undefined;
   const rows = useMemo(() => siteProgress([tower], scope), [tower, scope]);
   const started = useMemo(
@@ -392,18 +416,18 @@ export function TowerProgress({
   const roomName = (key: string) =>
     CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
 
-  /* Outstanding first: a summary that opens with what is finished is a report,
-     and a report is not what somebody opening a tower wants. */
-  const sorted = useMemo(
-    () =>
-      [...rows].sort(
-        (a, b) =>
-          b.problem - a.problem ||
-          b.warning - a.warning ||
-          b.pending - a.pending,
-      ),
-    [rows],
+  /* ⚠️  SAME GROUPING AS THE ANALYSIS TABLE, from the same function. The panel
+     is that table filtered to one asset, so a reader who groups by room there
+     and opens a tower here should find the rows stacked the way they left
+     them — and a second implementation would eventually stack them
+     differently. */
+  const sections = useMemo(
+    () => sectionsFor(rows, grouping, roomName),
+    [rows, grouping],
   );
+
+  const memberLabel = (row: ProgressRow) =>
+    grouping === "room" ? taskLabel(row.stage, row.trade) : roomName(row.room);
 
   if (started === 0) {
     return (
@@ -437,12 +461,38 @@ export function TowerProgress({
         </span>
       </div>
 
+      <div className="flex rounded-sm border border-line">
+        {(
+          [
+            ["room", { en: "By room", es: "Por ambiente" }],
+            ["trade", { en: "By task", es: "Por tarea" }],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setGrouping(key)}
+            aria-pressed={grouping === key}
+            className={cn(
+              "flex-1 cursor-pointer px-2 py-1 text-body-sm transition-colors",
+              grouping === key
+                ? "bg-surface-sunken text-ink"
+                : "text-ink-muted hover:text-ink-secondary",
+            )}
+          >
+            {t(label)}
+          </button>
+        ))}
+      </div>
+
       <div className="min-h-0 overflow-y-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>
               <th className="pb-1 text-left font-mono text-mono-sm uppercase text-ink-muted">
-                {t({ en: "Room · trade", es: "Ambiente · oficio" })}
+                {grouping === "room"
+                  ? t({ en: "Room", es: "Ambiente" })
+                  : t({ en: "Task", es: "Tarea" })}
               </th>
               {COLUMNS.map((c) => (
                 <th
@@ -457,37 +507,57 @@ export function TowerProgress({
               ))}
             </tr>
           </thead>
-          <tbody>
-            {sorted.map((row) => (
-              <tr key={`${row.room}-${row.trade}`} className="border-t border-line">
-                <td className="py-1 pr-2 text-body-sm text-ink-secondary">
-                  <span className="block truncate">
-                    {t(roomName(row.room))}
-                  </span>
-                  <span className="block truncate font-mono text-mono-sm text-ink-muted">
-                    {t(TRADE[row.trade])}
-                  </span>
+
+          {sections.map((section) => (
+            <tbody key={section.key}>
+              <tr className="border-t border-line-strong">
+                <td className="py-1 pr-2 text-body-sm font-semibold text-ink">
+                  <span className="block truncate">{t(section.label)}</span>
                 </td>
                 {COLUMNS.map((c) => (
                   <td
                     key={c.key}
-                    className="py-1 pl-1 text-right align-middle font-mono text-mono-sm tabular-nums"
+                    className="py-1 pl-1 text-right font-mono text-mono-sm font-semibold tabular-nums"
                   >
-                    <span
-                      style={{
-                        color: row[c.key] === 0 ? "var(--ink-muted)" : (c.tone ?? "var(--ink)"),
-                        opacity: row[c.key] === 0 ? 0.35 : 1,
-                      }}
-                    >
-                      {row[c.key]}
-                    </span>
+                    <Figure value={section.totals[c.key]} tone={c.tone} />
                   </td>
                 ))}
               </tr>
-            ))}
-          </tbody>
+
+              {section.rows.map((row) => (
+                <tr key={`${row.room}-${row.trade}`}>
+                  <td className="py-0.5 pl-2 pr-2 text-body-sm text-ink-secondary">
+                    <span className="block truncate">{t(memberLabel(row))}</span>
+                  </td>
+                  {COLUMNS.map((c) => (
+                    <td
+                      key={c.key}
+                      className="py-0.5 pl-1 text-right font-mono text-mono-sm tabular-nums"
+                    >
+                      <Figure value={row[c.key]} tone={c.tone} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          ))}
         </table>
       </div>
     </div>
+  );
+}
+
+/** One number in the compact panel. Zeros recede so the handful that need
+ *  somebody are what the eye lands on. */
+function Figure({ value, tone }: { value: number; tone?: string }) {
+  return (
+    <span
+      style={{
+        color: value === 0 ? "var(--ink-muted)" : (tone ?? "var(--ink)"),
+        opacity: value === 0 ? 0.35 : 1,
+      }}
+    >
+      {value}
+    </span>
   );
 }

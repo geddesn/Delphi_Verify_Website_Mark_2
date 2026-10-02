@@ -143,6 +143,15 @@ const VIEW = { w: 560, h: 620 };
 
 const DEFAULT_ANGLE = -0.62;
 
+/* ── The divider ──────────────────────────────────────────────────────────
+   The panel starts at 23rem and can be dragged. Bounds rather than free rein:
+   below about 17rem the five columns of figures stop fitting and the table
+   starts eliding its own numbers, and past 34rem the stage is too narrow to
+   turn a tower round in. */
+const ASIDE_DEFAULT = 368;
+const ASIDE_MIN = 272;
+const ASIDE_MAX = 544;
+
 /* Left margin for the selected-floor label, in viewBox units. */
 const LABEL_X = 10;
 
@@ -452,6 +461,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      narrows the summary; "All floors" widens it again. */
   const [floor, setFloor] = useState<number | null>(null);
   const [position, setPosition] = useState<number | null>(null);
+  const [asideWidth, setAsideWidth] = useState(ASIDE_DEFAULT);
 
   /* ⚠️  THE CAMERA IS FRAMED ON THE TALLEST TOWER, NOT ON THIS ONE, and that
      is the whole reason the three heights are visible.
@@ -527,6 +537,37 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      a 1440px canvas by whatever the layout gives it, so raw client pixels
      would turn the block at different speeds on a phone and a monitor. */
   const drag = useRef<{ x: number; angle: number; width: number } | null>(null);
+
+  /* ── Dragging the divider ──
+     ⚠️  THE DELTA IS DIVIDED BY THE STAGE'S OWN SCALE. On /platform/enterprise
+     the explorer lives inside WebFrame, which scales a 1440px canvas down to
+     whatever the column gives it — so a pointer moving 100 screen pixels
+     crosses rather more than 100 canvas pixels, and a handle that ignored that
+     would race away from the cursor on one page and lag it on the other. The
+     ratio of the rendered width to the layout width is that scale. */
+  const root = useRef<HTMLDivElement>(null);
+  const split = useRef<{ x: number; width: number; scale: number } | null>(null);
+
+  const onSplitDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = root.current;
+    const scale = el ? el.getBoundingClientRect().width / el.offsetWidth : 1;
+    split.current = { x: e.clientX, width: asideWidth, scale: scale || 1 };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onSplitMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = split.current;
+    if (!d) return;
+    const moved = (e.clientX - d.x) / d.scale;
+    setAsideWidth(
+      Math.min(ASIDE_MAX, Math.max(ASIDE_MIN, d.width - moved)),
+    );
+  };
+
+  const onSplitUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    split.current = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     drag.current = {
@@ -636,7 +677,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
       )}
 
       <div className="flex min-h-0 flex-1">
-        <div className="relative flex min-w-0 flex-1 items-center justify-center border-r border-line">
+        <div className="relative flex min-w-0 flex-1 items-center justify-center">
           {/* Both layers are mounted through the flight and crossfade; only
               once the move has finished is the far one taken out of the tree.
               Unmounting either mid-flight is what produces the empty frame
@@ -784,7 +825,41 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
           <FloorRail floor={shownFloor} tower={tower} onFloor={setFloor} />
         </div>
 
-        <aside className="flex w-[23rem] shrink-0 flex-col gap-4 overflow-hidden p-5">
+        {/* The handle. A hairline with a generous hit area either side of it —
+            a 1px target is a 1px target however well it is drawn. */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize panel"
+          tabIndex={0}
+          onPointerDown={onSplitDown}
+          onPointerMove={onSplitMove}
+          onPointerUp={onSplitUp}
+          onPointerCancel={onSplitUp}
+          onKeyDown={(e) => {
+            /* Keyboard parity: a divider that only answers to a pointer is not
+               a control, and this one changes layout. */
+            const step = e.shiftKey ? 48 : 16;
+            if (e.key === "ArrowLeft")
+              setAsideWidth((w) => Math.min(ASIDE_MAX, w + step));
+            else if (e.key === "ArrowRight")
+              setAsideWidth((w) => Math.max(ASIDE_MIN, w - step));
+            else if (e.key === "Enter") setAsideWidth(ASIDE_DEFAULT);
+            else return;
+            e.preventDefault();
+          }}
+          className="group relative z-10 -mx-1 w-2 shrink-0 cursor-col-resize touch-none"
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-line transition-colors group-hover:bg-accent group-focus-visible:bg-accent"
+          />
+        </div>
+
+        <aside
+          style={{ width: asideWidth }}
+          className="flex shrink-0 flex-col gap-4 overflow-hidden p-5"
+        >
           {shownFloor !== null && shownFloor > tower.front.structure ? (
             /* A floor above the poured structure has no apartments on it, so
                describing it as "8 apartments, 58 m²" with six zeros beside it

@@ -66,6 +66,16 @@ const COLUMNS: Column[] = [
 
 type Sort = Column["key"] | "room";
 
+/* ⚠️  --accent-subtle WAS TOO FAINT TO FIND. It is delphi-50, which is nearly
+   white — right behind a button, hopeless for picking one row out of twenty.
+   The replacement is a TOKEN, --row-selected, defined in theme.css alongside
+   it in all three themes.
+
+   The first attempt mixed the accent in this file instead, which passes as
+   CSS and fails the point: colour decisions live in the theme layer so that
+   light and dark stay in step and nobody has to grep components to find out
+   what a selected row looks like. check-tokens.mjs caught it. */
+
 /* ⚠️  TWO WAYS INTO THE SAME 22 ROWS, because two different people open this
    table. A head of construction asks "how is the bathroom doing" and wants the
    trades under it; a contract manager asks "how is the plumber doing" and
@@ -577,10 +587,12 @@ export function TowerProgress({
           {sections.map((section) => (
             <tbody key={section.key}>
               <tr
-                className={cn(
-                  "cursor-pointer border-t border-line-strong",
-                  isOn(sectionFocus(section, grouping)) && "bg-accent-subtle",
-                )}
+                className="cursor-pointer border-t border-line-strong"
+                style={
+                  isOn(sectionFocus(section, grouping))
+                    ? { backgroundColor: "var(--row-selected)" }
+                    : undefined
+                }
                 onClick={() => pick(sectionFocus(section, grouping))}
               >
                 <td className="py-1 pr-2 text-body-sm font-semibold text-ink">
@@ -599,10 +611,12 @@ export function TowerProgress({
               {section.rows.map((row) => (
                 <tr
                   key={`${row.room}-${row.trade}`}
-                  className={cn(
-                    "cursor-pointer",
-                    isOn(rowFocus(row, grouping)) && "bg-accent-subtle",
-                  )}
+                  className="cursor-pointer"
+                  style={
+                    isOn(rowFocus(row, grouping))
+                      ? { backgroundColor: "var(--row-selected)" }
+                      : undefined
+                  }
                   onClick={() => pick(rowFocus(row, grouping))}
                 >
                   <td className="py-0.5 pl-2 pr-2 text-body-sm text-ink-secondary">

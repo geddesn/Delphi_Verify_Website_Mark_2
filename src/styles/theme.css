@@ -163,6 +163,11 @@
   --accent-hover:  var(--delphi-700);
   --accent-ink:    var(--neutral-0);
   --accent-subtle: var(--delphi-50);
+  /* A selected row in a dense table. --accent-subtle is delphi-50, which is
+     nearly white — right behind a button, far too faint to find a row by
+     among twenty others. Two steps up the same ramp, still quiet enough to
+     read tabular figures on top of. */
+  --row-selected:  var(--delphi-100);
   --focus-ring:    var(--delphi-500);
 
   /* Evidence state */
@@ -413,6 +418,7 @@
     --accent-hover:  var(--delphi-300);
     --accent-ink:    var(--delphi-1000);
     --accent-subtle: var(--delphi-900);
+    --row-selected:  var(--delphi-800);
     --focus-ring:    var(--delphi-300);
 
     --verified-tint: oklch(62.4% 0.148 152 / 0.16);
@@ -463,6 +469,7 @@
   --accent-hover:  var(--delphi-300);
   --accent-ink:    var(--delphi-1000);
   --accent-subtle: var(--delphi-900);
+  --row-selected:  var(--delphi-800);
   --focus-ring:    var(--delphi-300);
 
   --verified-tint: oklch(62.4% 0.148 152 / 0.16);
@@ -521,6 +528,7 @@
   --color-accent-hover:  var(--accent-hover);
   --color-accent-ink:    var(--accent-ink);
   --color-accent-subtle: var(--accent-subtle);
+  --color-row-selected:  var(--row-selected);
 
   /* ── Evidence state ── */
   --color-verified:      var(--verified);

@@ -81,6 +81,14 @@ export type Stage = {
   /* Who does it. Drives the contractor screen — 70% of this work is
      subcontracted, which is the customer's own figure. */
   trade: Bi;
+  /* ⚠️  HOW MANY CERTIFICATES THIS STAGE PRODUCES, which is not always one.
+     A capture session has a single photographer, so a stage worked by two
+     trades is two sessions and two certificates: at rough-in the plumber
+     photographs the water and waste and the electrician photographs the
+     conduit, on different days. Folded into certificateCount() below, because
+     the apartment sheet SHOWS both crews and a total that counted one would
+     contradict it. */
+  sessions: number;
 };
 
 export const STAGES: Stage[] = [
@@ -93,6 +101,7 @@ export const STAGES: Stage[] = [
       es: "Linderos, niveles, condiciones existentes, redes localizadas",
     },
     trade: { en: "Own workforce", es: "Personal propio" },
+    sessions: 1,
   },
   {
     key: "foundations",
@@ -103,6 +112,7 @@ export const STAGES: Stage[] = [
       es: "Excavación, refuerzo, vaciado, niveles construidos",
     },
     trade: { en: "Own workforce", es: "Personal propio" },
+    sessions: 1,
   },
   {
     key: "structure",
@@ -113,6 +123,7 @@ export const STAGES: Stage[] = [
       es: "Formaleta, refuerzo antes del vaciado, placa después, caras de columna",
     },
     trade: { en: "Own workforce", es: "Personal propio" },
+    sessions: 1,
   },
   {
     key: "rough-in",
@@ -126,6 +137,8 @@ export const STAGES: Stage[] = [
       es: "Ductería eléctrica, agua y desagües, gas, antes de cerrar muros",
     },
     trade: { en: "Electrical & plumbing subcontractors", es: "Subcontratistas eléctricos e hidráulicos" },
+    /* Two: the plumber and the electrician, separately. */
+    sessions: 2,
   },
   {
     key: "finishes",
@@ -136,6 +149,7 @@ export const STAGES: Stage[] = [
       es: "Pañete, enchape, carpintería, pintura, aparatos",
     },
     trade: { en: "Finishing subcontractors", es: "Subcontratistas de acabados" },
+    sessions: 1,
   },
   {
     key: "handover",
@@ -146,6 +160,7 @@ export const STAGES: Stage[] = [
       es: "Cada ambiente, medidores, llaves, lista de pendientes al entregar",
     },
     trade: { en: "Own workforce", es: "Personal propio" },
+    sessions: 1,
   },
 ];
 
@@ -209,10 +224,6 @@ export type Room = {
   z: number;
   w: number;
   d: number;
-  /* What a rough-in inspection photographs in this room. The bridge between a
-     plan and a capture checklist — and the reason the room layout is here at
-     all rather than being decoration. */
-  captures: number;
 };
 
 export const APARTMENT = {
@@ -230,7 +241,6 @@ export const APARTMENT = {
       z: 0,
       w: 4.2,
       d: 4.2,
-      captures: 3,
     },
     {
       key: "principal",
@@ -239,7 +249,6 @@ export const APARTMENT = {
       z: 0,
       w: 3.0,
       d: 4.2,
-      captures: 2,
     },
     {
       key: "cocina",
@@ -248,9 +257,6 @@ export const APARTMENT = {
       z: 4.2,
       w: 2.4,
       d: 3.8,
-      /* The most photographed room at rough-in: gas, water, waste and the
-         laundry point all land here. */
-      captures: 4,
     },
     {
       key: "bano",
@@ -259,7 +265,6 @@ export const APARTMENT = {
       z: 4.2,
       w: 1.8,
       d: 1.8,
-      captures: 3,
     },
     {
       key: "alcoba2",
@@ -268,7 +273,6 @@ export const APARTMENT = {
       z: 4.2,
       w: 3.0,
       d: 3.8,
-      captures: 2,
     },
     {
       /* Circulation, not a room — it is drawn so the plan tiles, and it is
@@ -279,7 +283,6 @@ export const APARTMENT = {
       z: 6.0,
       w: 1.8,
       d: 2.0,
-      captures: 0,
     },
   ] satisfies Room[],
 } as const;
@@ -288,13 +291,14 @@ export const APARTMENT = {
  *  cannot disagree with the plan being drawn. */
 export const ROOMS = APARTMENT.rooms.filter((r) => r.key !== "hall");
 
-/** Captures a full rough-in inspection of one apartment comes to. Summed from
- *  the rooms rather than stated — this is the number that makes the case that
- *  one certificate holds a dozen photographs rather than one. */
-export const CAPTURES_PER_APARTMENT = APARTMENT.rooms.reduce(
-  (n, r) => n + r.captures,
-  0,
-);
+/** Required captures in one apartment, across every room and every trade.
+ *
+ *  ⚠️  DERIVED FROM THE GRID, not from a per-room number. It was computed from
+ *  a `captures` field on each room, which stopped being the source of truth
+ *  the moment the checklist became rooms × trades — and a stale 14 beside a
+ *  grid of 22 cells is the page contradicting itself in two places a reader
+ *  can see at once. */
+export const CAPTURES_PER_APARTMENT = () => REQUIREMENTS.length;
 
 export type Tower = {
   key: string;
@@ -314,6 +318,11 @@ export type Tower = {
      poured, and the explorer would draw a lie if these were not ordered. */
   front: { structure: number; "rough-in": number; finishes: number; handover: number };
   siteworks: { plot: boolean; foundations: boolean };
+  /* Days after the development broke ground that THIS tower started. Three
+     towers on one site are not begun together — the crane moves. Without this
+     every tower's certificates carried the same dates, which made the build
+     fronts look like an arbitrary difference rather than a schedule. */
+  startOffsetDays: number;
 };
 
 export const TOWERS: Tower[] = [
@@ -324,6 +333,7 @@ export const TOWERS: Tower[] = [
     /* Topped out and handing over — the tower that proves the far end of the
        process exists. */
     front: { structure: 18, "rough-in": 18, finishes: 15, handover: 9 },
+    startOffsetDays: 0,
     siteworks: { plot: true, foundations: true },
   },
   {
@@ -334,6 +344,7 @@ export const TOWERS: Tower[] = [
     name: "Torre 2",
     floors: 21,
     front: { structure: 14, "rough-in": 9, finishes: 5, handover: 2 },
+    startOffsetDays: 150,
     siteworks: { plot: true, foundations: true },
   },
   {
@@ -343,6 +354,7 @@ export const TOWERS: Tower[] = [
     /* Foundations only. Present so the portfolio is not three copies of the
        same picture, and so "nothing captured yet" is a visible state. */
     front: { structure: 0, "rough-in": 0, finishes: 0, handover: 0 },
+    startOffsetDays: 330,
     siteworks: { plot: true, foundations: true },
   },
 ];
@@ -365,7 +377,6 @@ export const DEVELOPMENT = {
      apartment than every stage of it. */
   soldOffPlan: 0.86,
   started: "2025-02-17",
-  handoverFrom: "2027-06-01",
 } as const;
 
 /* ── Granularity: the answer to "how many Delphi Verifies?" ──────────────── */
@@ -397,8 +408,8 @@ export const GRANULARITY: {
     key: "per-unit",
     name: { en: "Every stage, every apartment", es: "Cada etapa, cada apartamento" },
     how: {
-      en: "All six stages captured against each apartment, including the slab under it.",
-      es: "Las seis etapas capturadas por apartamento, incluida la placa que lo soporta.",
+      en: "Every stage captured against each apartment, including the slab under it — and rough-in twice, once per trade.",
+      es: "Cada etapa capturada por apartamento, incluida la placa que lo soporta — e instalaciones dos veces, una por oficio.",
     },
     tradeoff: {
       en: "The most records, and it documents the same slab eight times. Describes the paperwork rather than the building.",
@@ -437,8 +448,10 @@ export const GRANULARITY: {
  *  this function, so a change to the stage list or the unit count moves all of
  *  them together and the page cannot contradict itself. */
 export function certificateCount(g: Granularity) {
+  /* Sessions, not stages — a stage worked by two trades publishes two
+     certificates. See the note on Stage.sessions. */
   const atLevel = (level: StageLevel) =>
-    STAGES.filter((s) => s.level === level).length;
+    STAGES.filter((s) => s.level === level).reduce((n, s) => n + s.sessions, 0);
 
   /* Summed PER TOWER rather than multiplied by a tower count, because the
      three towers are different heights. Multiplying a floor count by three
@@ -450,7 +463,7 @@ export function certificateCount(g: Granularity) {
     const units = unitsIn(tower);
 
     if (g === "per-unit") {
-      total += STAGES.length * units;
+      total += STAGES.reduce((n, s) => n + s.sessions, 0) * units;
       continue;
     }
 
@@ -465,11 +478,15 @@ export function certificateCount(g: Granularity) {
   return total;
 }
 
-/** Media items a development's evidence amounts to, at a representative dozen
- *  per certificate. Deliberately a range in the copy that uses it: the real
- *  figure depends on the checklist, and a precise-looking number here would be
- *  false precision. */
-export const MEDIA_PER_CERTIFICATE = 12;
+/** Captures in a typical unit-level certificate.
+ *
+ *  ⚠️  DERIVED, because a typed figure beside a drawn checklist is a figure
+ *  somebody will eventually catch. It is the grid's own average: 22 required
+ *  captures across 4 jobs. The plumber's certificate holds two and the
+ *  electrician's six — this is the middle of that, and the copy using it says
+ *  "typical" rather than giving it false precision.
+ *
+ *  Defined after REQUIREMENTS, below. */
 
 /** The product's hard ceiling, quoted where the batching option relies on it.
  *  Stated rather than implied — the whole batched model stands on this number
@@ -691,3 +708,370 @@ export function sealedToDate(): number {
   }
   return total;
 }
+
+/* ── Who captures what ───────────────────────────────────────────────────── */
+
+/* ⚠️  A CAPTURE SESSION HAS ONE PHOTOGRAPHER, which is a real constraint of
+   the product rather than a simplification — and it has a consequence worth
+   drawing. Rough-in is not one inspection: the plumber photographs the water,
+   waste and gas before the walls close, and the electrician photographs the
+   conduit, and they are different people on different days. So an apartment's
+   rough-in produces TWO certificates, not one.
+
+   That is why `sessions` exists on a stage below, and why it is folded into
+   the certificate arithmetic. A page that showed two crews on the apartment
+   sheet while counting one certificate for them would be contradicting itself
+   on the one subject this whole page is about.
+
+   The subcontractors are invented, like the developer — see the warning at
+   the top of this file. The split of trades is not: 70% of this work being
+   subcontracted is the real figure the customer gave. */
+
+export type Trade = "plumbing" | "electrical" | "finishes" | "own";
+
+export const TRADE: Record<Trade, Bi> = {
+  plumbing: { en: "Plumbing & drainage", es: "Hidrosanitarias" },
+  electrical: { en: "Electrical", es: "Eléctricas" },
+  finishes: { en: "Finishes", es: "Acabados" },
+  own: { en: "Own workforce", es: "Personal propio" },
+};
+
+export type Capturer = {
+  id: string;
+  name: string;
+  initials: string;
+  trade: Trade;
+  /* The firm, because accountability runs to the company rather than to the
+     individual — which is the whole point of the contractor screen. */
+  org: Bi;
+};
+
+export const CREW: Capturer[] = [
+  {
+    id: "mario",
+    name: "Mario Restrepo",
+    initials: "MR",
+    trade: "plumbing",
+    org: { en: "Instalaciones Restrepo Ltda.", es: "Instalaciones Restrepo Ltda." },
+  },
+  {
+    id: "luigi",
+    name: "Luigi Bernal",
+    initials: "LB",
+    trade: "plumbing",
+    org: { en: "Instalaciones Restrepo Ltda.", es: "Instalaciones Restrepo Ltda." },
+  },
+  {
+    id: "nelson",
+    name: "Nelson Quintero",
+    initials: "NQ",
+    trade: "electrical",
+    org: { en: "Electricidad Quintero S.A.S.", es: "Electricidad Quintero S.A.S." },
+  },
+  {
+    id: "yesica",
+    name: "Yésica Arboleda",
+    initials: "YA",
+    trade: "electrical",
+    org: { en: "Electricidad Quintero S.A.S.", es: "Electricidad Quintero S.A.S." },
+  },
+  {
+    id: "diana",
+    name: "Diana Ocampo",
+    initials: "DO",
+    trade: "finishes",
+    org: { en: "Acabados del Valle", es: "Acabados del Valle" },
+  },
+  {
+    id: "fabian",
+    name: "Fabián Lozano",
+    initials: "FL",
+    trade: "finishes",
+    org: { en: "Acabados del Valle", es: "Acabados del Valle" },
+  },
+  {
+    id: "camila",
+    name: "Camila Ruiz",
+    initials: "CR",
+    trade: "own",
+    org: { en: "Constructora Aldamar", es: "Constructora Aldamar" },
+  },
+];
+
+export const crewById = new Map(CREW.map((c) => [c.id, c]));
+
+/* ── What a session actually contains ────────────────────────────────────── */
+
+/* The photographs are REAL FILES from the site's own library, reused because
+   this is a rendering rather than a photograph of shipped software and
+   commissioning a shoot of a Colombian apartment at rough-in would not make
+   it more honest. They are chosen to match the subject: conceal-pipework and
+   conceal-waterproofing genuinely are water and waste before the walls close.
+
+   ⚠️  THE IMAGE IS CHOSEN BY ROOM AND STAGE, NOT AT RANDOM. A viewer who sees
+   a bathroom photograph filed against the kitchen learns that none of it is
+   real, which is the one thing this page cannot afford. */
+
+/* ⚠️  THE UNIT OF WORK IS A ROOM AND A TRADE TOGETHER, not an apartment and
+   not a stage. A bathroom needs a plumbing capture; a living room does not.
+   The kitchen needs one from every trade. So the checklist for an apartment is
+   a GRID — rooms down, trades across — and every cell is either a required
+   capture with its own status or a blank because that trade has no work in
+   that room.
+
+   This is the level a site actually operates at. "Apartment 603 is at
+   rough-in" is not actionable; "603's bathroom plumbing is captured and its
+   kitchen plumbing is not" is a phone call to a named person.
+
+   A capture session still has ONE photographer, so a column of this grid is
+   exactly one certificate: the plumber's two rooms, the electrician's six.
+   The grid and the certificates are two readings of the same data. */
+
+export type Requirement = {
+  room: string;
+  trade: Trade;
+  /** Which stage it belongs to, which is what decides when it falls due. */
+  stage: string;
+  what: Bi;
+  /** Basename under /assets/features or /assets/captures, no size suffix. */
+  image: string;
+};
+
+/* ⚠️  THE IMAGE IS CHOSEN BY ROOM AND TRADE, NOT AT RANDOM. A viewer who sees
+   a bathroom photograph filed against the kitchen learns that none of it is
+   real, which is the one thing this page cannot afford. The photographs are
+   the site's own library, reused because this is a rendering rather than a
+   photograph of shipped software — but conceal-pipework and conceal-electrical
+   genuinely are water and conduit before the walls close. */
+export const REQUIREMENTS: Requirement[] = [
+  /* Plumbing goes only where there is water. Two rooms out of seven, which is
+     the whole reason this is a grid rather than a list. */
+  { room: "cocina", trade: "plumbing", stage: "rough-in", image: "conceal-pipework", what: { en: "Water, waste and gas points", es: "Puntos de agua, desagüe y gas" } },
+  { room: "bano", trade: "plumbing", stage: "rough-in", image: "conceal-waterproofing", what: { en: "Sanitary points and waterproofing", es: "Puntos sanitarios e impermeabilización" } },
+
+  /* Electrical goes everywhere, including the hall. */
+  { room: "sala", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Conduit and outlet boxes", es: "Ductería y cajas de salida" } },
+  { room: "principal", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
+  { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
+  { room: "cocina", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" } },
+  { room: "bano", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
+  { room: "hall", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Board and feed", es: "Tablero y acometida" } },
+
+  { room: "sala", trade: "finishes", stage: "finishes", image: "rental-reception-checkin", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" } },
+  { room: "principal", trade: "finishes", stage: "finishes", image: "rental-bedroom", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
+  { room: "alcoba2", trade: "finishes", stage: "finishes", image: "cadogan-principal-bedroom", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
+  { room: "cocina", trade: "finishes", stage: "finishes", image: "rental-kitchen", what: { en: "Cabinetry and worktop", es: "Mobiliario y mesón" } },
+  { room: "bano", trade: "finishes", stage: "finishes", image: "rental-bathroom", what: { en: "Tiling and fittings", es: "Enchape y aparatos" } },
+  { room: "hall", trade: "finishes", stage: "finishes", image: "rental-entrance-hall", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" } },
+  { room: "balcon", trade: "finishes", stage: "finishes", image: "rental-garden", what: { en: "Floor and handrail", es: "Piso y pasamanos" } },
+
+  { room: "sala", trade: "own", stage: "handover", image: "cadogan-reception-room", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "principal", trade: "own", stage: "handover", image: "cadogan-principal-bedroom", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "alcoba2", trade: "own", stage: "handover", image: "cadogan-study", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "cocina", trade: "own", stage: "handover", image: "cadogan-kitchen", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" } },
+  { room: "bano", trade: "own", stage: "handover", image: "cadogan-bathroom", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "hall", trade: "own", stage: "handover", image: "cadogan-entrance-hall", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" } },
+  { room: "balcon", trade: "own", stage: "handover", image: "rental-garden", what: { en: "Condition at handover", es: "Estado de entrega" } },
+];
+
+/** The columns of the grid: one per (stage, trade), in build order. Each is
+ *  one capture session and therefore one certificate. Derived from
+ *  REQUIREMENTS so a trade added above appears here without being listed
+ *  twice. */
+export const JOBS: { stage: string; trade: Trade }[] = (() => {
+  const seen = new Set<string>();
+  const out: { stage: string; trade: Trade }[] = [];
+  for (const r of REQUIREMENTS) {
+    const key = `${r.stage}:${r.trade}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ stage: r.stage, trade: r.trade });
+  }
+  return out.sort(
+    (a, b) =>
+      STAGES.findIndex((s) => s.key === a.stage) -
+      STAGES.findIndex((s) => s.key === b.stage),
+  );
+})();
+
+/** The rooms the grid has rows for — the apartment's own rooms plus the
+ *  balcony, which is not a room in the plan but is captured like one. */
+export const CAPTURE_ROOMS: { key: string; name: Bi }[] = [
+  ...APARTMENT.rooms.map((r) => ({ key: r.key, name: r.name })),
+  { key: "balcon", name: { en: "Balcony", es: "Balcón" } },
+];
+
+/** Which image library a basename lives in. The room shots came from the
+ *  Cadogan capture set and the concealed-work shots from the feature set; both
+ *  are on disk at 240, 480, 960 and 1920. */
+export function shotSrc(image: string, width: 240 | 480 | 960) {
+  const dir = image.startsWith("cadogan-") ? "captures" : "features";
+  return `/assets/${dir}/${image}-${width}.webp`;
+}
+
+/** One certificate: one job, one photographer, the captures it holds. */
+export type PublishedSession = {
+  stage: string;
+  trade: Trade;
+  by: Capturer;
+  code: string;
+  date: string;
+};
+
+/** One cell of the grid: a required capture and where it has got to. */
+export type RequiredCapture = {
+  requirement: Requirement;
+  status: UnitPhase;
+  /** Only once it exists. */
+  time: string | null;
+};
+
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function codeFor(seed: string) {
+  /* Eight characters in two groups, matching the shape of a real certificate
+     code. Derived from the seed so the same apartment always shows the same
+     code — a viewer who clicks away and back to a different code has been
+     shown that the codes mean nothing. */
+  let out = "";
+  for (let i = 0; i < 8; i++) {
+    out += CODE_ALPHABET[Math.floor(hash01(`${seed}:${i}`) * CODE_ALPHABET.length)];
+  }
+  return `${out.slice(0, 4)}-${out.slice(4)}`;
+}
+
+/** When a given stage on a given floor of a given tower was captured.
+ *
+ *  One function, used both by the certificates themselves and by the
+ *  development's own handover date, so the two cannot disagree — which they
+ *  did: handover certificates were dated March 2026 against a stated first
+ *  handover of June 2027.
+ *
+ *  The shape of it: a tower starts when the crane reaches it, the structure
+ *  climbs about a floor a month, and each stage follows the one below it up
+ *  the building. */
+function sessionDate(
+  tower: Tower,
+  floor: number,
+  stageIndex: number,
+  jitterDays: number,
+) {
+  const d = new Date(Date.parse(`${DEVELOPMENT.started}T00:00:00Z`));
+  d.setUTCDate(
+    d.getUTCDate() +
+      tower.startOffsetDays +
+      120 +
+      floor * 24 +
+      stageIndex * 46 +
+      jitterDays,
+  );
+  return d.toISOString().slice(0, 10);
+}
+
+/** The certificate for one job on one apartment, or null if that job has not
+ *  been published yet. */
+export function sessionFor(
+  unit: UnitState,
+  tower: Tower,
+  job: { stage: string; trade: Trade },
+): PublishedSession | null {
+  const stageIndex = STAGES.findIndex((s) => s.key === job.stage);
+  /* `sealed` counts stages inclusive of the tower and floor ones, so a stage
+     is published once the apartment has got past its index. A job still in
+     progress has no certificate — the captures exist as a draft until the
+     session is published, which is exactly how the product works. */
+  if (unit.sealed <= stageIndex) return null;
+
+  const seed = `${tower.key}-${unit.code}-${job.stage}-${job.trade}`;
+  const crew = CREW.filter((c) => c.trade === job.trade);
+
+  return {
+    stage: job.stage,
+    trade: job.trade,
+    by: crew[Math.floor(hash01(`${seed}:who`) * crew.length)],
+    code: codeFor(seed),
+    date: sessionDate(
+      tower,
+      unit.floor,
+      stageIndex,
+      Math.floor(hash01(`${seed}:day`) * 9),
+    ),
+  };
+}
+
+/** Every cell of an apartment's checklist, with where each one has got to.
+ *
+ *  ⚠️  STATUS IS PER CELL, not per apartment and not per stage. An apartment
+ *  mid-rough-in has some rooms captured, one being worked on now, and
+ *  occasionally one whose photograph was rejected by screening and has to be
+ *  retaken before the certificate can publish. Collapsing that to a single
+ *  apartment state is what makes a progress report useless to the person who
+ *  has to act on it. */
+export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
+  return REQUIREMENTS.map((requirement) => {
+    const stageIndex = STAGES.findIndex((s) => s.key === requirement.stage);
+    const seed = `${tower.key}-${unit.code}-${requirement.stage}-${requirement.trade}-${requirement.room}`;
+    const h = hash01(seed);
+
+    /* The stage is sealed, so every cell in it is captured — a certificate
+       cannot publish with a rejected or missing capture in it. */
+    if (unit.sealed > stageIndex) {
+      return {
+        requirement,
+        status: "complete" as const,
+        time: timeFrom(seed),
+      };
+    }
+
+    /* The stage being worked on now: a mixed column, which is the only
+       interesting state on the whole sheet. */
+    if (unit.current === requirement.stage) {
+      const status: UnitPhase =
+        h < 0.52
+          ? "complete"
+          : h < 0.68
+            ? "active"
+            : h < 0.8
+              ? "warning"
+              : h < 0.87
+                ? "problem"
+                : "pending";
+      return {
+        requirement,
+        status,
+        time: status === "complete" || status === "problem" ? timeFrom(seed) : null,
+      };
+    }
+
+    return { requirement, status: "pending" as const, time: null };
+  });
+}
+
+function timeFrom(seed: string) {
+  const hour = 7 + Math.floor(hash01(`${seed}:hr`) * 9);
+  const minute = Math.floor(hash01(`${seed}:min`) * 59);
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
+/** The first apartment in the development to be handed over.
+ *
+ *  ⚠️  DERIVED, NOT TYPED, and it had to become so. It was written as a
+ *  constant and said June 2027 while the generated certificates were dating
+ *  handovers from March 2026 — the exact class of contradiction the top of
+ *  this file warns about, sitting in the file that warns about it. Computed
+ *  from sessionDate(), it cannot drift again.
+ *
+ *  Floor 1 of whichever tower started first, at the handover stage. */
+export const firstHandover = (() => {
+  const handoverIndex = STAGES.findIndex((s) => s.key === "handover");
+  const lead = TOWERS.reduce((a, b) =>
+    a.startOffsetDays <= b.startOffsetDays ? a : b,
+  );
+  return sessionDate(lead, 1, handoverIndex, 0);
+})();
+
+/** Captures in a typical unit-level certificate — the grid's own average.
+ *  See the note where this used to be a constant. */
+export const MEDIA_PER_CERTIFICATE = Math.round(
+  REQUIREMENTS.length / JOBS.length,
+);

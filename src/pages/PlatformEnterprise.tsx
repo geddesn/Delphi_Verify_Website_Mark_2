@@ -19,6 +19,7 @@ import {
   DEVELOPMENT,
   GRANULARITY,
   MEDIA_LIMIT,
+  CAPTURES_PER_APARTMENT,
   MEDIA_PER_CERTIFICATE,
   MAX_FLOORS,
   TOWERS,
@@ -256,8 +257,8 @@ function GranularityPanel() {
         <div className="border-t border-line pt-4">
           <p className="text-body-sm text-ink-secondary">
             {t({
-              en: `Each certificate carries up to ${MEDIA_LIMIT} photographs or videos — a dozen is typical, so this development's evidence is roughly ${fmtInt(count * MEDIA_PER_CERTIFICATE, lang)} captures held in ${fmtInt(count, lang)} sealed records.`,
-              es: `Cada certificado admite hasta ${MEDIA_LIMIT} fotografías o videos — una docena es lo habitual, así que la evidencia de este proyecto son unas ${fmtInt(count * MEDIA_PER_CERTIFICATE, lang)} capturas en ${fmtInt(count, lang)} registros sellados.`,
+              en: `Each certificate carries up to ${MEDIA_LIMIT} photographs or videos — around ${MEDIA_PER_CERTIFICATE} is typical, and a full apartment checklist is ${CAPTURES_PER_APARTMENT()} captures across its rooms and trades. This development's evidence is roughly ${fmtInt(count * MEDIA_PER_CERTIFICATE, lang)} captures held in ${fmtInt(count, lang)} sealed records.`,
+              es: `Cada certificado admite hasta ${MEDIA_LIMIT} fotografías o videos — unas ${MEDIA_PER_CERTIFICATE} es lo habitual, y la lista completa de un apartamento son ${CAPTURES_PER_APARTMENT()} capturas entre sus ambientes y oficios. La evidencia de este proyecto son unas ${fmtInt(count * MEDIA_PER_CERTIFICATE, lang)} capturas en ${fmtInt(count, lang)} registros sellados.`,
             })}
           </p>
         </div>
@@ -327,8 +328,8 @@ const copy = {
       es: "¿Cuántas verificaciones necesita realmente un proyecto de 504 apartamentos?",
     } as Bi,
     standfirst: {
-      en: `Six stages against every apartment is ${fmtInt(certificateCount("per-unit"), "en")} certificates, which is why the question gets asked. But the level a certificate attaches to is a choice, not a limit — a slab exists once per floor, siteworks once per tower, and a certificate holds up to ${MEDIA_LIMIT} captures. Move the choice and watch the number.`,
-      es: `Seis etapas por apartamento son ${fmtInt(certificateCount("per-unit"), "es")} certificados, y por eso surge la pregunta. Pero el nivel al que se asocia un certificado es una decisión, no un límite — una placa existe una vez por piso, las obras preliminares una vez por torre, y un certificado admite hasta ${MEDIA_LIMIT} capturas. Cambie la decisión y observe la cifra.`,
+      en: `Every stage against every apartment — with rough-in captured twice, once by the plumber and once by the electrician — is ${fmtInt(certificateCount("per-unit"), "en")} certificates, which is why the question gets asked. But the level a certificate attaches to is a choice, not a limit — a slab exists once per floor, siteworks once per tower, and a certificate holds up to ${MEDIA_LIMIT} captures. Move the choice and watch the number.`,
+      es: `Cada etapa por apartamento — con instalaciones capturadas dos veces, una por el plomero y otra por el electricista — son ${fmtInt(certificateCount("per-unit"), "es")} certificados, y por eso surge la pregunta. Pero el nivel al que se asocia un certificado es una decisión, no un límite — una placa existe una vez por piso, las obras preliminares una vez por torre, y un certificado admite hasta ${MEDIA_LIMIT} capturas. Cambie la decisión y observe la cifra.`,
     } as Bi,
   },
 

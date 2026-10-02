@@ -3,20 +3,23 @@ import {
   APARTMENT,
   BUILDING_DEPTH,
   BUILDING_WIDTH,
-  CAPTURES_PER_APARTMENT,
   GEOMETRY,
+  JOBS,
   ROOMS,
   STAGES,
   MAX_FLOORS,
   TOWERS,
+  TRADE,
   UNITS,
+  capturesFor,
   unitsIn,
-  type Room,
   type UnitPhase,
   type Tower,
+  type Trade,
   type UnitState,
 } from "@/content/enterprise/world";
 import { useLang, useT, type Bi } from "@/content/enterprise/lang";
+import { ApartmentSheet } from "@/components/enterprise/ApartmentSheet";
 import { cn } from "@/lib/cn";
 
 /* ============================================================================
@@ -494,6 +497,21 @@ export function TowerExplorer() {
     setPosition(null);
   };
 
+  /* ⚠️  THE SHEET REPLACES THE EXPLORER RATHER THAN SHARING IT. An
+     apartment's captures are a dozen photographs grouped into certificates,
+     and squeezing them into the 23rem aside made thumbnails too small to be
+     evidence of anything. Tower → floor → apartment is a drill-down, and the
+     last step gets the whole frame like the two before it. */
+  if (selected) {
+    return (
+      <ApartmentSheet
+        unit={selected}
+        tower={tower}
+        onBack={() => setPosition(null)}
+      />
+    );
+  }
+
   return (
     <div className="flex h-full w-full flex-col bg-canvas">
       <ExplorerHeader
@@ -613,6 +631,7 @@ export function TowerExplorer() {
             >
               <FloorPlate
                 units={plate}
+                tower={tower}
                 floor={shownFloor}
                 selected={position}
                 onSelect={setPosition}
@@ -628,13 +647,7 @@ export function TowerExplorer() {
         </div>
 
         <aside className="flex w-[23rem] shrink-0 flex-col gap-4 overflow-hidden p-5">
-          {selected ? (
-            <ApartmentDetail
-              unit={selected}
-              tower={tower}
-              onBack={() => setPosition(null)}
-            />
-          ) : shownFloor > tower.front.structure ? (
+          {shownFloor > tower.front.structure ? (
             /* A floor above the poured structure has no apartments on it, so
                describing it as "8 apartments, 58 m²" with six zeros beside it
                is wrong twice over — the apartments do not exist, and the
@@ -1224,16 +1237,26 @@ function FloorRail({
  *  balcony is on the sala side in both, because both read APARTMENT. */
 function FloorPlate({
   units,
+  tower,
   floor,
   selected,
   onSelect,
 }: {
   units: UnitState[];
+  tower: Tower;
   floor: number;
   selected: number | null;
   onSelect: (p: number | null) => void;
 }) {
   const t = useT();
+  /* ⚠️  THE FILTER IS WHY THE PLAN DRAWS ROOMS AT ALL. Without it the rooms
+     are decoration — eight identical little layouts. Pick a trade and the
+     plate answers the question a site actually asks: who still owes me a
+     bathroom plumbing capture on this floor, and in which flats. Rooms that
+     trade has no work in recede, which is as much of the answer as the rooms
+     that light up. */
+  const [job, setJob] = useState<string | null>(null);
+  const chosen = JOBS.find((j) => `${j.stage}:${j.trade}` === job) ?? null;
   const front = units
     .filter((u) => u.position <= 4)
     .sort((a, b) => a.position - b.position);
@@ -1247,10 +1270,29 @@ function FloorPlate({
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
-      <p className="font-mono text-mono-sm uppercase text-ink-muted">
-        {t({ en: "Floor", es: "Piso" })} {floor} ·{" "}
-        {t({ en: "plate", es: "planta" })}
-      </p>
+      <div className="flex w-full max-w-3xl items-center gap-2">
+        <p className="font-mono text-mono-sm uppercase text-ink-muted">
+          {t({ en: "Floor", es: "Piso" })} {floor} ·{" "}
+          {t({ en: "plate", es: "planta" })}
+        </p>
+        <div className="ml-auto flex gap-1">
+          <FilterChip on={job === null} onClick={() => setJob(null)}>
+            {t({ en: "All trades", es: "Todos" })}
+          </FilterChip>
+          {JOBS.map((j) => {
+            const key = `${j.stage}:${j.trade}`;
+            return (
+              <FilterChip
+                key={key}
+                on={job === key}
+                onClick={() => setJob(job === key ? null : key)}
+              >
+                {t(TRADE[j.trade])}
+              </FilterChip>
+            );
+          })}
+        </div>
+      </div>
 
       <svg
         viewBox={`0 0 ${planW} ${planD}`}
@@ -1265,6 +1307,8 @@ function FloorPlate({
           <ApartmentPlan
             key={u.code}
             unit={u}
+            tower={tower}
+            job={chosen}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth}
             selected={selected === u.position}
@@ -1297,6 +1341,8 @@ function FloorPlate({
           <ApartmentPlan
             key={u.code}
             unit={u}
+            tower={tower}
+            job={chosen}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth + APARTMENT.depth + GEOMETRY.corridorDepth}
             flip
@@ -1323,6 +1369,8 @@ function FloorPlate({
  *  corridor again, this is the line. */
 function ApartmentPlan({
   unit,
+  tower,
+  job,
   x,
   y,
   flip = false,
@@ -1330,6 +1378,9 @@ function ApartmentPlan({
   onSelect,
 }: {
   unit: UnitState;
+  tower: Tower;
+  /** The trade being looked at, or null for all of them. */
+  job: { stage: string; trade: Trade } | null;
   x: number;
   y: number;
   flip?: boolean;
@@ -1339,6 +1390,27 @@ function ApartmentPlan({
   const t = useT();
   const style = PHASE[unit.phase];
   const { width, depth, balcony } = APARTMENT;
+  const cells = capturesFor(unit, tower);
+
+  /* A room's state under the current filter. Worst-first: a rejected capture
+     outranks an overdue one, which outranks work in progress — the room needs
+     to show the thing somebody has to act on, not the cheeriest thing true
+     about it. */
+  const roomStatus = (room: string): UnitPhase | "none" => {
+    const mine = cells.filter(
+      (c) =>
+        c.requirement.room === room &&
+        (!job ||
+          (c.requirement.stage === job.stage &&
+            c.requirement.trade === job.trade)),
+    );
+    if (mine.length === 0) return "none";
+    if (mine.some((c) => c.status === "problem")) return "problem";
+    if (mine.some((c) => c.status === "warning")) return "warning";
+    if (mine.some((c) => c.status === "active")) return "active";
+    if (mine.every((c) => c.status === "complete")) return "complete";
+    return "pending";
+  };
 
   /* z runs away from the facade. Flipped, the facade is at the bottom of the
      apartment's box instead of the top. */
@@ -1347,42 +1419,53 @@ function ApartmentPlan({
 
   return (
     <g className="cursor-pointer" onClick={onSelect}>
-      {/* Balcony, outside the structure. */}
-      <rect
-        x={x + balcony.x}
-        y={balconyY}
-        width={balcony.width}
-        height={balcony.depth}
-        fill="var(--surface)"
-        stroke="var(--line-strong)"
-        strokeWidth={0.07}
-      />
+      {/* Balcony, outside the structure — and captured like a room, so it is
+          shaded like one. */}
+      {(() => {
+        const st = roomStatus("balcon");
+        const rs = st === "none" ? null : PHASE[st];
+        return (
+          <rect
+            x={x + balcony.x}
+            y={balconyY}
+            width={balcony.width}
+            height={balcony.depth}
+            fill={rs ? rs.fill : "none"}
+            fillOpacity={rs ? rs.fillOpacity : 0}
+            stroke={rs ? rs.stroke : "var(--line)"}
+            strokeWidth={0.07}
+            strokeOpacity={st === "none" ? 0.4 : 1}
+          />
+        );
+      })()}
 
-      {/* The apartment's ground, in its state's fill. Laid over a plain
-          surface first so a translucent fill reads the same here as it does on
-          the elevation, where it sits over the same colour. */}
+      {/* Plain ground. The apartment's overall state used to be painted here,
+          which now fights the per-room states drawn on top of it — two
+          different answers to "how is this flat doing" in the same square.
+          The outline below carries the apartment's state instead. */}
       <rect x={x} y={y} width={width} height={depth} fill="var(--surface)" />
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={depth}
-        fill={style.fill}
-        fillOpacity={style.fillOpacity}
-      />
 
-      {APARTMENT.rooms.map((r) => (
-        <rect
-          key={r.key}
-          x={x + r.x}
-          y={y + at(r.z, r.d)}
-          width={r.w}
-          height={r.d}
-          fill="none"
-          stroke="var(--line-strong)"
-          strokeWidth={0.07}
-        />
-      ))}
+      {APARTMENT.rooms.map((r) => {
+        const st = roomStatus(r.key);
+        /* A room this trade has no work in is drawn faint and unfilled. It is
+           not "not started" — nobody owes anything here — and the two must
+           never look alike or the plate overstates what is outstanding. */
+        const rs = st === "none" ? null : PHASE[st];
+        return (
+          <rect
+            key={r.key}
+            x={x + r.x}
+            y={y + at(r.z, r.d)}
+            width={r.w}
+            height={r.d}
+            fill={rs ? rs.fill : "none"}
+            fillOpacity={rs ? rs.fillOpacity : 0}
+            stroke={rs ? rs.stroke : "var(--line)"}
+            strokeWidth={rs && st !== "complete" && st !== "pending" ? 0.12 : 0.07}
+            strokeOpacity={st === "none" ? 0.4 : 1}
+          />
+        );
+      })}
 
       {/* The outline last, over the interior walls, so the apartment reads as
           one dwelling rather than six rooms that happen to be adjacent. */}
@@ -1420,73 +1503,6 @@ function ApartmentPlan({
         {t({ en: "Apartment", es: "Apartamento" })} {unit.code}
       </title>
     </g>
-  );
-}
-
-/* ── Apartment detail ────────────────────────────────────────────────────── */
-
-/** One apartment's rooms, and what a rough-in inspection photographs in each.
- *
- *  This is where the plan stops being decoration: the capture checklist is
- *  per room, which is why one certificate holds a dozen photographs rather
- *  than one. */
-function ApartmentDetail({
-  unit,
-  tower,
-  onBack,
-}: {
-  unit: UnitState;
-  tower: Tower;
-  onBack: () => void;
-}) {
-  const t = useT();
-
-  return (
-    <div className="flex min-h-0 flex-col gap-3">
-      <button
-        type="button"
-        onClick={onBack}
-        className="cursor-pointer text-left font-mono text-mono-sm uppercase text-ink-muted hover:text-ink-secondary"
-      >
-        ← {tower.name} · {t({ en: "floor", es: "piso" })} {unit.floor}
-      </button>
-
-      <div>
-        <p className="text-heading text-ink">
-          {t({ en: "Apartment", es: "Apartamento" })} {unit.code}
-        </p>
-        <p className="mt-1 text-body-sm text-ink-secondary">
-          {APARTMENT.area.toFixed(0)} m² ·{" "}
-          {t({
-            en: `${unit.sealed} of ${STAGES.length} stages sealed`,
-            es: `${unit.sealed} de ${STAGES.length} etapas selladas`,
-          })}
-        </p>
-      </div>
-
-      <ul className="flex flex-col gap-1.5 border-t border-line pt-3">
-        {ROOMS.map((r: Room) => (
-          <li key={r.key} className="flex items-baseline gap-2">
-            <span className="min-w-0 flex-1 truncate text-body-sm text-ink-secondary">
-              {t(r.name)}
-            </span>
-            <span className="shrink-0 font-mono text-mono-sm text-ink-muted">
-              {(r.w * r.d).toFixed(1)} m²
-            </span>
-            <span className="w-12 shrink-0 text-right font-mono text-mono-sm tabular-nums text-ink">
-              {t({ en: `${r.captures} shots`, es: `${r.captures} tomas` })}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <p className="border-t border-line pt-3 text-body-sm text-ink-secondary">
-        {t({
-          en: `A rough-in inspection of this apartment is ${CAPTURES_PER_APARTMENT} captures in one certificate — well inside the 40 a certificate holds.`,
-          es: `Una inspección de instalaciones de este apartamento son ${CAPTURES_PER_APARTMENT} capturas en un certificado — muy por debajo de las 40 que admite.`,
-        })}
-      </p>
-    </div>
   );
 }
 
@@ -1663,5 +1679,32 @@ function Legend() {
         );
       })}
     </div>
+  );
+}
+
+/** A filter chip on the floor plate. */
+function FilterChip({
+  on,
+  onClick,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={cn(
+        "cursor-pointer rounded-sm border px-2 py-0.5 text-body-sm transition-colors",
+        on
+          ? "border-accent text-ink"
+          : "border-line text-ink-muted hover:text-ink-secondary",
+      )}
+    >
+      {children}
+    </button>
   );
 }

@@ -793,6 +793,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 unit={selected}
                 tower={tower}
                 focus={focus}
+                onClearFocus={() => setFocus(null)}
                 onBack={() => show("plan")}
               />
             </div>
@@ -935,6 +936,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 tower={tower}
                 floor={planFloor}
                 focus={focus}
+                onClearFocus={() => setFocus(null)}
                 selected={position}
                 onSelect={setPosition}
               />
@@ -1673,11 +1675,16 @@ function FloorPlate({
   selected,
   onSelect,
   focus,
+  onClearFocus,
 }: {
   units: UnitState[];
   tower: Tower;
   floor: number;
   focus: CaptureFocus | null;
+  /** Clicking off the plate clears the row filter, exactly as it does in the
+   *  apartment pane — the same gesture should mean the same thing in both
+   *  drawings or it is not a gesture, it is a quirk of one screen. */
+  onClearFocus: () => void;
   selected: number | null;
   onSelect: (p: number | null) => void;
 }) {
@@ -1694,7 +1701,15 @@ function FloorPlate({
   const planD = BUILDING_DEPTH + GEOMETRY.balconyDepth * 2;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-3 p-6"
+      /* The svg is capped at max-w-3xl, so on a wide stage the space either
+         side of it belongs to this div rather than to the drawing. Without
+         this, half the "off the plan" area did nothing. */
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClearFocus();
+      }}
+    >
       <p className="font-mono text-mono-sm uppercase text-ink-muted">
         {t({ en: "Floor", es: "Piso" })} {floor} ·{" "}
         {t({ en: "plate", es: "planta" })}
@@ -1703,6 +1718,13 @@ function FloorPlate({
       <svg
         viewBox={`0 0 ${planW} ${planD}`}
         className="max-h-full w-full max-w-3xl"
+        /* Target-checked rather than position-checked: the svg keeps its
+           aspect ratio, so a click landing on the element itself is a click on
+           the margin round the drawing, while an apartment or a room is a
+           child and must be left alone. */
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClearFocus();
+        }}
         role="img"
         aria-label={
           t({ en: "Floor plan", es: "Planta" }) + ` ${floor}`

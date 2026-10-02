@@ -51,6 +51,7 @@ export function ApartmentPane({
   tower,
   onBack,
   focus,
+  onClearFocus,
 }: {
   unit: UnitState;
   tower: Tower;
@@ -58,6 +59,11 @@ export function ApartmentPane({
   /** The progress table's selection. Markers outside it are dropped, so the
    *  plan shows exactly what was asked for. */
   focus: CaptureFocus | null;
+  /** Clearing it from here. The filter is set in the panel on the right and
+   *  felt one-way once you had drilled into an apartment — the row that set it
+   *  is still there, but reaching back across the screen to unset something
+   *  you can see in front of you is the wrong gesture. */
+  onClearFocus: () => void;
 }) {
   const t = useT();
   const [open, setOpen] = useState<RequiredCapture | null>(null);
@@ -115,12 +121,23 @@ export function ApartmentPane({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 p-4">
+      {/* ⚠️  CLICKING OFF THE PLAN CLEARS THE FILTER, and the check is on the
+          target rather than the handler's position: this div and the svg both
+          fill their box, so a click on the margin round the drawing lands on
+          one of them, while a click on a room or a marker lands on a child and
+          must be left alone. */}
+      <div
+        className="min-h-0 flex-1 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClearFocus();
+        }}
+      >
         <PlanBoard
           cells={shown}
           hover={hover}
           onHover={setHover}
           onOpen={setOpen}
+          onClearFocus={onClearFocus}
         />
       </div>
 
@@ -186,11 +203,13 @@ function PlanBoard({
   hover,
   onHover,
   onOpen,
+  onClearFocus,
 }: {
   cells: RequiredCapture[];
   hover: RequiredCapture | null;
   onHover: (c: RequiredCapture | null) => void;
   onOpen: (c: RequiredCapture) => void;
+  onClearFocus: () => void;
 }) {
   const t = useT();
   const { width, depth, balcony } = APARTMENT;
@@ -209,6 +228,11 @@ function PlanBoard({
       className="h-full w-full"
       role="img"
       aria-label={t({ en: "Apartment plan", es: "Planta del apartamento" })}
+      /* The svg keeps its aspect ratio, so there is letterbox inside it either
+         side of the drawing. A click landing there is a click off the plan. */
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClearFocus();
+      }}
     >
       {areas.map((area) => {
         const mine = cells.filter((c) => c.requirement.room === area.key);

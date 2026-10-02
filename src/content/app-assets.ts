@@ -1,6 +1,5 @@
 import {
   DEVELOPMENT,
-  GEOMETRY,
   TOWERS,
   unitsIn,
   type Tower,
@@ -58,6 +57,7 @@ export const APP_DEVELOPMENT = {
   place: DEVELOPMENT.city.en,
   towers: TOWERS.length,
   units: TOWERS.reduce((n, t) => n + unitsIn(t), 0),
-  apartmentsPerFloor: GEOMETRY.unitsPerFloor,
+  /* Now differs between towers, so the development quotes a range. */
+  apartmentsPerFloor: `${Math.min(...TOWERS.map((t) => t.perFloor))}–${Math.max(...TOWERS.map((t) => t.perFloor))}`,
   at: DEVELOPMENT.at,
 } as const;

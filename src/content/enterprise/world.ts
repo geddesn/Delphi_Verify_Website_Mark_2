@@ -176,13 +176,11 @@ export const stageByKey = new Map(STAGES.map((s) => [s.key, s]));
 
    Metres, because the explorer projects in building units and labels them. */
 export const GEOMETRY = {
-  /* NO FLOOR COUNT HERE — it belongs to the tower, because the three towers
-     are different heights. Anything needing "how tall" must ask a Tower. */
-  unitsPerFloor: 8,
-  /* 4 apartments along each long elevation, front and back, either side of a
-     central corridor — the arrangement a Colombian residential tower of this
-     size actually uses. */
-  baysX: 4,
+  /* ⚠️  NO FLOOR COUNT AND NO PLATE SIZE HERE. Both belong to the tower: the
+     three are different heights AND different widths, so anything asking "how
+     tall" or "how many to a floor" must ask a Tower. What is left is the stuff
+     that really is the same in all three — a storey is a storey and an
+     apartment is an apartment, whichever block it is in. */
   bayWidth: 7.2,
   apartmentDepth: 8.0,
   /* Lifts, stair and the corridor the apartments open off. */
@@ -199,7 +197,16 @@ export const GEOMETRY = {
 export const BUILDING_DEPTH =
   GEOMETRY.apartmentDepth * 2 + GEOMETRY.corridorDepth;
 
-export const BUILDING_WIDTH = GEOMETRY.baysX * GEOMETRY.bayWidth;
+/** Apartments along each long elevation: half the plate, front and back
+ *  either side of the central corridor. */
+export const baysOf = (tower: Tower) => tower.perFloor / 2;
+
+/** How wide a tower is, which now differs between them. */
+export const widthOf = (tower: Tower) => baysOf(tower) * GEOMETRY.bayWidth;
+
+/** The widest of the three, for anything that has to frame all of them in one
+ *  camera — the same reasoning as MAX_FLOORS. */
+export const maxWidth = () => Math.max(...TOWERS.map(widthOf));
 
 /* ── The apartment ───────────────────────────────────────────────────────── */
 
@@ -312,6 +319,12 @@ export type Tower = {
      apartments. Change one and the headline figure moves with it, because
      everything downstream is summed rather than typed. */
   floors: number;
+  /* ⚠️  AND HOW MANY APARTMENTS TO A FLOOR, which is also not shared. A
+     developer does not build the same plate three times — the plot decides
+     the footprint. Always even: the plate is two rows either side of a
+     corridor, and an odd number would leave one row short with nothing
+     sensible to draw in the gap. */
+  perFloor: number;
   /* How far the build has got, in floors, per stage. Structure to floor 14
      means floors 1–14 have a sealed structure certificate. Monotonic by
      construction: you cannot finish an apartment on a floor whose slab is not
@@ -337,6 +350,7 @@ export const TOWERS: Tower[] = [
     key: "t1",
     name: "Torre 1",
     floors: 18,
+    perFloor: 6,
     /* Topped out and handing over — the tower that proves the far end of the
        process exists. */
     front: { structure: 18, "rough-in": 18, finishes: 15, handover: 9 },
@@ -351,6 +365,7 @@ export const TOWERS: Tower[] = [
        has four distinct bands and you can see the build front in it. */
     name: "Torre 2",
     floors: 21,
+    perFloor: 8,
     front: { structure: 14, "rough-in": 9, finishes: 5, handover: 2 },
     at: { lat: 3.2698, lng: -76.5378 },
     startOffsetDays: 150,
@@ -360,6 +375,7 @@ export const TOWERS: Tower[] = [
     key: "t3",
     name: "Torre 3",
     floors: 24,
+    perFloor: 10,
     /* Foundations only. Present so the portfolio is not three copies of the
        same picture, and so "nothing captured yet" is a visible state. */
     front: { structure: 0, "rough-in": 0, finishes: 0, handover: 0 },
@@ -370,7 +386,7 @@ export const TOWERS: Tower[] = [
 ];
 
 /** Apartments in one tower. Its own height times the plate. */
-export const unitsIn = (tower: Tower) => tower.floors * GEOMETRY.unitsPerFloor;
+export const unitsIn = (tower: Tower) => tower.floors * tower.perFloor;
 
 /** The tallest tower, for anything that has to size a frame to fit all three. */
 export const MAX_FLOORS = Math.max(...TOWERS.map((t) => t.floors));
@@ -538,7 +554,7 @@ export type UnitState = {
   /** 1402 — floor 14, unit 02. The numbering a Colombian site actually uses. */
   code: string;
   floor: number;
-  /** 1-based position along the floor plate, 1…unitsPerFloor. */
+  /** 1-based position along the floor plate, 1…tower.perFloor. */
   position: number;
   /** How many of the six stages have a sealed certificate. 0…6. */
   sealed: number;
@@ -599,10 +615,8 @@ const UNIT_STAGES = ["rough-in", "finishes", "handover"] as const;
  *  waiting on one trade. */
 export function unitsForTower(tower: Tower): UnitState[] {
   const out: UnitState[] = [];
-  const { unitsPerFloor } = GEOMETRY;
-
   for (let floor = 1; floor <= tower.floors; floor++) {
-    for (let position = 1; position <= unitsPerFloor; position++) {
+    for (let position = 1; position <= tower.perFloor; position++) {
       const code = `${tower.key}-${floor}${String(position).padStart(2, "0")}`;
       const jitter = hash01(code);
 

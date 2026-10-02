@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   APARTMENT,
   BUILDING_DEPTH,
-  BUILDING_WIDTH,
+  baysOf,
   GEOMETRY,
+  maxWidth,
+  widthOf,
   ROOMS,
   STAGES,
   MAX_FLOORS,
@@ -172,11 +174,14 @@ function capture(e: React.PointerEvent<Element>, take: boolean) {
 /* Left margin for the selected-floor label, in viewBox units. */
 const LABEL_X = 10;
 
-/* One apartment's shape, said once, for the panel heading. */
-const APPTS_LINE = `${GEOMETRY.unitsPerFloor} per floor`;
-const APPTS_LINE_ES = `${GEOMETRY.unitsPerFloor} por piso`;
 
-const W = BUILDING_WIDTH;
+
+/* ⚠️  THE FRAME IS THE BIGGEST TOWER, NOT THIS ONE. The three differ in width
+   as well as height now, and fitting each to its own extents would scale them
+   all to the same apparent size — the same mistake the heights made before the
+   camera was unified. One frame, three buildings, and the differences are
+   visible because of it. */
+const FRAME_W = maxWidth();
 const D = BUILDING_DEPTH;
 
 /** Scale and offset that fit a tower into VIEW at this angle. The balconies
@@ -190,7 +195,7 @@ function fitFor(angle: number, height: number, cam: ReturnType<typeof cameraFor>
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
       for (const y of [0, height]) {
-        const p = project((sx * W) / 2, y, sz * reach, angle, cam);
+        const p = project((sx * FRAME_W) / 2, y, sz * reach, angle, cam);
         xs.push(p.x);
         ys.push(p.y);
       }
@@ -231,43 +236,53 @@ type Elevation = {
   out: { x: number; z: number };
 };
 
-const ELEVATIONS: Elevation[] = [
-  {
-    positions: [1, 2, 3, 4],
-    normal: { x: 0, z: -1 },
-    origin: { x: -W / 2, z: -D / 2 },
-    step: { x: GEOMETRY.bayWidth, z: 0 },
-    bays: GEOMETRY.baysX,
-    out: { x: 0, z: -1 },
-  },
-  {
-    /* Walking round the block reverses the order, so 08 is leftmost. The
-       numbering follows the building rather than the drawing — otherwise a
-       viewer comparing the two views finds the apartments swapped. */
-    positions: [8, 7, 6, 5],
-    normal: { x: 0, z: 1 },
-    origin: { x: W / 2, z: D / 2 },
-    step: { x: -GEOMETRY.bayWidth, z: 0 },
-    bays: GEOMETRY.baysX,
-    out: { x: 0, z: 1 },
-  },
-  {
-    positions: [],
-    normal: { x: -1, z: 0 },
-    origin: { x: -W / 2, z: D / 2 },
-    step: { x: 0, z: -D / 2 },
-    bays: 2,
-    out: { x: -1, z: 0 },
-  },
-  {
-    positions: [],
-    normal: { x: 1, z: 0 },
-    origin: { x: W / 2, z: -D / 2 },
-    step: { x: 0, z: D / 2 },
-    bays: 2,
-    out: { x: 1, z: 0 },
-  },
-];
+function elevationsFor(tower: Tower): Elevation[] {
+  const W = widthOf(tower);
+  const bays = baysOf(tower);
+  /* 1…bays along the front, then the rest along the back, read right to left
+     because walking round the block reverses the order — the numbering has to
+     follow the building rather than the drawing or a viewer comparing the two
+     views finds the apartments swapped. */
+  const front = Array.from({ length: bays }, (_, i) => i + 1);
+  const rear = Array.from({ length: bays }, (_, i) => tower.perFloor - i);
+
+  return [
+    {
+      positions: front,
+      normal: { x: 0, z: -1 },
+      origin: { x: -W / 2, z: -D / 2 },
+      step: { x: GEOMETRY.bayWidth, z: 0 },
+      bays,
+      out: { x: 0, z: -1 },
+    },
+    {
+      positions: rear,
+      normal: { x: 0, z: 1 },
+      origin: { x: W / 2, z: D / 2 },
+      step: { x: -GEOMETRY.bayWidth, z: 0 },
+      bays,
+      out: { x: 0, z: 1 },
+    },
+    {
+      /* The two ends. No apartments — the core, the stairs and the lift shafts
+         are behind these — so they are drawn as plain banded wall. */
+      positions: [],
+      normal: { x: -1, z: 0 },
+      origin: { x: -W / 2, z: D / 2 },
+      step: { x: 0, z: -D / 2 },
+      bays: 2,
+      out: { x: -1, z: 0 },
+    },
+    {
+      positions: [],
+      normal: { x: 1, z: 0 },
+      origin: { x: W / 2, z: -D / 2 },
+      step: { x: 0, z: D / 2 },
+      bays: 2,
+      out: { x: 1, z: 0 },
+    },
+  ];
+}
 
 /* ── Light ────────────────────────────────────────────────────────────────
    ⚠️  WITHOUT THIS THE BLOCK IS FLAT, and no amount of adjusting the fills
@@ -539,6 +554,10 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
   /* Top of the poured structure — the building as it stands today, as opposed
      to the finished envelope at tower.floors. */
   const deck = tower.front.structure * GEOMETRY.floorHeight;
+  /* This tower's own footprint, as opposed to FRAME_W which frames all three
+     through one camera. */
+  const W = widthOf(tower);
+  const elevations = useMemo(() => elevationsFor(tower), [tower]);
 
   /* A floor selected on a taller tower has to survive switching to a shorter
      one, or the aside describes a storey that does not exist. */
@@ -798,10 +817,10 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             >
               <path
                 d={path([
-                  to(-W * 1.6, 0, -D * 2.1),
-                  to(W * 1.6, 0, -D * 2.1),
-                  to(W * 1.6, 0, D * 2.1),
-                  to(-W * 1.6, 0, D * 2.1),
+                  to(-FRAME_W * 1.6, 0, -D * 2.1),
+                  to(FRAME_W * 1.6, 0, -D * 2.1),
+                  to(FRAME_W * 1.6, 0, D * 2.1),
+                  to(-FRAME_W * 1.6, 0, D * 2.1),
                 ])}
                 /* ⚠️  THE GROUND CARRIES THE WHOLE VALUE STRUCTURE. At
                    --surface-sunken it was within a few percent of the canvas
@@ -819,7 +838,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                   project toward the camera and must paint over the elevation
                   they hang off; interleaving them floor by floor would let a
                   higher storey's wall cover the balcony below it. */}
-              {ELEVATIONS.filter((e) => faces(e, angle)).map((e, i) => (
+              {elevations.filter((e) => faces(e, angle)).map((e, i) => (
                 <Elevation
                   key={`w${i}`}
                   fade={otherFloors}
@@ -834,7 +853,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 />
               ))}
 
-              {ELEVATIONS.filter((e) => faces(e, angle) && e.positions.length).map(
+              {elevations.filter((e) => faces(e, angle) && e.positions.length).map(
                 (e, i) => (
                   <Balconies
                     key={`b${i}`}
@@ -878,7 +897,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 pointerEvents="none"
               />
 
-              <GhostEnvelope tower={tower} to={to} path={path} />
+              <GhostEnvelope tower={tower} width={W} to={to} path={path} />
 
               {/* No slab called out while the whole tower is selected —
                   highlighting an arbitrary storey would imply a selection
@@ -886,6 +905,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
               {shownFloor !== null && (
                 <SelectedSlab
                   floor={shownFloor}
+                  width={W}
                   to={to}
                   path={path}
                   lang={lang}
@@ -973,15 +993,15 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                     es: `${unitsIn(tower)} apartamentos`,
                   })
                 : t({
-                    en: `Floor ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartments`,
-                    es: `Piso ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartamentos`,
+                    en: `Floor ${shownFloor} · ${tower.perFloor} apartments`,
+                    es: `Piso ${shownFloor} · ${tower.perFloor} apartamentos`,
                   })}
             </p>
             <p className="mt-1 text-body-sm text-ink-secondary">
               {shownFloor === null
                 ? t({
-                    en: `${tower.floors} floors · ${APPTS_LINE}`,
-                    es: `${tower.floors} pisos · ${APPTS_LINE_ES}`,
+                    en: `${tower.floors} floors · ${tower.perFloor} per floor`,
+                    es: `${tower.floors} pisos · ${tower.perFloor} por piso`,
                   })
                 : t({
                     en: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} rooms and a balcony each`,
@@ -1312,10 +1332,12 @@ function Elevation({
  *  balconies. It is unmistakably a drawing of something that is not there. */
 function GhostEnvelope({
   tower,
+  width: W,
   to,
   path,
 }: {
   tower: Tower;
+  width: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
 }) {
@@ -1510,11 +1532,13 @@ function Balconies({
 
 function SelectedSlab({
   floor,
+  width: W,
   to,
   path,
   lang,
 }: {
   floor: number;
+  width: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
   lang: "en" | "es";
@@ -1660,15 +1684,17 @@ function FloorPlate({
   onSelect: (p: number | null) => void;
 }) {
   const t = useT();
+  /* Half the plate to a row, which is no longer four. */
+  const half = baysOf(tower);
   const front = units
-    .filter((u) => u.position <= 4)
+    .filter((u) => u.position <= half)
     .sort((a, b) => a.position - b.position);
   const rear = units
-    .filter((u) => u.position > 4)
+    .filter((u) => u.position > half)
     .sort((a, b) => b.position - a.position);
 
   /* Plan coordinates in metres, balconies included on both sides. */
-  const planW = BUILDING_WIDTH;
+  const planW = widthOf(tower);
   const planD = BUILDING_DEPTH + GEOMETRY.balconyDepth * 2;
 
   return (

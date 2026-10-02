@@ -152,6 +152,19 @@ const ASIDE_DEFAULT = 368;
 const ASIDE_MIN = 272;
 const ASIDE_MAX = 544;
 
+/** Take or release the pointer, without letting a missing capture throw.
+ *  Both calls raise NotFoundError when the pointer is not where the browser
+ *  thinks it is, which is a condition to shrug at rather than one to abort a
+ *  handler for. */
+function capture(e: React.PointerEvent<Element>, take: boolean) {
+  try {
+    if (take) e.currentTarget.setPointerCapture(e.pointerId);
+    else e.currentTarget.releasePointerCapture(e.pointerId);
+  } catch {
+    /* No capture to take or give back. */
+  }
+}
+
 /* Left margin for the selected-floor label, in viewBox units. */
 const LABEL_X = 10;
 
@@ -543,6 +556,10 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      sky would clear the floor selection. Set on pointer-up, read by the click
      handler a moment later. */
   const dragged = useRef(false);
+  /* What the pointer went down on: an apartment, or the ground and sky. Read
+     here because by pointer-up the capture has retargeted everything to the
+     stage. */
+  const hit = useRef<{ storey: number; position: number | null } | null>(null);
 
   /* ── Dragging the divider ──
      ⚠️  THE DELTA IS DIVIDED BY THE STAGE'S OWN SCALE. On /platform/enterprise
@@ -582,7 +599,15 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
       width: e.currentTarget.getBoundingClientRect().width,
     };
     dragged.current = false;
-    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const panel = (e.target as Element).closest?.("[data-storey]");
+    const storey = panel?.getAttribute("data-storey");
+    const pos = panel?.getAttribute("data-position");
+    hit.current = storey
+      ? { storey: Number(storey), position: pos ? Number(pos) : null }
+      : null;
+
+    capture(e, true);
   };
 
   const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -595,8 +620,35 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
   const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     drag.current = null;
-    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    /* ⚠️  SELECTION FIRST, CAPTURE RELEASE AFTER. releasePointerCapture throws
+       NotFoundError if the capture is not held — a cancelled pointer, one
+       released outside the element, a synthetic event — and an exception here
+       used to abort the rest of the handler, so clicking the sky silently did
+       nothing while clicking a floor worked. Nothing that matters belongs
+       behind a call that can throw. */
+    if (!dragged.current) {
+      /* ⚠️  THE FLOOR, AND ONLY THE FLOOR. Setting the apartment too opened
+         the capture sheet, which replaces the whole explorer — so a click
+         meant to pick a storey threw the viewer out of the view they were
+         working in. Choosing an apartment belongs to the plan, where the
+         rooms are big enough to aim at and the sheet is a step forward rather
+         than a surprise. */
+      setFloor(hit.current ? hit.current.storey : null);
+      setPosition(null);
+    }
+    hit.current = null;
+    capture(e, false);
   };
+
+  /* A cancelled pointer is not a click: the gesture was taken away rather than
+     finished, so it selects nothing. */
+  const onPointerCancel = (e: React.PointerEvent<SVGSVGElement>) => {
+    drag.current = null;
+    hit.current = null;
+    capture(e, false);
+  };
+
 
   const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
     const step = Math.PI / 24;
@@ -709,15 +761,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              /* Clicking off the building goes back to the whole tower. The
-                 apartments stop this reaching here — see the panel handler —
-                 so anything that arrives is the ground or the sky. */
-              onClick={() => {
-                if (dragged.current) return;
-                setFloor(null);
-                setPosition(null);
-              }}
+              onPointerCancel={onPointerCancel}
               onKeyDown={onKeyDown}
             >
               <path
@@ -754,8 +798,6 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                   floor={shownFloor}
                   to={to}
                   path={path}
-                  onFloor={setFloor}
-                  onPosition={setPosition}
                 />
               ))}
 
@@ -1038,8 +1080,6 @@ function Elevation({
   shade,
   to,
   path,
-  onFloor,
-  onPosition,
 }: {
   elevation: Elevation;
   tower: Tower;
@@ -1054,8 +1094,6 @@ function Elevation({
   shade: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
-  onFloor: (f: number) => void;
-  onPosition: (p: number | null) => void;
 }) {
   const quads: React.ReactNode[] = [];
 
@@ -1098,13 +1136,14 @@ function Elevation({
           stroke={on ? "var(--ink)" : style.stroke}
           strokeWidth={on ? 1.6 : style.strokeWidth}
           className="cursor-pointer"
-          onClick={(e) => {
-            /* Or it would reach the stage's own handler, which clears the
-               selection this click just made. */
-            e.stopPropagation();
-            onFloor(storey);
-            onPosition(position ?? null);
-          }}
+          /* ⚠️  NO onClick HERE, AND THAT IS NOT AN OVERSIGHT. The stage
+             captures the pointer on pointer-down so it can be dragged to
+             rotate, and a captured pointer retargets the following `click` to
+             the capturing element — so a handler on this path never ran, and
+             the stage's own handler cleared the selection instead. Selection
+             is resolved from the pointer-DOWN target instead; these attributes
+             are what it reads. */
+          data-storey={storey}
         />,
       );
 

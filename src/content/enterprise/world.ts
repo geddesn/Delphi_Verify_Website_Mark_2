@@ -1898,6 +1898,8 @@ export type JobActivity = Tally & {
 export type CellActivity = {
   room: string;
   what: Bi;
+  stage: string;
+  trade: Trade;
   difficulty: number;
   captures: number;
   inspection: number;
@@ -1923,6 +1925,8 @@ type Built = {
   people: PersonActivity[];
   jobs: JobActivity[];
   crossings: Crossing[];
+  /** Keyed `personId:stage:trade:room`. */
+  personCells: Map<string, CellActivity>;
 };
 
 let built: Built | null = null;
@@ -1971,6 +1975,12 @@ function buildActivity(): Built {
   const personMonths = new Map<string, ActivityMonth[]>();
   const jobMonths = new Map<string, ActivityMonth[]>();
   const cells = new Map<string, CellActivity>();
+  /* ⚠️  THE SAME TALLY, SCOPED TO ONE PERSON. Every member of the crew works a
+     single trade, and a trade is a single job type here — so a person's split
+     "by job type" was always one row, which told nobody anything. The useful
+     grain for a person is the checklist cell: kitchen electrical and bedroom
+     electrical are the same job type and not remotely the same job. */
+  const personCells = new Map<string, CellActivity>();
   const cross = new Map<string, Crossing>();
 
   for (const tower of TOWERS) {
@@ -2016,24 +2026,31 @@ function buildActivity(): Built {
           if (cell.requirement.trade !== job.trade) continue;
           if (!hasPhotograph(cell)) continue;
 
+          const blankCell = (): CellActivity => ({
+            room: cell.requirement.room,
+            what: cell.requirement.what,
+            stage: job.stage,
+            trade: job.trade,
+            difficulty: cell.requirement.difficulty,
+            captures: 0,
+            inspection: 0,
+            rework: 0,
+            flagged: 0,
+          });
+
           const cellKey = `${jobKey}:${cell.requirement.room}`;
-          if (!cells.has(cellKey)) {
-            cells.set(cellKey, {
-              room: cell.requirement.room,
-              what: cell.requirement.what,
-              difficulty: cell.requirement.difficulty,
-              captures: 0,
-              inspection: 0,
-              rework: 0,
-              flagged: 0,
-            });
-          }
+          if (!cells.has(cellKey)) cells.set(cellKey, blankCell());
           const cs = cells.get(cellKey)!;
+
+          const mineKey = `${personId}:${cellKey}`;
+          if (!personCells.has(mineKey)) personCells.set(mineKey, blankCell());
+          const ps = personCells.get(mineKey)!;
 
           pm.captures += 1;
           jm.captures += 1;
           xs.captures += 1;
           cs.captures += 1;
+          ps.captures += 1;
 
           /* ⚠️  `raised`, NOT `status`. Status is where the cell is now, and a
              stage that has sealed is uniformly complete — counting that way
@@ -2046,11 +2063,13 @@ function buildActivity(): Built {
             jm.inspection += 1;
             xs.inspection += 1;
             cs.inspection += 1;
+            ps.inspection += 1;
           } else if (cell.raised === "rework") {
             pm.rework += 1;
             jm.rework += 1;
             xs.rework += 1;
             cs.rework += 1;
+            ps.rework += 1;
           } else {
             continue;
           }
@@ -2059,6 +2078,7 @@ function buildActivity(): Built {
           jm.flagged += 1;
           xs.flagged += 1;
           cs.flagged += 1;
+          ps.flagged += 1;
           if (!cell.resolved) {
             pm.open += 1;
             jm.open += 1;
@@ -2091,7 +2111,7 @@ function buildActivity(): Built {
     };
   }).sort((a, b) => b.captures - a.captures);
 
-  built = { people, jobs, crossings: [...cross.values()] };
+  built = { people, jobs, crossings: [...cross.values()], personCells };
   return built;
 }
 
@@ -2101,6 +2121,19 @@ export function personActivity(): PersonActivity[] {
 
 export function jobActivity(): JobActivity[] {
   return buildActivity().jobs;
+}
+
+/** One person's work split by checklist cell — the room and the task together,
+ *  which is the grain somebody actually schedules and chases.
+ *
+ *  Ordered by what was raised against it, because that is the question being
+ *  asked when somebody opens a name. */
+export function cellsForPerson(personId: string): CellActivity[] {
+  const prefix = `${personId}:`;
+  return [...buildActivity().personCells.entries()]
+    .filter(([k]) => k.startsWith(prefix))
+    .map(([, c]) => c)
+    .sort((a, b) => b.flagged - a.flagged || b.captures - a.captures);
 }
 
 /** One person's work split by job type. */

@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   CAPTURE_ROOMS,
   TRADE,
   activityMonths,
+  cellsForPerson,
   jobActivity,
-  jobsForPerson,
   peopleForJob,
   personActivity,
   stageByKey,
@@ -120,10 +120,13 @@ export function WorkOverTime() {
     return `${t(MONTH[Number(mm) - 1])} ${y.slice(2)}`;
   };
 
-  const jobTitle = (job: { stage: string; trade: string }) => {
-    const stage = stageByKey.get(job.stage);
-    return stage ? t(stage.name) : job.stage;
-  };
+  const jobTitle = useCallback(
+    (job: { stage: string; trade: string }) => {
+      const stage = stageByKey.get(job.stage);
+      return stage ? t(stage.name) : job.stage;
+    },
+    [t],
+  );
 
   const rows: Row[] = useMemo(() => {
     const out: Row[] =
@@ -161,7 +164,7 @@ export function WorkOverTime() {
               a.flagged / Math.max(1, a.captures) || b.flagged - a.flagged,
         )
       : [...out].sort((a, b) => b.captures - a.captures);
-  }, [view, order, people, jobs, t]);
+  }, [view, order, people, jobs, t, jobTitle]);
 
   /* ⚠️  THE SHARED CEILING, computed across every row of BOTH views so the bar
      heights mean the same thing when you switch between them. */
@@ -254,7 +257,6 @@ export function WorkOverTime() {
               view={view}
               peak={peak}
               label={label}
-              jobTitle={jobTitle}
               open={open === row.id}
               onToggle={() => setOpen(open === row.id ? null : row.id)}
             />
@@ -319,7 +321,6 @@ function RowView({
   view,
   peak,
   label,
-  jobTitle,
   open,
   onToggle,
 }: {
@@ -327,7 +328,6 @@ function RowView({
   view: ViewKey;
   peak: number;
   label: (m: string) => string;
-  jobTitle: (job: { stage: string; trade: string }) => string;
   open: boolean;
   onToggle: () => void;
 }) {
@@ -440,9 +440,7 @@ function RowView({
         <Num>{rate(row.flagged, row.captures)}</Num>
       </div>
 
-      {open && (
-        <Detail row={row} view={view} label={label} jobTitle={jobTitle} />
-      )}
+      {open && <Detail row={row} view={view} label={label} />}
     </div>
   );
 }
@@ -457,25 +455,29 @@ function Detail({
   row,
   view,
   label,
-  jobTitle,
 }: {
   row: Row;
   view: ViewKey;
   label: (m: string) => string;
-  jobTitle: (job: { stage: string; trade: string }) => string;
 }) {
   const t = useT();
   const { lang } = useLang();
 
+  /* A job type opens to the people who worked it; a person opens to the cells
+     they were given. The person side used to open to their split by job type,
+     which was always exactly one row — every member of the crew works a single
+     trade, and a trade is one job type here. Kitchen electrical and bedroom
+     electrical share a job type and are not the same job, and that is the
+     split somebody wants when they click a name. */
   const crossings: Crossing[] = useMemo(
-    () => (view === "person" ? jobsForPerson(row.id) : peopleForJob(row.id)),
+    () => (view === "job" ? peopleForJob(row.id) : []),
     [view, row.id],
   );
   const cells: CellActivity[] = useMemo(
     () =>
       view === "job"
         ? (jobActivity().find((j) => j.key === row.id)?.cells ?? [])
-        : [],
+        : cellsForPerson(row.id),
     [view, row.id],
   );
 
@@ -489,53 +491,45 @@ function Detail({
       </p>
 
       <div className="flex flex-wrap gap-x-10 gap-y-6">
-        <Table
-          title={
-            view === "person"
-              ? t({ en: "What they were asked to do", es: "Qué le asignaron" })
-              : t({ en: "Who did it", es: "Quién lo hizo" })
-          }
-          note={
-            view === "person"
-              ? t({
-                  en: "A rate is not comparable between people on different work.",
-                  es: "Una tasa no es comparable entre personas en trabajos distintos.",
-                })
-              : t({
-                  en: "Same job, different people — this is the comparison that is fair.",
-                  es: "Mismo trabajo, distintas personas — esta es la comparación justa.",
-                })
-          }
-          head={[
-            view === "person"
-              ? t({ en: "Job type", es: "Tipo de trabajo" })
-              : t({ en: "Person", es: "Persona" }),
-            t({ en: "Captures", es: "Capturas" }),
-            t({ en: "Insp", es: "Insp" }),
-            t({ en: "Rework", es: "Corr" }),
-            t({ en: "Flagged", es: "Marcadas" }),
-          ]}
-          rows={crossings.map((c) => ({
-            key: `${c.personId}:${c.jobKey}`,
-            label:
-              view === "person"
-                ? `${jobTitle(c)} · ${t(TRADE[c.trade])}`
-                : c.name,
-            captures: c.captures,
-            inspection: c.inspection,
-            rework: c.rework,
-          }))}
-        />
-
-        {view === "job" && cells.length > 0 && (
+        {view === "job" && (
           <Table
-            title={t({ en: "Which cell", es: "Qué celda" })}
+            title={t({ en: "Who did it", es: "Quién lo hizo" })}
             note={t({
-              en: "Some jobs are harder than others, and the checklist is where that shows.",
-              es: "Algunos trabajos son más difíciles que otros, y la lista es donde se nota.",
+              en: "Same job, different people — this is the comparison that is fair.",
+              es: "Mismo trabajo, distintas personas — esta es la comparación justa.",
             })}
             head={[
-              t({ en: "Room", es: "Espacio" }),
+              t({ en: "Person", es: "Persona" }),
+              t({ en: "Captures", es: "Capturas" }),
+              t({ en: "Insp", es: "Insp" }),
+              t({ en: "Rework", es: "Corr" }),
+              t({ en: "Flagged", es: "Marcadas" }),
+            ]}
+            rows={crossings.map((c) => ({
+              key: `${c.personId}:${c.jobKey}`,
+              label: c.name,
+              captures: c.captures,
+              inspection: c.inspection,
+              rework: c.rework,
+            }))}
+          />
+        )}
+
+        {cells.length > 0 && (
+          <Table
+            title={
+              view === "person"
+                ? t({ en: "Which task", es: "Qué tarea" })
+                : t({ en: "Which cell", es: "Qué celda" })
+            }
+            note={t({
+              en: "Some tasks are raised against far more often than others, whoever is doing them.",
+              es: "Algunas tareas se señalan mucho más que otras, sin importar quién las haga.",
+            })}
+            head={[
+              view === "person"
+                ? t({ en: "Room and task", es: "Espacio y tarea" })
+                : t({ en: "Room", es: "Espacio" }),
               t({ en: "Captures", es: "Capturas" }),
               t({ en: "Insp", es: "Insp" }),
               t({ en: "Rework", es: "Corr" }),
@@ -543,9 +537,17 @@ function Detail({
             ]}
             rows={cells.map((c) => {
               const room = CAPTURE_ROOMS.find((r) => r.key === c.room);
+              const where = room ? t(room.name) : c.room;
               return {
-                key: c.room,
-                label: `${room ? t(room.name) : c.room} — ${t(c.what)}`,
+                key: `${c.stage}:${c.trade}:${c.room}`,
+                /* On a person's panel the job type is worth naming, because
+                   their rows all share one and it is what the other view is
+                   keyed on. On a job type's own panel it would repeat the
+                   heading on every line. */
+                label:
+                  view === "person"
+                    ? `${where} · ${t(TRADE[c.trade])} — ${t(c.what)}`
+                    : `${where} — ${t(c.what)}`,
                 captures: c.captures,
                 inspection: c.inspection,
                 rework: c.rework,

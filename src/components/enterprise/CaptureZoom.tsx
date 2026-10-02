@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   CAPTURE_ROOMS,
@@ -123,18 +117,40 @@ export function CaptureZoom({
     [clamp],
   );
 
-  /* Re-clamp once the image has laid out, which can leave an offset further
-     out than the scale allows. */
-  useLayoutEffect(() => {
+  /** Pull the offset back inside whatever the image's box is now.
+   *
+   *  ⚠️  THIS HAS TO RUN WHEN THE BOX CHANGES, NOT ON MOUNT. It was a layout
+   *  effect keyed on nothing, so it fired once while the <img> was still
+   *  unloaded and measured clientWidth as 0 — it clamped against a box that
+   *  did not exist yet and then never ran again. Load and resize are the two
+   *  moments the box actually changes. */
+  const reclamp = useCallback(() => {
     setTf((v) => {
       const o = clamp({ x: v.x, y: v.y }, v.s);
       return o.x === v.x && o.y === v.y ? v : { s: v.s, ...o };
     });
   }, [clamp]);
 
-  /* A different photograph starts unzoomed, rather than inheriting a crop that
-     belonged to the last one. */
-  useEffect(reset, [i, reset]);
+  useEffect(() => {
+    window.addEventListener("resize", reclamp);
+    return () => window.removeEventListener("resize", reclamp);
+  }, [reclamp]);
+
+  /** Move to another capture in this certificate.
+   *
+   *  The zoom resets here rather than in an effect watching `i`, because this
+   *  IS the thing that changes it — and a photograph should not inherit a crop
+   *  that was framed on a different wall. */
+  const go = useCallback(
+    (next: number) => {
+      setI((n) => {
+        const to = Math.max(0, Math.min(shots.length - 1, next));
+        if (to !== n) setTf({ s: 1, x: 0, y: 0 });
+        return to;
+      });
+    },
+    [shots.length],
+  );
 
   /* ⚠️  A MANUAL LISTENER, because React registers `wheel` at the root as
      passive, where preventDefault() is ignored — the page then scrolls behind
@@ -159,9 +175,8 @@ export function CaptureZoom({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      else if (e.key === "ArrowRight")
-        setI((n) => Math.min(shots.length - 1, n + 1));
-      else if (e.key === "ArrowLeft") setI((n) => Math.max(0, n - 1));
+      else if (e.key === "ArrowRight") go(i + 1);
+      else if (e.key === "ArrowLeft") go(i - 1);
       else if (e.key === "+" || e.key === "=") zoomBy(STEP);
       else if (e.key === "-" || e.key === "_") zoomBy(1 / STEP);
       else if (e.key === "0") reset();
@@ -170,7 +185,7 @@ export function CaptureZoom({
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, shots.length, zoomBy, reset]);
+  }, [onClose, go, i, zoomBy, reset]);
 
   /* The viewer covers the page, so the page must not scroll under it. */
   useEffect(() => {
@@ -185,6 +200,11 @@ export function CaptureZoom({
      without it, releasing a drag whose pointer happened to be over the
      backdrop closed the viewer you were working in. */
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  /* ⚠️  STATE, NOT THE REF, because the transform reads it while rendering:
+     a dragged image must not ease to each new position or the pan lags the
+     pointer. A ref read during render is not guaranteed to be the value the
+     render is drawn with. */
+  const [dragging, setDragging] = useState(false);
 
   const view = (
     <div
@@ -261,6 +281,7 @@ export function CaptureZoom({
             y: e.clientY - off.y,
             moved: false,
           };
+          setDragging(true);
           e.currentTarget.setPointerCapture(e.pointerId);
         }}
         onPointerMove={(e) => {
@@ -283,6 +304,7 @@ export function CaptureZoom({
         onPointerUp={(e) => {
           const d = drag.current;
           drag.current = null;
+          setDragging(false);
           /* ⚠️  DECIDE BEFORE RELEASING. releasePointerCapture throws when the
              capture is not held, and an exception here skips everything after
              it — which is how clicking the backdrop came to do nothing. */
@@ -311,24 +333,21 @@ export function CaptureZoom({
           /* The biggest size we hold. The detail is the whole point. */
           src={shotSrc(imageFor(cell), 1920)}
           draggable={false}
+          onLoad={reclamp}
           className="max-h-full max-w-full select-none rounded-sm border border-line object-contain"
           style={{
             transform: `translate(${off.x}px, ${off.y}px) scale(${scale})`,
             transformOrigin: "center",
-            transition: drag.current ? "none" : "transform 90ms linear",
+            transition: dragging ? "none" : "transform 90ms linear",
           }}
         />
 
         {shots.length > 1 && (
           <>
-            <Step
-              side="left"
-              onClick={() => setI((n) => Math.max(0, n - 1))}
-              disabled={i === 0}
-            />
+            <Step side="left" onClick={() => go(i - 1)} disabled={i === 0} />
             <Step
               side="right"
-              onClick={() => setI((n) => Math.min(shots.length - 1, n + 1))}
+              onClick={() => go(i + 1)}
               disabled={i === shots.length - 1}
             />
           </>

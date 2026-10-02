@@ -1137,8 +1137,14 @@ const progressCache = new Map<string, ProgressRow[]>();
  *  drilled into it — the same rows, the same arithmetic, a narrower scope.
  *  Two tallies computed different ways would eventually disagree, and the
  *  disagreement would be between two screens a reader can hold side by side. */
-export function siteProgress(towers: Tower[] = TOWERS): ProgressRow[] {
-  const key = towers.map((t) => t.key).join(",");
+export function siteProgress(
+  towers: Tower[] = TOWERS,
+  /* One storey, or every storey when omitted. The panel beside a tower uses
+     this: the table is a summary of whatever the viewer has selected, and
+     selecting a floor should narrow it rather than open a different screen. */
+  floor?: number,
+): ProgressRow[] {
+  const key = `${towers.map((t) => t.key).join(",")}@${floor ?? "all"}`;
   const hit = progressCache.get(key);
   if (hit) return hit;
 
@@ -1166,6 +1172,7 @@ export function siteProgress(towers: Tower[] = TOWERS): ProgressRow[] {
          of rooms that do not exist — Torre 3 alone would contribute 192
          apartments of nothing. */
       if (unit.sealed === 0) continue;
+      if (floor !== undefined && unit.floor !== floor) continue;
 
       for (const cell of capturesFor(unit, tower)) {
         const row = rows.get(
@@ -1185,10 +1192,15 @@ export function siteProgress(towers: Tower[] = TOWERS): ProgressRow[] {
 
 /** Apartments the site progress is drawn from — those that physically exist.
  *  Quoted beside the table so a reader can check the arithmetic. */
-export function apartmentsStarted(towers: Tower[] = TOWERS): number {
+export function apartmentsStarted(
+  towers: Tower[] = TOWERS,
+  floor?: number,
+): number {
   let n = 0;
   for (const tower of towers) {
-    n += UNITS[tower.key].filter((u) => u.sealed > 0).length;
+    n += UNITS[tower.key].filter(
+      (u) => u.sealed > 0 && (floor === undefined || u.floor === floor),
+    ).length;
   }
   return n;
 }

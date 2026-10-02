@@ -146,6 +146,10 @@ const DEFAULT_ANGLE = -0.62;
 /* Left margin for the selected-floor label, in viewBox units. */
 const LABEL_X = 10;
 
+/* One apartment's shape, said once, for the panel heading. */
+const APPTS_LINE = `${GEOMETRY.unitsPerFloor} per floor`;
+const APPTS_LINE_ES = `${GEOMETRY.unitsPerFloor} por piso`;
+
 const W = BUILDING_WIDTH;
 const D = BUILDING_DEPTH;
 
@@ -441,7 +445,12 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
   /* Opens on the build front — the floor where something is actually
      happening, which is the floor a head of construction would have opened
      himself. */
-  const [floor, setFloor] = useState(Math.max(1, initialTower.front.structure));
+  /* ⚠️  NULL MEANS THE WHOLE TOWER, and that is the opening state. The panel
+     beside the stage summarises whatever is selected; arriving with one
+     arbitrary storey already picked would answer a question nobody asked and
+     hide the tower-wide figures behind a click. Selecting a floor in the rail
+     narrows the summary; "All floors" widens it again. */
+  const [floor, setFloor] = useState<number | null>(null);
   const [position, setPosition] = useState<number | null>(null);
 
   /* ⚠️  THE CAMERA IS FRAMED ON THE TALLEST TOWER, NOT ON THIS ONE, and that
@@ -489,7 +498,12 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
   /* A floor selected on a taller tower has to survive switching to a shorter
      one, or the aside describes a storey that does not exist. */
-  const shownFloor = Math.min(floor, tower.floors);
+  const shownFloor = floor === null ? null : Math.min(floor, tower.floors);
+
+  /* The plan has to draw SOME storey. With nothing selected it opens on the
+     build front — the floor where work is actually happening, which is the one
+     a head of construction would have opened. */
+  const planFloor = shownFloor ?? Math.max(1, tower.front.structure);
 
   const to = useCallback(
     (x: number, y: number, z: number) => {
@@ -538,8 +552,10 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
     const step = Math.PI / 24;
     if (e.key === "ArrowLeft") setAngle((a) => a - step);
     else if (e.key === "ArrowRight") setAngle((a) => a + step);
-    else if (e.key === "ArrowUp") setFloor((f) => Math.min(tower.floors, f + 1));
-    else if (e.key === "ArrowDown") setFloor((f) => Math.max(1, f - 1));
+    else if (e.key === "ArrowUp")
+      setFloor((f) => Math.min(tower.floors, (f ?? 0) + 1));
+    else if (e.key === "ArrowDown")
+      setFloor((f) => (f === null ? tower.floors : Math.max(1, f - 1)));
     else return;
     e.preventDefault();
   };
@@ -581,12 +597,16 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
     return () => cancelAnimationFrame(raf);
   }, [view]);
 
-  const plate = units.filter((u) => u.floor === shownFloor);
+  const plate = units.filter((u) => u.floor === planFloor);
   const selected = plate.find((u) => u.position === position) ?? null;
 
   const selectTower = (key: string) => {
     setTowerKey(key);
     setPosition(null);
+    /* Back to the whole tower. Carrying a floor selection across is carrying
+       an answer to a question about a different building — and on a shorter
+       tower it may not be a storey that exists. */
+    setFloor(null);
   };
 
   /* ⚠️  THE SHEET REPLACES THE EXPLORER RATHER THAN SHARING IT. An
@@ -727,12 +747,17 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
               <GhostEnvelope tower={tower} to={to} path={path} />
 
-              <SelectedSlab
-                floor={shownFloor}
-                to={to}
-                path={path}
-                lang={lang}
-              />
+              {/* No slab called out while the whole tower is selected —
+                  highlighting an arbitrary storey would imply a selection
+                  that has not been made. */}
+              {shownFloor !== null && (
+                <SelectedSlab
+                  floor={shownFloor}
+                  to={to}
+                  path={path}
+                  lang={lang}
+                />
+              )}
             </svg>
           )}
 
@@ -749,22 +774,18 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
               <FloorPlate
                 units={plate}
                 tower={tower}
-                floor={shownFloor}
+                floor={planFloor}
                 selected={position}
                 onSelect={setPosition}
               />
             </div>
           )}
 
-          <FloorRail
-            floor={shownFloor}
-            tower={tower}
-            onFloor={setFloor}
-          />
+          <FloorRail floor={shownFloor} tower={tower} onFloor={setFloor} />
         </div>
 
         <aside className="flex w-[23rem] shrink-0 flex-col gap-4 overflow-hidden p-5">
-          {shownFloor > tower.front.structure ? (
+          {shownFloor !== null && shownFloor > tower.front.structure ? (
             /* A floor above the poured structure has no apartments on it, so
                describing it as "8 apartments, 58 m²" with six zeros beside it
                is wrong twice over — the apartments do not exist, and the
@@ -775,24 +796,31 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             <>
               <div>
                 <p className="font-mono text-mono-sm uppercase text-ink-muted">
-                  {t({ en: "Floor", es: "Piso" })} {shownFloor}
+                  {tower.name}
                 </p>
                 <p className="mt-1 text-heading text-ink">
-                  {t({
-                    en: `${GEOMETRY.unitsPerFloor} apartments`,
-                    es: `${GEOMETRY.unitsPerFloor} apartamentos`,
-                  })}
+                  {shownFloor === null
+                    ? t({
+                        en: `${unitsIn(tower)} apartments`,
+                        es: `${unitsIn(tower)} apartamentos`,
+                      })
+                    : t({
+                        en: `Floor ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartments`,
+                        es: `Piso ${shownFloor} · ${GEOMETRY.unitsPerFloor} apartamentos`,
+                      })}
                 </p>
                 <p className="mt-1 text-body-sm text-ink-secondary">
-                  {t({
-                    en: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} rooms and a balcony each`,
-                    es: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} ambientes y un balcón cada uno`,
-                  })}
+                  {shownFloor === null
+                    ? t({
+                        en: `${tower.floors} floors · ${APPTS_LINE}`,
+                        es: `${tower.floors} pisos · ${APPTS_LINE_ES}`,
+                      })
+                    : t({
+                        en: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} rooms and a balcony each`,
+                        es: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} ambientes y un balcón cada uno`,
+                      })}
                 </p>
 
-                {/* The way into the floor, next to the floor it opens —
-                    rather than only in the view switch up in the header,
-                    which is a long way from the thing it acts on. */}
                 <button
                   type="button"
                   onClick={() => setView(view === "plan" ? "block" : "plan")}
@@ -800,17 +828,14 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 >
                   {view === "plan"
                     ? t({ en: "← Back to the tower", es: "← Volver a la torre" })
-                    : t({ en: "Details →", es: "Detalles →" })}
+                    : t({
+                        en: `Floor ${planFloor} details →`,
+                        es: `Detalles del piso ${planFloor} →`,
+                      })}
                 </button>
               </div>
 
-              {/* ⚠️  THE TOWER'S PROGRESS, NOT THE FLOOR'S SIX STAGES. The
-                  ladder that was here reported "Rough-in 0/8 flats" for
-                  whichever floor happened to be selected, which says nothing
-                  about the asset somebody has just drilled into. This is the
-                  Analysis table filtered to this tower — same rows, same
-                  arithmetic, outstanding work first. */}
-              <TowerProgress tower={tower} />
+              <TowerProgress tower={tower} floor={shownFloor} />
             </>
           )}
 
@@ -915,7 +940,8 @@ function Elevation({
   elevation: Elevation;
   tower: Tower;
   units: UnitState[];
-  floor: number;
+  /** The selected storey, or null while the whole tower is selected. */
+  floor: number | null;
   /** Opacity for every storey except the selected one, 1 at rest and 0 by the
    *  time the camera is overhead — the floor being opened is left alone on
    *  screen before the plan arrives to replace it. */
@@ -1312,18 +1338,32 @@ function FloorRail({
   tower,
   onFloor,
 }: {
-  floor: number;
+  floor: number | null;
   tower: Tower;
-  onFloor: (f: number) => void;
+  onFloor: (f: number | null) => void;
 }) {
   const t = useT();
   const floors = Array.from({ length: tower.floors }, (_, i) => tower.floors - i);
 
   return (
     <div className="absolute right-3 top-3 bottom-3 flex w-24 flex-col justify-center gap-px">
-      <p className="mb-1 font-mono text-mono-sm uppercase text-ink-muted">
-        {t({ en: "Floors", es: "Pisos" })}
-      </p>
+      {/* ⚠️  THE WAY BACK OUT. Without this the rail is a one-way door: every
+          row narrows the panel to one storey and nothing widens it again, so a
+          viewer who clicked a floor could never see the tower's own figures
+          without reloading. */}
+      <button
+        type="button"
+        onClick={() => onFloor(null)}
+        aria-current={floor === null ? "true" : undefined}
+        className={cn(
+          "mb-1 cursor-pointer rounded-sm px-1 py-0.5 text-left font-mono text-mono-sm uppercase transition-colors",
+          floor === null
+            ? "bg-surface-sunken text-ink"
+            : "text-ink-muted hover:text-ink-secondary",
+        )}
+      >
+        {t({ en: "All floors", es: "Todos" })}
+      </button>
       {floors.map((f) => {
         const on = UNITS[tower.key].filter((u) => u.floor === f);
         /* The bar is how much of the floor is FINISHED, not how many

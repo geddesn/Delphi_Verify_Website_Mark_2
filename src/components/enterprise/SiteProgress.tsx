@@ -7,6 +7,7 @@ import {
   stageByKey,
   type ProgressRow,
   type Tower,
+  type Trade,
 } from "@/content/enterprise/world";
 import { useT, type Bi } from "@/content/enterprise/lang";
 import { cn } from "@/lib/cn";
@@ -63,46 +64,144 @@ const COLUMNS: Column[] = [
 
 type Sort = Column["key"] | "room";
 
+/* ⚠️  TWO WAYS INTO THE SAME 22 ROWS, because two different people open this
+   table. A head of construction asks "how is the bathroom doing" and wants the
+   trades under it; a contract manager asks "how is the plumber doing" and
+   wants the rooms under it. Neither is a sub-view of the other, and flattening
+   to one of them makes the table answer only half the people who open it.
+
+   The rows themselves never change — only how they are stacked and what the
+   subtotal line sums. */
+type Grouping = "room" | "trade";
+
+type Section = {
+  key: string;
+  label: Bi;
+  /* The other dimension, which is what the member rows are labelled by. */
+  rows: ProgressRow[];
+  totals: Record<Column["key"], number> & { total: number };
+};
+
+function sectionsFor(
+  rows: ProgressRow[],
+  grouping: Grouping,
+  roomName: (key: string) => Bi,
+  tradeName: (key: Trade) => Bi,
+): Section[] {
+  const out = new Map<string, Section>();
+
+  for (const row of rows) {
+    const key = grouping === "room" ? row.room : row.trade;
+    const label =
+      grouping === "room" ? roomName(row.room) : tradeName(row.trade);
+
+    let section = out.get(key);
+    if (!section) {
+      section = {
+        key,
+        label,
+        rows: [],
+        totals: {
+          pending: 0,
+          active: 0,
+          warning: 0,
+          problem: 0,
+          complete: 0,
+          total: 0,
+        },
+      };
+      out.set(key, section);
+    }
+
+    section.rows.push(row);
+    for (const c of COLUMNS) section.totals[c.key] += row[c.key];
+    section.totals.total += row.total;
+  }
+
+  return [...out.values()];
+}
+
 export function SiteProgress({ className }: { className?: string }) {
   const t = useT();
   const [sort, setSort] = useState<Sort>("room");
+  const [grouping, setGrouping] = useState<Grouping>("room");
 
-  const rows = useMemo(() => {
+  const roomName = (key: string) =>
+    CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
+  const tradeName = (key: Trade) => TRADE[key];
+
+  const sections = useMemo(() => {
     const all = siteProgress();
-    if (sort === "room") return all;
-    /* Descending: a reader sorting by "rejected" wants the worst row first,
-       and every one of these columns is a backlog rather than a score. */
-    return [...all].sort((a, b) => b[sort] - a[sort]);
-  }, [sort]);
+    const grouped = sectionsFor(all, grouping, roomName, tradeName);
+    if (sort === "room") return grouped;
+    /* Sorting runs INSIDE each group and over the groups themselves, so the
+       worst group comes first and the worst row inside it comes first.
+       Descending throughout: every one of these columns is a backlog. */
+    return [...grouped]
+      .map((s) => ({ ...s, rows: [...s.rows].sort((a, b) => b[sort] - a[sort]) }))
+      .sort((a, b) => b.totals[sort] - a.totals[sort]);
+  }, [grouping, sort]);
 
   const totals = useMemo(
     () =>
-      rows.reduce(
-        (acc, r) => {
-          for (const c of COLUMNS) acc[c.key] += r[c.key];
-          acc.total += r.total;
+      sections.reduce(
+        (acc, s) => {
+          for (const c of COLUMNS) acc[c.key] += s.totals[c.key];
+          acc.total += s.totals.total;
           return acc;
         },
         { pending: 0, active: 0, warning: 0, problem: 0, complete: 0, total: 0 },
       ),
-    [rows],
+    [sections],
   );
 
-  const roomName = (key: string) =>
-    CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
+  /* A member row is labelled by whichever dimension is NOT the grouping. */
+  const memberLabel = (row: ProgressRow) =>
+    grouping === "room" ? tradeName(row.trade) : roomName(row.room);
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      <div>
-        <h2 className="text-[18px] font-semibold">
-          {t({ en: "Capture progress", es: "Avance de capturas" })}
-        </h2>
-        <p className="mt-0.5 text-[12px] text-ink-secondary">
-          {t({
-            en: `Every required capture across ${apartmentsStarted()} apartments under construction. Apartments whose slab is not yet poured are excluded.`,
-            es: `Todas las capturas requeridas en ${apartmentsStarted()} apartamentos en construcción. Se excluyen los apartamentos cuya placa aún no se vacía.`,
-          })}
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-[18px] font-semibold">
+            {t({ en: "Capture progress", es: "Avance de capturas" })}
+          </h2>
+          <p className="mt-0.5 text-[12px] text-ink-secondary">
+            {t({
+              en: `Every required capture across ${apartmentsStarted()} apartments under construction. Apartments whose slab is not yet poured are excluded.`,
+              es: `Todas las capturas requeridas en ${apartmentsStarted()} apartamentos en construcción. Se excluyen los apartamentos cuya placa aún no se vacía.`,
+            })}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+            {t({ en: "Group by", es: "Agrupar por" })}
+          </span>
+          <div className="flex rounded-md border border-line">
+            {(
+              [
+                ["room", { en: "Room", es: "Ambiente" }],
+                ["trade", { en: "Task", es: "Oficio" }],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setGrouping(key)}
+                aria-pressed={grouping === key}
+                className={cn(
+                  "cursor-pointer px-3 py-1.5 text-[13px] transition-colors",
+                  grouping === key
+                    ? "bg-surface-sunken font-medium text-ink"
+                    : "text-ink-secondary hover:text-ink",
+                )}
+              >
+                {t(label)}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-line bg-surface">
@@ -110,9 +209,10 @@ export function SiteProgress({ className }: { className?: string }) {
           <thead>
             <tr className="border-b border-line">
               <Th onClick={() => setSort("room")} active={sort === "room"} align="left">
-                {t({ en: "Room", es: "Ambiente" })}
+                {grouping === "room"
+                  ? t({ en: "Room · trade", es: "Ambiente · oficio" })
+                  : t({ en: "Task · room", es: "Oficio · ambiente" })}
               </Th>
-              <Th align="left">{t({ en: "Trade", es: "Oficio" })}</Th>
               <Th align="left">{t({ en: "Stage", es: "Etapa" })}</Th>
               {COLUMNS.map((c) => (
                 <Th
@@ -127,37 +227,48 @@ export function SiteProgress({ className }: { className?: string }) {
             </tr>
           </thead>
 
-          <tbody>
-            {rows.map((row) => {
-              const stage = stageByKey.get(row.stage);
-              return (
-                <tr
-                  key={`${row.room}-${row.trade}`}
-                  className="border-b border-line last:border-b-0"
-                >
-                  <td className="px-4 py-2.5 font-medium">
-                    {t(roomName(row.room))}
-                  </td>
-                  <td className="px-4 py-2.5 text-ink-secondary">
-                    {t(TRADE[row.trade])}
-                  </td>
-                  <td className="px-4 py-2.5 text-ink-secondary">
-                    {stage ? t(stage.name) : row.stage}
-                  </td>
-                  {COLUMNS.map((c) => (
-                    <Cell key={c.key} value={row[c.key]} tone={c.tone} />
-                  ))}
-                  <td className="px-4 py-2.5 text-right font-mono tabular-nums text-ink-muted">
-                    {row.total}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
+          {sections.map((section) => (
+            <tbody key={section.key}>
+              <tr className="border-b border-line bg-surface-sunken">
+                <td className="px-4 py-2 font-semibold" colSpan={2}>
+                  {t(section.label)}
+                </td>
+                {COLUMNS.map((c) => (
+                  <Cell key={c.key} value={section.totals[c.key]} tone={c.tone} strong />
+                ))}
+                <td className="px-4 py-2 text-right font-mono font-semibold tabular-nums">
+                  {section.totals.total}
+                </td>
+              </tr>
+
+              {section.rows.map((row) => {
+                const stage = stageByKey.get(row.stage);
+                return (
+                  <tr
+                    key={`${row.room}-${row.trade}`}
+                    className="border-b border-line last:border-b-0"
+                  >
+                    <td className="py-2.5 pl-8 pr-4 text-ink-secondary">
+                      {t(memberLabel(row))}
+                    </td>
+                    <td className="px-4 py-2.5 text-ink-secondary">
+                      {stage ? t(stage.name) : row.stage}
+                    </td>
+                    {COLUMNS.map((c) => (
+                      <Cell key={c.key} value={row[c.key]} tone={c.tone} />
+                    ))}
+                    <td className="px-4 py-2.5 text-right font-mono tabular-nums text-ink-muted">
+                      {row.total}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          ))}
 
           <tfoot>
             <tr className="border-t border-line-strong bg-surface-sunken">
-              <td className="px-4 py-2.5 font-semibold" colSpan={3}>
+              <td className="px-4 py-2.5 font-semibold" colSpan={2}>
                 {t({ en: "All captures", es: "Todas las capturas" })}
               </td>
               {COLUMNS.map((c) => (
@@ -260,10 +371,23 @@ function Cell({
 
    Zero columns are dropped rather than drawn as a column of noughts: on a
    panel this narrow, four digits of nothing crowd out the two that matter. */
-export function TowerProgress({ tower }: { tower: Tower }) {
+export function TowerProgress({
+  tower,
+  floor,
+}: {
+  tower: Tower;
+  /** The storey selected in the rail, or null for the whole tower. The table
+   *  is a summary of what is selected — selecting a floor narrows it rather
+   *  than opening something else. */
+  floor: number | null;
+}) {
   const t = useT();
-  const rows = useMemo(() => siteProgress([tower]), [tower]);
-  const started = useMemo(() => apartmentsStarted([tower]), [tower]);
+  const scope = floor ?? undefined;
+  const rows = useMemo(() => siteProgress([tower], scope), [tower, scope]);
+  const started = useMemo(
+    () => apartmentsStarted([tower], scope),
+    [tower, scope],
+  );
 
   const roomName = (key: string) =>
     CAPTURE_ROOMS.find((r) => r.key === key)?.name ?? { en: key, es: key };
@@ -284,10 +408,15 @@ export function TowerProgress({ tower }: { tower: Tower }) {
   if (started === 0) {
     return (
       <p className="text-body-sm text-ink-secondary">
-        {t({
-          en: "No apartments started in this tower yet — it is at foundations.",
-          es: "Aún no hay apartamentos iniciados en esta torre — está en cimentación.",
-        })}
+        {floor === null
+          ? t({
+              en: "No apartments started in this tower yet — it is at foundations.",
+              es: "Aún no hay apartamentos iniciados en esta torre — está en cimentación.",
+            })
+          : t({
+              en: `Floor ${floor} is not built yet — its slab is not poured.`,
+              es: `El piso ${floor} aún no está construido — su placa no se ha vaciado.`,
+            })}
       </p>
     );
   }
@@ -295,10 +424,15 @@ export function TowerProgress({ tower }: { tower: Tower }) {
   return (
     <div className="flex min-h-0 flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-mono text-mono-sm uppercase text-ink-muted">
-          {t({ en: "Capture progress", es: "Avance de capturas" })}
+        <h3 className="truncate font-mono text-mono-sm uppercase text-ink-muted">
+          {/* The heading names the scope, because the same table with
+              different numbers is otherwise indistinguishable from the same
+              table with the same numbers. */}
+          {floor === null
+            ? t({ en: "All floors", es: "Todos los pisos" })
+            : t({ en: `Floor ${floor}`, es: `Piso ${floor}` })}
         </h3>
-        <span className="font-mono text-mono-sm text-ink-muted">
+        <span className="shrink-0 font-mono text-mono-sm text-ink-muted">
           {t({ en: `${started} flats`, es: `${started} aptos` })}
         </span>
       </div>

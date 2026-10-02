@@ -478,6 +478,32 @@ export const MEDIA_LIMIT = 40;
 
 /* ── Units, generated ────────────────────────────────────────────────────── */
 
+/* ── What an apartment is doing ──────────────────────────────────────────── */
+
+/* ⚠️  COLOUR MEANS "LOOK HERE", AND THE TWO COMMONEST STATES CARRY NONE.
+   An earlier version shaded every apartment on a ramp of green by how many
+   certificates it held, which made a working tower a wall of green and left
+   nothing for the three apartments that actually needed somebody to do
+   something. Finished work should go quiet.
+
+   So pending is hollow and completed is a solid neutral: progress still reads
+   as a mass rising out of an empty top, without spending the palette on it.
+   Colour is reserved for the three states that are a call to action.
+
+   ⚠️  WARNING AND PROBLEM ARE DIFFERENT THINGS, and the distinction is the
+   same one content/dashboard.ts already draws: amber is work that is late or
+   unfinished, red is a verification that did not pass. Red here means a
+   capture was REJECTED BY SCREENING — the product checks photographs for
+   reproduction attacks, visible people and personal data, and a rejected one
+   has to be retaken before its certificate can publish. That is a real
+   product behaviour and a real blocker, which is what earns it the colour. */
+export type UnitPhase =
+  | "pending"
+  | "active"
+  | "complete"
+  | "warning"
+  | "problem";
+
 export type UnitState = {
   /** 1402 — floor 14, unit 02. The numbering a Colombian site actually uses. */
   code: string;
@@ -489,9 +515,10 @@ export type UnitState = {
   /** The stage this apartment is working on now, or null if it is finished or
    *  has not started. */
   current: string | null;
-  /** Something a person has to deal with: a capture rejected by screening, a
-   *  checklist left incomplete, a subcontractor who has not been back. */
-  attention: boolean;
+  /** Which of the five states it is in. Derived at generation time rather than
+   *  at draw time, so the floor plan, the elevation and the rail cannot
+   *  disagree about what an apartment is doing. */
+  phase: UnitPhase;
 };
 
 /* Deterministic, and that is a correctness requirement rather than a
@@ -544,6 +571,30 @@ const UNIT_STAGES = ["rough-in", "finishes", "handover"] as const;
  *  rough-in; this turns that into eight apartments per floor that mostly
  *  agree with it and occasionally do not, because real sites have a flat left
  *  waiting on one trade. */
+/** Which of the five states an apartment is in.
+ *
+ *  Order matters: a blocker outranks a warning, which outranks the fact that
+ *  somebody is working there. An apartment with a rejected capture is not
+ *  "in progress" in any sense a head of construction cares about — it is
+ *  stopped, and the certificate cannot publish until the photograph is
+ *  retaken.
+ *
+ *  Issues are rare on purpose. A plate speckled with amber reads as a broken
+ *  system rather than as a site with three things to chase; roughly one
+ *  apartment in sixteen carries a warning and one in fifty a blocker, and only
+ *  where there is live work to have a problem with. */
+function phaseFor(
+  sealed: number,
+  current: string | null,
+  jitter: number,
+): UnitPhase {
+  if (sealed >= STAGES.length) return "complete";
+  if (current === null) return "pending";
+  if (jitter > 0.98) return "problem";
+  if (jitter > 0.94) return "warning";
+  return "active";
+}
+
 export function unitsForTower(tower: Tower): UnitState[] {
   const out: UnitState[] = [];
   const { unitsPerFloor } = GEOMETRY;
@@ -568,7 +619,7 @@ export function unitsForTower(tower: Tower): UnitState[] {
           position,
           sealed: 0,
           current: null,
-          attention: false,
+          phase: "pending",
         });
         continue;
       }
@@ -604,10 +655,7 @@ export function unitsForTower(tower: Tower): UnitState[] {
         position,
         sealed,
         current,
-        /* About one in fourteen, and only where there is work to have a
-           problem with. A plate speckled with warnings reads as a broken
-           system rather than a site with three things to chase. */
-        attention: current !== null && jitter > 0.93,
+        phase: phaseFor(sealed, current, jitter),
       });
     }
   }

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   APARTMENT,
   BUILDING_DEPTH,
@@ -12,6 +12,7 @@ import {
   UNITS,
   unitsIn,
   type Room,
+  type UnitPhase,
   type Tower,
   type UnitState,
 } from "@/content/enterprise/world";
@@ -59,21 +60,43 @@ import { cn } from "@/lib/cn";
    is drawn through it. Framing each one individually would scale all three to
    the same apparent size and throw away the height difference — see the note
    at the call site. */
-function cameraFor(height: number) {
-  return {
-    /* Above the roof, so the block reads as a solid with a top rather than as
-       a facade. Looking up at a tower is more dramatic and much less useful:
-       the upper floors foreshorten into nothing and the floor you want to
-       click becomes a sliver. */
-    y: height * 1.18,
-    /* Far enough back that the vertical convergence is noticeable but not
-       lurid. Closer than about 3× the height and the tower starts to topple
-       away from the viewer like a wide-angle photograph. */
-    distance: height * 2.9 + 60,
-    /* Aimed a little below mid-height, which puts the busy part of the tower —
-       the build front — in the middle of the frame. */
-    target: height * 0.45,
-  };
+function cameraFor(height: number, overhead = 0) {
+  /* Above the roof, so the block reads as a solid with a top rather than as a
+     facade. Looking up at a tower is more dramatic and much less useful: the
+     upper floors foreshorten into nothing and the floor you want to click
+     becomes a sliver. */
+  const restY = height * 1.18;
+  /* Far enough back that the vertical convergence is noticeable but not
+     lurid. Closer than about 3× the height and the tower starts to topple
+     away from the viewer like a wide-angle photograph. */
+  const restDistance = height * 2.9 + 60;
+  /* Aimed a little below mid-height, which puts the busy part of the tower —
+     the build front — in the middle of the frame. */
+  const target = height * 0.45;
+
+  /* ⚠️  PITCH IS A PARAMETER, NOT A DERIVED CONSTANT, and that is what lets
+     the view fly to the floor plan rather than cut to it. `overhead` runs 0
+     for the natural three-quarter view to 1 for straight down. */
+  const natural = Math.atan2(restY - target, restDistance);
+  const pitch = natural + (Math.PI / 2 - natural) * overhead;
+
+  /* ⚠️  THE CAMERA RISES AND COMES OVER THE TOP; IT DOES NOT JUST TILT.
+     Pitching to straight down while the camera sits 18% above the roof looked
+     obviously right and was obviously wrong in motion: with the eye that close
+     to the building, the roof is five times nearer than the ground, the fit
+     has to zoom out to hold both, and the tower shrank to a speck instead of
+     opening into a plan. Measured: the top slab went 242 × 35 units to
+     20 × 13 on the way to the plan.
+
+     So height and distance travel with the pitch — up to nine times the
+     building's height and in over the centre. At that remove the depth across
+     the block varies by about a tenth, which is near enough to parallel that
+     the footprint reads as a true plan, with just enough perspective left
+     that it never looks like a different drawing. */
+  const y = restY + (height * 9 - restY) * overhead;
+  const distance = restDistance * (1 - overhead);
+
+  return { y, distance, target, pitch };
 }
 
 type Point = { x: number; y: number };
@@ -98,9 +121,8 @@ function project(
   const yc = y - cam.y;
   const zc = zr + cam.distance;
 
-  const pitch = Math.atan2(cam.y - cam.target, cam.distance);
-  const cp = Math.cos(pitch);
-  const sp = Math.sin(pitch);
+  const cp = Math.cos(cam.pitch);
+  const sp = Math.sin(cam.pitch);
   const y2 = yc * cp + zc * sp;
   const z2 = -yc * sp + zc * cp;
 
@@ -219,29 +241,89 @@ function faces(e: Elevation, angle: number) {
   return e.normal.x * s + e.normal.z * c < 0;
 }
 
-/* ── Shading ───────────────────────────────────────────────────────────────
-   An apartment is shaded by how much sealed evidence it carries, nothing else.
+/* ── The five states ───────────────────────────────────────────────────────
+   One table, read by the elevation, the floor plan and the floor rail, so the
+   three views cannot disagree about what a colour means.
 
-   ⚠️  NOT A SCORE, AND NOT A HEALTH DIAL. The shade says how many certificates
-   exist, which is a fact. It says nothing about whether the work is any good —
-   the product screens photographs for reality and personal data, it does not
-   certify construction quality, and a colour implying otherwise would be a
-   claim the company explicitly disclaims. */
-function sealedFill(sealed: number) {
-  /* Nothing sealed is a flat neutral rather than the palest green. An
-     apartment above the poured slab has no evidence at all, and the boundary
-     between "not built" and "barely started" is the most useful edge on the
-     picture — the build front. A ramp beginning at near-white would blur
-     exactly the line a head of construction is looking for. */
-  if (sealed === 0) return { fill: "var(--surface-sunken)", opacity: 1 };
+   ⚠️  COLOUR IS FOR WHAT NEEDS A PERSON. Pending is hollow and completed is a
+   solid neutral: between them they are most of the tower, and spending the
+   palette on them leaves nothing to say about the handful of apartments that
+   are actually stuck. Progress still reads perfectly well as a solid mass
+   rising out of an empty top.
 
-  /* The ramp spans 1…6 rather than 0…6: a built apartment never scores below
-     three — the tower's two siteworks certificates plus its own slab — and a
-     ramp whose bottom third is unreachable wastes contrast where it is needed,
-     between the four bands that do occur. */
-  const step = (sealed - 1) / (STAGES.length - 1);
-  return { fill: "var(--verified)", opacity: 0.22 + step * 0.76 };
-}
+   ⚠️  NOT A SCORE, AND NOT A HEALTH DIAL. These say what stage an apartment
+   has reached and whether anything is blocking it — both facts. They say
+   nothing about whether the work is any good: the product screens photographs
+   for reality and personal data, it does not certify construction quality,
+   and a colour implying otherwise would be a claim the company disclaims.
+
+   ⚠️  SELECTION IS INK, NOT ACCENT. Accent means "in progress" here, so the
+   selected outline has to be a different thing or a selected pending
+   apartment is indistinguishable from a working one. */
+type PhaseStyle = {
+  fill: string;
+  fillOpacity: number;
+  stroke: string;
+  strokeWidth: number;
+};
+
+const PHASE: Record<UnitPhase, PhaseStyle> = {
+  pending: {
+    fill: "var(--surface)",
+    fillOpacity: 1,
+    stroke: "var(--line)",
+    strokeWidth: 0.5,
+  },
+  active: {
+    fill: "var(--accent-subtle)",
+    fillOpacity: 1,
+    stroke: "var(--accent)",
+    strokeWidth: 1.2,
+  },
+  complete: {
+    /* A mid neutral rather than another near-white, or completed and pending
+       are the same panel at this size. */
+    fill: "var(--ink-muted)",
+    fillOpacity: 0.18,
+    stroke: "var(--line-strong)",
+    strokeWidth: 0.5,
+  },
+  warning: {
+    fill: "var(--pending-tint)",
+    fillOpacity: 1,
+    stroke: "var(--pending)",
+    strokeWidth: 1.4,
+  },
+  problem: {
+    fill: "var(--failed-tint)",
+    fillOpacity: 1,
+    stroke: "var(--failed)",
+    strokeWidth: 1.4,
+  },
+};
+
+const PHASE_LABEL: Record<UnitPhase, Bi> = {
+  pending: { en: "Not started", es: "Sin iniciar" },
+  active: { en: "In progress", es: "En ejecución" },
+  complete: { en: "Completed", es: "Terminado" },
+  warning: { en: "Needs chasing", es: "Requiere seguimiento" },
+  problem: { en: "Capture rejected", es: "Captura rechazada" },
+};
+
+/* ── The flight between the two views ─────────────────────────────────────
+   Block and plan are not two screens, they are two ends of one move: the
+   camera tips to straight down while every floor but the chosen one clears
+   out of the way. Cutting between them makes a viewer re-find the floor they
+   had selected; flying makes it obvious that the plan IS that floor. */
+
+const FLIGHT_MS = 760;
+
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+/** Ease in and out. Slow at both ends so the camera settles rather than
+ *  arriving; the middle is where the distance gets covered. */
+const ease = (n: number) =>
+  n < 0.5 ? 4 * n * n * n : 1 - Math.pow(-2 * n + 2, 3) / 2;
 
 /* ========================================================================= */
 
@@ -252,6 +334,11 @@ export function TowerExplorer() {
   const [towerKey, setTowerKey] = useState(TOWERS[1].key);
   const [angle, setAngle] = useState(DEFAULT_ANGLE);
   const [view, setView] = useState<"block" | "plan">("block");
+  /* How far the view has flown from the block toward the plan. 0 is the
+     three-quarter block, 1 is straight down with the room plan showing.
+     `view` is the INTENTION and this is where the picture actually is — they
+     differ for the 760ms in between. */
+  const [morph, setMorph] = useState(0);
 
   const tower = TOWERS.find((x) => x.key === towerKey) ?? TOWERS[1];
   const units = UNITS[tower.key];
@@ -272,11 +359,34 @@ export function TowerExplorer() {
      picture. One camera and one scale for all three means Torre 1 is visibly
      shorter than Torre 3, which is the point of drawing them at all. */
   const frameHeight = MAX_FLOORS * GEOMETRY.floorHeight;
-  const cam = useMemo(() => cameraFor(frameHeight), [frameHeight]);
-  const fit = useMemo(
-    () => fitFor(angle, frameHeight, cam),
-    [angle, frameHeight, cam],
+
+  /* ── The flight ──
+     Eased once, here, and everything else reads the eased value: the camera
+     pitch, the rotation squaring up, the floors fading and the crossfade. One
+     clock means they cannot drift out of step with each other. */
+  const e = ease(morph);
+
+  /* The rotation unwinds to zero as the camera goes overhead, so the plan
+     arrives square-on and in the same orientation as the drawing that
+     replaces it. Landing on the plan at whatever angle the block happened to
+     be turned to would make the two views look like different buildings. */
+  const flyAngle = angle * (1 - e);
+  const cam = useMemo(
+    () => cameraFor(frameHeight, e),
+    [frameHeight, e],
   );
+  const fit = useMemo(
+    () => fitFor(flyAngle, frameHeight, cam),
+    [flyAngle, frameHeight, cam],
+  );
+
+  /* Crossfade, deliberately overlapping: the block is still on its way down
+     when the plan starts arriving, so there is never an empty frame. */
+  const blockOpacity = 1 - clamp01((e - 0.5) / 0.4);
+  const planOpacity = clamp01((e - 0.55) / 0.45);
+  /* Floors other than the selected one clear early, so the floor being opened
+     is alone on screen well before the camera finishes its move. */
+  const otherFloors = 1 - clamp01(e / 0.55);
 
   /* Top of the poured structure — the building as it stands today, as opposed
      to the finished envelope at tower.floors. */
@@ -288,10 +398,10 @@ export function TowerExplorer() {
 
   const to = useCallback(
     (x: number, y: number, z: number) => {
-      const p = project(x, y, z, angle, cam);
+      const p = project(x, y, z, flyAngle, cam);
       return { x: p.x * fit.scale + fit.dx, y: p.y * fit.scale + fit.dy };
     },
-    [angle, cam, fit],
+    [flyAngle, cam, fit],
   );
 
   const path = useCallback(
@@ -339,6 +449,43 @@ export function TowerExplorer() {
     e.preventDefault();
   };
 
+  /* ⚠️  THE TARGET IS `view`; THE LOOP CHASES IT. Starting a timed tween on
+     each click would mean a viewer who changes their mind mid-flight gets two
+     animations fighting over one value. This reads the current intention every
+     frame and turns round wherever it is, so a double-click just reverses. */
+  useEffect(() => {
+    const want = view === "plan" ? 1 : 0;
+
+    /* A viewer who has asked for less motion gets the destination, not the
+       journey. The two views are both complete pictures; only the flight
+       between them is decoration. */
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setMorph(want);
+      return;
+    }
+
+    let raf = 0;
+    let last = performance.now();
+
+    const step = (now: number) => {
+      const dt = (now - last) / FLIGHT_MS;
+      last = now;
+      let done = false;
+      setMorph((m) => {
+        const next = want > m ? Math.min(want, m + dt) : Math.max(want, m - dt);
+        if (next === want) done = true;
+        return next;
+      });
+      if (!done) raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [view]);
+
   const plate = units.filter((u) => u.floor === shownFloor);
   const selected = plate.find((u) => u.position === position) ?? null;
 
@@ -358,10 +505,18 @@ export function TowerExplorer() {
 
       <div className="flex min-h-0 flex-1">
         <div className="relative flex min-w-0 flex-1 items-center justify-center border-r border-line">
-          {view === "block" ? (
+          {/* Both layers are mounted through the flight and crossfade; only
+              once the move has finished is the far one taken out of the tree.
+              Unmounting either mid-flight is what produces the empty frame
+              this whole transition exists to avoid. */}
+          {morph < 1 && (
             <svg
               viewBox={`0 0 ${VIEW.w} ${VIEW.h}`}
               className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
+              style={{
+                opacity: blockOpacity,
+                pointerEvents: morph === 0 ? "auto" : "none",
+              }}
               role="img"
               tabIndex={0}
               aria-label={
@@ -394,6 +549,7 @@ export function TowerExplorer() {
               {ELEVATIONS.filter((e) => faces(e, angle)).map((e, i) => (
                 <Elevation
                   key={`w${i}`}
+                  fade={otherFloors}
                   elevation={e}
                   tower={tower}
                   units={units}
@@ -409,6 +565,7 @@ export function TowerExplorer() {
                 (e, i) => (
                   <Balconies
                     key={`b${i}`}
+                    fade={otherFloors}
                     elevation={e}
                     tower={tower}
                     units={units}
@@ -442,13 +599,25 @@ export function TowerExplorer() {
                 lang={lang}
               />
             </svg>
-          ) : (
-            <FloorPlate
-              units={plate}
-              floor={shownFloor}
-              selected={position}
-              onSelect={setPosition}
-            />
+          )}
+
+          {morph > 0 && (
+            <div
+              className="absolute inset-0"
+              style={{
+                opacity: planOpacity,
+                /* Inert until it is actually the thing on screen, so a click
+                   during the flight lands on the view the viewer can see. */
+                pointerEvents: morph === 1 ? "auto" : "none",
+              }}
+            >
+              <FloorPlate
+                units={plate}
+                floor={shownFloor}
+                selected={position}
+                onSelect={setPosition}
+              />
+            </div>
           )}
 
           <FloorRail
@@ -490,6 +659,19 @@ export function TowerExplorer() {
                     es: `${APARTMENT.area.toFixed(0)} m² · ${ROOMS.length} ambientes y un balcón cada uno`,
                   })}
                 </p>
+
+                {/* The way into the floor, next to the floor it opens —
+                    rather than only in the view switch up in the header,
+                    which is a long way from the thing it acts on. */}
+                <button
+                  type="button"
+                  onClick={() => setView(view === "plan" ? "block" : "plan")}
+                  className="mt-3 cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
+                >
+                  {view === "plan"
+                    ? t({ en: "← Back to the tower", es: "← Volver a la torre" })
+                    : t({ en: "Details →", es: "Detalles →" })}
+                </button>
               </div>
 
               <StageLadder units={plate} tower={tower} floor={shownFloor} />
@@ -503,7 +685,7 @@ export function TowerExplorer() {
             </>
           )}
 
-          <div className="mt-auto flex flex-col gap-1.5 border-t border-line pt-4">
+          <div className="mt-auto border-t border-line pt-4">
             <Legend />
           </div>
         </aside>
@@ -594,6 +776,7 @@ function Elevation({
   tower,
   units,
   floor,
+  fade,
   to,
   path,
   onFloor,
@@ -603,6 +786,10 @@ function Elevation({
   tower: Tower;
   units: UnitState[];
   floor: number;
+  /** Opacity for every storey except the selected one, 1 at rest and 0 by the
+   *  time the camera is overhead — the floor being opened is left alone on
+   *  screen before the plan arrives to replace it. */
+  fade: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
   onFloor: (f: number) => void;
@@ -631,27 +818,25 @@ function Elevation({
         : undefined;
 
       /* A bay with no apartment behind it is the gable wall at either end of
-         the plate. Drawn, never shaded as though it carried evidence. */
-      const shade = unit
-        ? sealedFill(unit.sealed)
-        : { fill: "var(--surface)", opacity: 1 };
+         the plate. Drawn, never styled as though it held evidence. */
+      const style: PhaseStyle = unit
+        ? PHASE[unit.phase]
+        : PHASE.pending;
 
+      /* The selected storey is outlined in ink over whatever the apartment's
+         own state is, so picking a floor never hides a blocked apartment on
+         it — the two are different axes and are drawn as different things. */
       const on = storey === floor;
 
       quads.push(
         <path
           key={`${storey}-${bay}`}
           d={path([to(ax, y0, az), to(bx, y0, bz), to(bx, y1, bz), to(ax, y1, az)])}
-          fill={shade.fill}
-          fillOpacity={shade.opacity}
-          stroke={
-            unit?.attention
-              ? "var(--pending)"
-              : on
-                ? "var(--accent)"
-                : "var(--line)"
-          }
-          strokeWidth={unit?.attention || on ? 1.4 : 0.5}
+          fill={style.fill}
+          fillOpacity={style.fillOpacity}
+          opacity={on ? 1 : fade}
+          stroke={on ? "var(--ink)" : style.stroke}
+          strokeWidth={on ? 1.6 : style.strokeWidth}
           className="cursor-pointer"
           onClick={() => {
             onFloor(storey);
@@ -675,6 +860,7 @@ function Elevation({
           f1: number,
           low: number,
           high: number,
+          alpha: number,
         ) => {
           const y1 = y0 + GEOMETRY.floorHeight * high;
           const yl = y0 + GEOMETRY.floorHeight * low;
@@ -689,6 +875,7 @@ function Elevation({
               ])}
               fill="var(--surface)"
               fillOpacity={0.62}
+              opacity={alpha}
               stroke="var(--line)"
               strokeWidth={0.4}
               pointerEvents="none"
@@ -700,8 +887,8 @@ function Elevation({
            bay — so it opens onto the slab rather than onto thin air. Its foot
            is at floor level, which the parapet drawn later partly hides,
            exactly as it would on the building. */
-        quads.push(opening(`door-${storey}-${bay}`, 0.14, 0.46, 0.04, 0.82));
-        quads.push(opening(`win-${storey}-${bay}`, 0.68, 0.92, 0.3, 0.78));
+        quads.push(opening(`door-${storey}-${bay}`, 0.14, 0.46, 0.04, 0.82, on ? 1 : fade));
+        quads.push(opening(`win-${storey}-${bay}`, 0.68, 0.92, 0.3, 0.78, on ? 1 : fade));
       }
     }
   }
@@ -791,12 +978,14 @@ function Balconies({
   elevation: e,
   tower,
   units,
+  fade,
   to,
   path,
 }: {
   elevation: Elevation;
   tower: Tower;
   units: UnitState[];
+  fade: number;
   to: (x: number, y: number, z: number) => Point;
   path: (pts: Point[]) => string;
 }) {
@@ -887,7 +1076,12 @@ function Balconies({
     }
   }
 
-  return <>{parts}</>;
+  /* Faded as one group: a balcony belongs to its storey and goes with it. */
+  return (
+    <g pointerEvents="none" opacity={fade}>
+      {parts}
+    </g>
+  );
 }
 
 /* ── The selected slab, called out ───────────────────────────────────────── */
@@ -958,9 +1152,18 @@ function FloorRail({
       </p>
       {floors.map((f) => {
         const on = UNITS[tower.key].filter((u) => u.floor === f);
+        /* The bar is how much of the floor is FINISHED, not how many
+           certificates it has accumulated. A part-sealed apartment is work in
+           progress, and a bar that creeps forward on every certificate makes a
+           floor look nearly done when none of its apartments are. */
         const sealed = on.reduce((n, u) => n + u.sealed, 0);
         const max = on.length * STAGES.length;
-        const attention = on.some((u) => u.attention);
+        const issue = on.some((u) => u.phase === "problem")
+          ? "problem"
+          : on.some((u) => u.phase === "warning")
+            ? "warning"
+            : null;
+        const working = on.some((u) => u.phase === "active");
         return (
           <button
             key={f}
@@ -982,12 +1185,27 @@ function FloorRail({
             </span>
             <span className="relative h-1.5 flex-1 bg-surface-sunken">
               <span
-                className="absolute inset-y-0 left-0 bg-verified"
-                style={{ width: `${(sealed / max) * 100}%` }}
+                className="absolute inset-y-0 left-0"
+                style={{
+                  width: `${(sealed / max) * 100}%`,
+                  /* Neutral while a floor is merely progressing; accent only
+                     once somebody is actually working on it. */
+                  backgroundColor: working
+                    ? "var(--accent)"
+                    : "var(--ink-muted)",
+                  opacity: working ? 1 : 0.45,
+                }}
               />
             </span>
-            {attention && (
-              <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-pending" />
+            {issue && (
+              <span
+                aria-hidden
+                className="size-1.5 shrink-0 rounded-full"
+                style={{
+                  backgroundColor:
+                    issue === "problem" ? "var(--failed)" : "var(--pending)",
+                }}
+              />
             )}
           </button>
         );
@@ -1049,7 +1267,6 @@ function FloorPlate({
             unit={u}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth}
-            flip
             selected={selected === u.position}
             onSelect={() => onSelect(selected === u.position ? null : u.position)}
           />
@@ -1082,6 +1299,7 @@ function FloorPlate({
             unit={u}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth + APARTMENT.depth + GEOMETRY.corridorDepth}
+            flip
             selected={selected === u.position}
             onSelect={() => onSelect(selected === u.position ? null : u.position)}
           />
@@ -1096,7 +1314,13 @@ function FloorPlate({
  *  `flip` mirrors it about its own depth, for the row on the other side of the
  *  core — their facades point the opposite way, so their balconies and salas
  *  do too. Mirroring here rather than storing two layouts keeps APARTMENT the
- *  single definition of the plan. */
+ *  single definition of the plan.
+ *
+ *  ⚠️  THE FLIPPED ROW IS THE ONE AT THE BOTTOM, not the top. Both rows face
+ *  AWAY from the core — that is what a central-corridor plan is. Getting this
+ *  backwards put both balconies inside the building, overlapping the lifts,
+ *  and painted out the core's own label. If a balcony is ever drawn over the
+ *  corridor again, this is the line. */
 function ApartmentPlan({
   unit,
   x,
@@ -1113,7 +1337,7 @@ function ApartmentPlan({
   onSelect: () => void;
 }) {
   const t = useT();
-  const shade = sealedFill(unit.sealed);
+  const style = PHASE[unit.phase];
   const { width, depth, balcony } = APARTMENT;
 
   /* z runs away from the facade. Flipped, the facade is at the bottom of the
@@ -1134,16 +1358,17 @@ function ApartmentPlan({
         strokeWidth={0.07}
       />
 
-      {/* The apartment's own ground, shaded by sealed evidence. Drawn under
-          the rooms so the room outlines stay legible at every shade. */}
+      {/* The apartment's ground, in its state's fill. Laid over a plain
+          surface first so a translucent fill reads the same here as it does on
+          the elevation, where it sits over the same colour. */}
       <rect x={x} y={y} width={width} height={depth} fill="var(--surface)" />
       <rect
         x={x}
         y={y}
         width={width}
         height={depth}
-        fill={shade.fill}
-        fillOpacity={shade.opacity}
+        fill={style.fill}
+        fillOpacity={style.fillOpacity}
       />
 
       {APARTMENT.rooms.map((r) => (
@@ -1167,14 +1392,8 @@ function ApartmentPlan({
         width={width}
         height={depth}
         fill="none"
-        stroke={
-          selected
-            ? "var(--accent)"
-            : unit.attention
-              ? "var(--pending)"
-              : "var(--ink-muted)"
-        }
-        strokeWidth={selected ? 0.22 : 0.12}
+        stroke={selected ? "var(--ink)" : style.stroke}
+        strokeWidth={selected ? 0.26 : 0.12}
       />
 
       <text
@@ -1182,7 +1401,7 @@ function ApartmentPlan({
         y={y + depth / 2 + 0.3}
         textAnchor="middle"
         className="font-mono"
-        fontSize={0.9}
+        fontSize={0.72}
         fill="var(--ink)"
       >
         {unit.code}
@@ -1312,10 +1531,11 @@ function NotBuiltYet({ tower, floor }: { tower: Tower; floor: number }) {
             <li key={stage.key} className="flex items-center gap-2.5">
               <span
                 aria-hidden
-                className={cn(
-                  "size-2 shrink-0 rounded-full",
-                  done ? "bg-verified" : "bg-line-strong",
-                )}
+                className="size-2 shrink-0 rounded-full"
+                style={{
+                  backgroundColor: done ? "var(--ink-muted)" : "var(--line-strong)",
+                  opacity: done ? 0.55 : 1,
+                }}
               />
               <span className="min-w-0 flex-1 truncate text-body-sm text-ink-secondary">
                 {t(stage.name)}
@@ -1375,12 +1595,21 @@ function StageLadder({
 
         return (
           <li key={stage.key} className="flex items-center gap-2.5">
+            {/* Same palette as the drawing: a finished stage goes quiet, a
+                stage with work in it takes the accent. Green here would
+                reintroduce exactly the wall of colour the apartments were
+                changed to avoid. */}
             <span
               aria-hidden
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                all ? "bg-verified" : done > 0 ? "bg-accent" : "bg-line-strong",
-              )}
+              className="size-2 shrink-0 rounded-full"
+              style={{
+                backgroundColor: all
+                  ? "var(--ink-muted)"
+                  : done > 0
+                    ? "var(--accent)"
+                    : "var(--line-strong)",
+                opacity: all ? 0.55 : 1,
+              }}
             />
             <span className="min-w-0 flex-1 truncate text-body-sm text-ink-secondary">
               {t(stage.name)}
@@ -1399,24 +1628,40 @@ function StageLadder({
 
 function Legend() {
   const t = useT();
-  const rows: [string, Bi][] = [
-    ["var(--verified)", { en: "Sealed certificates", es: "Certificados sellados" }],
-    ["var(--accent)", { en: "Selected", es: "Seleccionado" }],
-    ["var(--pending)", { en: "Needs attention", es: "Requiere atención" }],
+  /* Driven off PHASE so the key and the drawing cannot drift — a legend
+     maintained by hand is a legend that eventually lies. */
+  const order: UnitPhase[] = [
+    "pending",
+    "active",
+    "complete",
+    "warning",
+    "problem",
   ];
 
+  /* Two columns: five states stacked in one ran past the bottom of the panel
+     and silently clipped the last of them — which was "capture rejected", the
+     one state a reader most needs the key for. */
   return (
-    <>
-      {rows.map(([colour, label]) => (
-        <div key={colour} className="flex items-center gap-2">
-          <span
-            aria-hidden
-            className="size-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: colour }}
-          />
-          <span className="text-body-sm text-ink-muted">{t(label)}</span>
-        </div>
-      ))}
-    </>
+    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+      {order.map((phase) => {
+        const style = PHASE[phase];
+        return (
+          <div key={phase} className="flex items-center gap-2">
+            <span
+              aria-hidden
+              className="size-2.5 shrink-0 rounded-xs border"
+              style={{
+                backgroundColor: style.fill,
+                opacity: style.fillOpacity,
+                borderColor: style.stroke,
+              }}
+            />
+            <span className="truncate text-body-sm text-ink-muted">
+              {t(PHASE_LABEL[phase])}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

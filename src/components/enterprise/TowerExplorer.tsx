@@ -839,6 +839,15 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             </div>
           )}
 
+          {/* ⚠️  BESIDE WHAT IT EXPLAINS. The key lived at the foot of the
+              right-hand panel, which is the one part of the screen it says
+              nothing about — the panel is figures, and these are the colours
+              of the drawing. Over the stage it is where the eye already is
+              when it meets a colour it does not recognise. */}
+          <div className="pointer-events-none absolute bottom-3 left-3 rounded-sm border border-line bg-canvas/85 px-3 py-2 backdrop-blur-sm">
+            <Legend />
+          </div>
+
         </div>
 
         {/* The handle. A hairline with a generous hit area either side of it —
@@ -937,9 +946,6 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             <TowerProgress tower={tower} floor={shownFloor} />
           )}
 
-          <div className="mt-auto border-t border-line pt-4">
-            <Legend />
-          </div>
         </aside>
       </div>
     </div>
@@ -1867,11 +1873,14 @@ function Legend() {
     "problem",
   ];
 
-  /* Two columns: five states stacked in one ran past the bottom of the panel
-     and silently clipped the last of them — which was "capture rejected", the
-     one state a reader most needs the key for. */
+  /* One column now that it sits on the stage rather than at the foot of the
+     panel. It was two to stop the fifth state — "capture rejected", the one a
+     reader most needs the key for — being silently clipped off the bottom of a
+     23rem column. Over the drawing there is vertical room to spare and the
+     horizontal room is whatever the divider leaves, so stacking is the shape
+     that cannot overflow. */
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+    <div className="flex flex-col gap-1.5">
       {order.map((phase) => {
         const style = PHASE[phase];
         return (

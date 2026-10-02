@@ -10,8 +10,8 @@ import {
   TOWERS,
   UNITS,
   capturesFor,
-  unitFocusState,
   roomFocusState,
+  unitState,
   unitsIn,
   type UnitPhase,
   type CaptureFocus,
@@ -317,36 +317,34 @@ function faces(e: Elevation, angle: number) {
   return e.normal.x * s + e.normal.z * c < 0;
 }
 
-/** How an apartment is drawn while the table has narrowed the question.
+/** How an apartment is drawn.
  *
- *  ⚠️  "NOT ASKED" IS NOT "NOT STARTED". Focus "Rough-in · plumbing" and most
- *  apartments still have a bathroom and a kitchen to plumb — but focus it on
- *  something a dwelling has none of and the honest answer is that the question
- *  does not apply, which must not look like an outstanding capture. Those
- *  panels go to a faint outline rather than to the pending fill.
+ *  ⚠️  SEVERITY FIRST, ALWAYS. The state comes from the apartment's captures,
+ *  worst first — rework over inspection over work-in-progress over quiet — so
+ *  the reds surface over the ambers over the blues over the greys without
+ *  anybody hunting for them. It used to come from a `phase` rolled per
+ *  apartment at generation time, which had nothing to do with the captures
+ *  inside it: a flat with a rework-flagged bathroom could draw blue, and the
+ *  tower disagreed with the sheet about the same flat.
  *
- *  Note the shading is NOT the apartment's overall progress any more. That is
- *  the point of focusing: the tower stops showing how far along it is and
- *  starts showing who owes this particular capture. */
-function focusStyle(
+ *  ⚠️  "NOT ASKED" IS NOT "NOT STARTED". With a trade focused, an apartment
+ *  that has no work of that kind is outside the question, which must not look
+ *  like an outstanding capture. Those go to an inert tone rather than to the
+ *  pending fill. It is rare at this level and common one level down — every
+ *  apartment has a kitchen and a bathroom, so focusing a trade almost never
+ *  leaves a whole flat out; it is the floor PLAN where this earns its keep.
+ *
+ *  The two quiet states keep a DENSITY as well, neutral grey deepening with
+ *  sealed certificates, so progress reads without spending colour on it. */
+function panelStyle(
   unit: UnitState,
   tower: Tower,
-  focus: CaptureFocus,
+  focus: CaptureFocus | null,
 ): PhaseStyle {
   if (unit.sealed === 0) return PHASE.pending;
-  const state = unitFocusState(capturesFor(unit, tower), focus);
-  if (state === null) {
-    /* ⚠️  DIFFERENT FROM PENDING, deliberately: the sunken tone reads as inert
-       against pending's white. They were separated by stroke width alone at
-       first, which at this scale is no separation at all.
 
-       It is RARE AT THIS LEVEL and common one level down. Every apartment has
-       a kitchen and a bathroom, so focusing a trade almost never leaves a
-       whole flat outside the question — measured: a plumbing focus on Torre 2
-       returns 37 complete, 2 at risk and 45 pending across 84 panels, and no
-       unasked ones at all. It is the floor PLAN where this earns its keep: a
-       living room has no plumbing, and "nobody owes anything here" must not be
-       drawn as an outstanding capture. */
+  const state = unitState(unit, tower, focus);
+  if (state === null) {
     return {
       fill: "var(--surface-sunken)",
       fillOpacity: 1,
@@ -354,7 +352,20 @@ function focusStyle(
       strokeWidth: 0.3,
     };
   }
-  return PHASE[state];
+
+  if (state !== "pending" && state !== "complete") return PHASE[state];
+
+  /* The band is narrow and dark on purpose: only apartments below the poured
+     slab are ever drawn, and those always carry at least three certificates —
+     the tower's two siteworks plus their own floor — so a ramp starting near
+     white wastes most of its range on states that cannot occur. */
+  return {
+    ...PHASE[state],
+    fill: "var(--ink-muted)",
+    fillOpacity: 0.26 + (unit.sealed / STAGES.length) * 0.34,
+    stroke: "var(--line-strong)",
+    strokeWidth: 0.6,
+  };
 }
 
 /* ── The five states ───────────────────────────────────────────────────────
@@ -428,44 +439,6 @@ const PHASE: Record<UnitPhase, PhaseStyle> = {
   },
 };
 
-/** How an apartment is drawn, from its state AND how much of it is done.
- *
- *  ⚠️  PHASE ALONE WAS NOT ENOUGH, and the tower proved it. An apartment with
- *  five of its six stages sealed — rough-in and finishes complete, waiting
- *  only on handover — is not "in progress" and is certainly not "not started",
- *  so phaseFor() classed it pending and drew it the same white as a storey
- *  whose slab had only just been poured. Torre 1 is nearly finished and
- *  rendered as an empty box.
- *
- *  So the two quiet states carry a DENSITY as well: neutral grey deepening
- *  with the number of sealed certificates. The build front is visible, partial
- *  progress is visible, and colour is still spent only on the three states
- *  that are a call to action — which was the whole point of the change.
- */
-function styleFor(unit: UnitState): PhaseStyle {
-  const base = PHASE[unit.phase];
-  if (unit.phase !== "pending" && unit.phase !== "complete") return base;
-
-  /* Nothing at all: an apartment above the poured slab. Left white so the
-     top of a part-built tower is unmistakably empty. */
-  if (unit.sealed === 0) return PHASE.pending;
-
-  /* ⚠️  THE BAND IS NARROW AND DARK ON PURPOSE. Only apartments below the
-     poured slab are ever drawn, and those always carry at least three
-     certificates — the tower's two siteworks plus their own floor — so a ramp
-     starting near white wasted most of its range on states that cannot occur
-     and left the ones that do a few percent apart. Starting at a mid value
-     makes the fabric read as masonry rather than as paper, and the difference
-     between a shell and a finished flat is then visible across the width of a
-     facade. */
-  return {
-    ...base,
-    fill: "var(--ink-muted)",
-    fillOpacity: 0.26 + (unit.sealed / STAGES.length) * 0.34,
-    stroke: "var(--line-strong)",
-    strokeWidth: 0.6,
-  };
-}
 
 const PHASE_LABEL: Record<UnitPhase, Bi> = {
   pending: { en: "Not started", es: "Sin iniciar" },
@@ -1227,9 +1200,7 @@ function Elevation({
       /* A bay with no apartment behind it is the gable wall at either end of
          the plate. Drawn, never styled as though it held evidence. */
       const style: PhaseStyle = unit
-        ? focus
-          ? focusStyle(unit, tower, focus)
-          : styleFor(unit)
+        ? panelStyle(unit, tower, focus)
         : PHASE.pending;
 
       /* The selected storey is outlined in ink over whatever the apartment's
@@ -1615,8 +1586,8 @@ function FloorSelect({
     if (f > tower.front.structure) {
       return t({ en: `Floor ${f} · not built`, es: `Piso ${f} · sin construir` });
     }
-    const rework = on.filter((u) => u.phase === "problem").length;
-    const inspect = on.filter((u) => u.phase === "warning").length;
+    const rework = on.filter((u) => unitState(u, tower) === "problem").length;
+    const inspect = on.filter((u) => unitState(u, tower) === "warning").length;
     if (rework) {
       return t({
         en: `Floor ${f} · ${rework} to rework`,
@@ -1816,7 +1787,9 @@ function ApartmentPlan({
   onSelect: () => void;
 }) {
   const t = useT();
-  const style = styleFor(unit);
+  /* The apartment's own outline takes the same severity-first state the
+     elevation gives it, so the two drawings agree about the same flat. */
+  const style = panelStyle(unit, tower, focus);
   const { width, depth, balcony } = APARTMENT;
   const cells = capturesFor(unit, tower);
 

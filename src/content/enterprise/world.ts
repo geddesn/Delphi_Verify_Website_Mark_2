@@ -545,10 +545,6 @@ export type UnitState = {
   /** The stage this apartment is working on now, or null if it is finished or
    *  has not started. */
   current: string | null;
-  /** Which of the five states it is in. Derived at generation time rather than
-   *  at draw time, so the floor plan, the elevation and the rail cannot
-   *  disagree about what an apartment is doing. */
-  phase: UnitPhase;
 };
 
 /* Deterministic, and that is a correctness requirement rather than a
@@ -601,30 +597,6 @@ const UNIT_STAGES = ["rough-in", "finishes", "handover"] as const;
  *  rough-in; this turns that into eight apartments per floor that mostly
  *  agree with it and occasionally do not, because real sites have a flat left
  *  waiting on one trade. */
-/** Which of the five states an apartment is in.
- *
- *  Order matters: a blocker outranks a warning, which outranks the fact that
- *  somebody is working there. An apartment with a rejected capture is not
- *  "in progress" in any sense a head of construction cares about — it is
- *  stopped, and the certificate cannot publish until the photograph is
- *  retaken.
- *
- *  Issues are rare on purpose. A plate speckled with amber reads as a broken
- *  system rather than as a site with three things to chase; roughly one
- *  apartment in sixteen carries a warning and one in fifty a blocker, and only
- *  where there is live work to have a problem with. */
-function phaseFor(
-  sealed: number,
-  current: string | null,
-  jitter: number,
-): UnitPhase {
-  if (sealed >= STAGES.length) return "complete";
-  if (current === null) return "pending";
-  if (jitter > 0.98) return "problem";
-  if (jitter > 0.94) return "warning";
-  return "active";
-}
-
 export function unitsForTower(tower: Tower): UnitState[] {
   const out: UnitState[] = [];
   const { unitsPerFloor } = GEOMETRY;
@@ -649,7 +621,6 @@ export function unitsForTower(tower: Tower): UnitState[] {
           position,
           sealed: 0,
           current: null,
-          phase: "pending",
         });
         continue;
       }
@@ -685,7 +656,6 @@ export function unitsForTower(tower: Tower): UnitState[] {
         position,
         sealed,
         current,
-        phase: phaseFor(sealed, current, jitter),
       });
     }
   }
@@ -1092,8 +1062,17 @@ export function sessionFor(
  *  retaken before the certificate can publish. Collapsing that to a single
  *  apartment state is what makes a progress report useless to the person who
  *  has to act on it. */
+const capturesCache = new Map<string, RequiredCapture[]>();
+
 export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
-  return REQUIREMENTS.map((requirement) => {
+  /* The elevation asks for this once per apartment per frame while the tower
+     is being dragged — 84 panels times 22 requirements times a hash each. The
+     answer never changes, so it is computed once. */
+  const key = `${tower.key}:${unit.code}`;
+  const hit = capturesCache.get(key);
+  if (hit) return hit;
+
+  const out = REQUIREMENTS.map((requirement) => {
     const stageIndex = STAGES.findIndex((s) => s.key === requirement.stage);
     const seed = `${tower.key}-${unit.code}-${requirement.stage}-${requirement.trade}-${requirement.room}`;
     const h = hash01(seed);
@@ -1147,6 +1126,29 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
 
     return { requirement, status: "pending" as const, by, time: null, published };
   });
+
+  capturesCache.set(key, out);
+  return out;
+}
+
+/** What an apartment is doing, worst first.
+ *
+ *  ⚠️  DERIVED FROM ITS CAPTURES, NOT FROM ITS OWN HASH. UnitState used to
+ *  carry a `phase` rolled at generation time from a single jitter value, which
+ *  had nothing to do with the states of the captures inside it. An apartment
+ *  with a rework-flagged bathroom could therefore draw blue, and the tower
+ *  disagreed with the sheet about the same flat.
+ *
+ *  Worst first is the ordering a supervisor needs: rework outranks inspection,
+ *  which outranks work in progress. Reds surface over ambers over blues over
+ *  greys without anybody having to hunt. */
+export function unitState(
+  unit: UnitState,
+  tower: Tower,
+  focus: CaptureFocus | null = null,
+): UnitPhase | null {
+  if (unit.sealed === 0) return "pending";
+  return unitFocusState(capturesFor(unit, tower), focus);
 }
 
 function timeFrom(seed: string) {

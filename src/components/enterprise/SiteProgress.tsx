@@ -53,12 +53,12 @@ const COLUMNS: Column[] = [
   },
   {
     key: "warning",
-    label: { en: "At risk", es: "En riesgo" },
+    label: { en: "Inspect", es: "Inspección" },
     tone: "var(--pending)",
   },
   {
     key: "problem",
-    label: { en: "Rejected", es: "Rechazada" },
+    label: { en: "Rework", es: "Corrección" },
     tone: "var(--failed)",
   },
   { key: "complete", label: { en: "Completed", es: "Completado" } },

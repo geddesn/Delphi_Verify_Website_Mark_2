@@ -523,13 +523,10 @@ export const MEDIA_LIMIT = 40;
    as a mass rising out of an empty top, without spending the palette on it.
    Colour is reserved for the three states that are a call to action.
 
-   ⚠️  WARNING AND PROBLEM ARE DIFFERENT THINGS, and the distinction is the
-   same one content/dashboard.ts already draws: amber is work that is late or
-   unfinished, red is a verification that did not pass. Red here means a
-   capture was REJECTED BY SCREENING — the product checks photographs for
-   reproduction attacks, visible people and personal data, and a rejected one
-   has to be retaken before its certificate can publish. That is a real
-   product behaviour and a real blocker, which is what earns it the colour. */
+   ⚠️  BOTH FLAGGED STATES ARE ABOUT THE WORK, NOT THE PHOTOGRAPH. Amber says
+   somebody should go and look at it; red says it has to be done again. Both
+   are judgements a person makes from a record, and both show the defect that
+   was photographed — see defectImage() at the foot of this file. */
 export type UnitPhase =
   | "pending"
   | "active"
@@ -967,18 +964,9 @@ export type RequiredCapture = {
   by: Capturer;
   /** Only once it exists. */
   time: string | null;
-  /** ⚠️  WHETHER ITS SESSION HAS PUBLISHED, which is whether a photograph may
-   *  be shown for it.
-   *
-   *  A capture in a stage still being worked on lives in a DRAFT session: the
-   *  media exists on the device, the certificate does not exist at all. The
-   *  apartment plan was drawing photographs for those, so apartment 308 showed
-   *  three handover images with no certificate behind them — evidence that
-   *  nobody could check, which is the one thing this product must never
-   *  depict. Every image shown anywhere comes from a published certificate.
-   *
-   *  The STATUS is still meaningful without it: captured-awaiting-publication
-   *  is a real and useful thing to know, it simply has nothing to show yet. */
+  /** Whether a certificate exists for this capture's job — see
+   *  hasCertificate(). Every image shown anywhere is gated on it, so there is
+   *  never a photograph without a record behind it. */
   published: boolean;
 };
 
@@ -1048,19 +1036,37 @@ export function capturerFor(
   return crew[Math.floor(hash01(`${seed}:who`) * crew.length)];
 }
 
-/** The certificate for one job on one apartment, or null if that job has not
- *  been published yet. */
+/** Does this job have a certificate on this apartment?
+ *
+ *  ⚠️  ONE PREDICATE, READ BY BOTH SIDES. The session and the capture used to
+ *  decide this separately — a stage had to be fully sealed to have a
+ *  certificate, but a capture inside a stage still being worked on could
+ *  already be marked complete. Apartment 308 came out with three handover
+ *  photographs and no handover certificate: evidence nobody could check,
+ *  which is the one thing this product must never depict.
+ *
+ *  ⚠️  AND IT IS A SIMPLIFICATION, deliberately. In the product a certificate
+ *  exists only once its session is PUBLISHED; captures before that sit in a
+ *  draft on the device. Here a stage under way counts as certificated, so
+ *  every capture belongs to one. It keeps the demo coherent at the cost of
+ *  eliding the draft state — which belongs in the gap analysis, not hidden in
+ *  a predicate. */
+export function hasCertificate(
+  unit: UnitState,
+  stageKey: string,
+  stageIndex: number,
+): boolean {
+  return unit.sealed > stageIndex || unit.current === stageKey;
+}
+
+/** The certificate for one job on one apartment, or null if there is none. */
 export function sessionFor(
   unit: UnitState,
   tower: Tower,
   job: { stage: string; trade: Trade },
 ): PublishedSession | null {
   const stageIndex = STAGES.findIndex((s) => s.key === job.stage);
-  /* `sealed` counts stages inclusive of the tower and floor ones, so a stage
-     is published once the apartment has got past its index. A job still in
-     progress has no certificate — the captures exist as a draft until the
-     session is published, which is exactly how the product works. */
-  if (unit.sealed <= stageIndex) return null;
+  if (!hasCertificate(unit, job.stage, stageIndex)) return null;
 
   const seed = `${tower.key}-${unit.code}-${job.stage}-${job.trade}`;
 
@@ -1095,9 +1101,19 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
     /* The stage is sealed, so every cell in it is captured — a certificate
        cannot publish with a rejected or missing capture in it. */
     const by = capturerFor(unit, tower, requirement.stage, requirement.trade);
-    const published = unit.sealed > stageIndex;
+    const published = hasCertificate(unit, requirement.stage, stageIndex);
 
-    if (published) {
+    /* ⚠️  SEALED, NOT PUBLISHED — the two are different and conflating them
+       flattened the whole model. `published` is true for the stage being
+       worked on as well as for finished ones, so testing it here returned
+       "complete" for every cell in the live stage and made the mixed-status
+       branch below unreachable: active, warning and problem went to zero
+       across all three towers, and the tower drew as nothing but pending and
+       done.
+
+       A stage the apartment has got PAST is uniformly complete. The stage it
+       is on is the only interesting one, and it is handled below. */
+    if (unit.sealed > stageIndex) {
       return {
         requirement,
         status: "complete" as const,
@@ -1345,4 +1361,57 @@ export function unitFocusState(
   if (mine.some((c) => c.status === "active")) return "active";
   if (mine.every((c) => c.status === "complete")) return "complete";
   return "pending";
+}
+
+/* ── Defects ─────────────────────────────────────────────────────────────── */
+
+/* ⚠️  A DEFECT IS IN THE WORK, NOT IN THE PHOTOGRAPH, and the two states that
+   use these images say so. "Needs closer inspection" and "needs rework" are
+   judgements a person makes looking at a record; Delphi does not certify
+   construction quality and never claims the work is good or bad.
+
+   That is the argument, not a caveat on it: a certificate showing a leaking
+   joint is a perfectly good certificate, and being able to produce one — dated,
+   attributed, sealed — is the whole reason to have the record. An evidence
+   system that only ever showed work going well would be worth nothing in the
+   dispute it exists for. */
+
+const DEFECT_BY_TRADE: Record<Trade, string> = {
+  plumbing: "co-defect-leak",
+  electrical: "co-defect-wiring",
+  finishes: "co-defect-tile",
+  own: "co-defect-door",
+};
+
+/* Wet rooms fail wet. A damp patch in a bathroom reads; the same patch filed
+   against a bedroom's finishes does not. */
+const DEFECT_BY_ROOM: Record<string, string> = {
+  bano: "co-defect-damp",
+  cocina: "co-defect-leak",
+  sala: "co-defect-plaster",
+  principal: "co-defect-plaster",
+  alcoba2: "co-defect-plaster",
+};
+
+/** The photograph a flagged capture shows.
+ *
+ *  Chosen by trade first, because a defect raised against electrical work had
+ *  better be a picture of wiring — a cracked tile filed under the electrician
+ *  is the kind of mismatch that tells a viewer none of it is real. Finishes
+ *  and handover fall back to the room, which is where their defects differ. */
+export function defectImage(requirement: Requirement): string {
+  if (requirement.trade === "plumbing" || requirement.trade === "electrical") {
+    return DEFECT_BY_TRADE[requirement.trade];
+  }
+  return (
+    DEFECT_BY_ROOM[requirement.room] ?? DEFECT_BY_TRADE[requirement.trade]
+  );
+}
+
+/** The image a capture actually shows: its defect photograph when one has been
+ *  raised against it, otherwise the ordinary record shot. */
+export function imageFor(cell: RequiredCapture): string {
+  return cell.status === "warning" || cell.status === "problem"
+    ? defectImage(cell.requirement)
+    : cell.requirement.image;
 }

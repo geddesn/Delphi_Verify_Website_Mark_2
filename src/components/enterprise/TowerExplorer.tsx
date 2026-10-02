@@ -471,8 +471,8 @@ const PHASE_LABEL: Record<UnitPhase, Bi> = {
   pending: { en: "Not started", es: "Sin iniciar" },
   active: { en: "In progress", es: "En ejecución" },
   complete: { en: "Completed", es: "Terminado" },
-  warning: { en: "Needs chasing", es: "Requiere seguimiento" },
-  problem: { en: "Capture rejected", es: "Captura rechazada" },
+  warning: { en: "Needs closer inspection", es: "Requiere inspección" },
+  problem: { en: "Needs rework", es: "Requiere corrección" },
 };
 
 /* ── The flight between the two views ─────────────────────────────────────
@@ -1615,18 +1615,18 @@ function FloorSelect({
     if (f > tower.front.structure) {
       return t({ en: `Floor ${f} · not built`, es: `Piso ${f} · sin construir` });
     }
-    const rejected = on.filter((u) => u.phase === "problem").length;
-    const chasing = on.filter((u) => u.phase === "warning").length;
-    if (rejected) {
+    const rework = on.filter((u) => u.phase === "problem").length;
+    const inspect = on.filter((u) => u.phase === "warning").length;
+    if (rework) {
       return t({
-        en: `Floor ${f} · ${rejected} rejected`,
-        es: `Piso ${f} · ${rejected} rechazada${rejected > 1 ? "s" : ""}`,
+        en: `Floor ${f} · ${rework} to rework`,
+        es: `Piso ${f} · ${rework} por corregir`,
       });
     }
-    if (chasing) {
+    if (inspect) {
       return t({
-        en: `Floor ${f} · ${chasing} to chase`,
-        es: `Piso ${f} · ${chasing} por revisar`,
+        en: `Floor ${f} · ${inspect} to inspect`,
+        es: `Piso ${f} · ${inspect} por inspeccionar`,
       });
     }
     return t({ en: `Floor ${f}`, es: `Piso ${f}` });

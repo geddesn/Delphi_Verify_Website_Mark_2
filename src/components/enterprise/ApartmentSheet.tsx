@@ -6,6 +6,7 @@ import {
   JOBS,
   TRADE,
   capturesFor,
+  imageFor,
   inFocus,
   sessionFor,
   shotSrc,
@@ -144,14 +145,14 @@ export function ApartmentPane({
           {chasing > 0 && (
             <Figure
               value={String(chasing)}
-              label={t({ en: "Chasing", es: "Pendientes" })}
+              label={t({ en: "Inspect", es: "Inspección" })}
               tone="var(--pending)"
             />
           )}
           {blocked > 0 && (
             <Figure
               value={String(blocked)}
-              label={t({ en: "Rejected", es: "Rechazadas" })}
+              label={t({ en: "Rework", es: "Corrección" })}
               tone="var(--failed)"
             />
           )}
@@ -455,7 +456,7 @@ function Preview({
       />
       {has ? (
         <image
-          href={shotSrc(cell.requirement.image, 480)}
+          href={shotSrc(imageFor(cell), 480)}
           x={x + 0.1}
           y={y + 0.1}
           width={PREVIEW.w - 0.2}
@@ -490,6 +491,22 @@ function Preview({
       >
         {t(cell.requirement.what)}
       </text>
+      {/* The judgement, where one has been raised. The photograph alone does
+          not say whether anybody has acted on what it shows. */}
+      {(cell.status === "warning" || cell.status === "problem") && (
+        <text
+          x={x + PREVIEW.w - 0.18}
+          y={y + PREVIEW.h - 0.18}
+          textAnchor="end"
+          className="font-mono"
+          fontSize={0.17}
+          fill={cell.status === "problem" ? "var(--failed)" : "var(--pending)"}
+        >
+          {cell.status === "problem"
+            ? t({ en: "needs rework", es: "requiere corrección" })
+            : t({ en: "inspect", es: "inspeccionar" })}
+        </text>
+      )}
     </g>
   );
 }
@@ -556,7 +573,7 @@ function Lightbox({
 
         <img
           alt={t(cell.requirement.what)}
-          src={shotSrc(cell.requirement.image, 960)}
+          src={shotSrc(imageFor(cell), 960)}
           className="block max-h-[55vh] w-full rounded-sm border border-line object-cover"
         />
 
@@ -565,6 +582,31 @@ function Lightbox({
           {t(TRADE[cell.requirement.trade])} · {cell.by.name}
           {cell.time ? ` · ${cell.time}` : ""}
         </p>
+
+        {(cell.status === "warning" || cell.status === "problem") && (
+          <p
+            className="text-body-sm"
+            style={{
+              color:
+                cell.status === "problem"
+                  ? "var(--failed)"
+                  : "var(--pending)",
+            }}
+          >
+            {/* ⚠️  RAISED BY A PERSON, and the wording has to say so. Delphi
+                does not certify construction quality; it recorded what was
+                photographed and somebody looked at it. */}
+            {cell.status === "problem"
+              ? t({
+                  en: "Flagged for rework by the site team.",
+                  es: "Marcado para corrección por el equipo de obra.",
+                })
+              : t({
+                  en: "Flagged for closer inspection by the site team.",
+                  es: "Marcado para inspección por el equipo de obra.",
+                })}
+          </p>
+        )}
         <p className="text-body-sm text-ink-muted">
           {t({
             en: "Capture time, location and device are sealed with the image. This is a rendering; the photograph is from the Delphi library.",
@@ -696,8 +738,8 @@ function Certificates({
                     >
                       <img
                         alt={t(cell.requirement.what)}
-                        src={shotSrc(cell.requirement.image, 480)}
-                        srcSet={`${shotSrc(cell.requirement.image, 480)} 480w, ${shotSrc(cell.requirement.image, 960)} 960w`}
+                        src={shotSrc(imageFor(cell), 480)}
+                        srcSet={`${shotSrc(imageFor(cell), 480)} 480w, ${shotSrc(imageFor(cell), 960)} 960w`}
                         sizes="320px"
                         width={480}
                         height={320}

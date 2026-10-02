@@ -203,6 +203,24 @@ const GROUPS = [
          wrong with each. */
       { file: "co-sala-handover.png", name: "co-sala-handover" },
       { file: "co-bedroom-handover.png", name: "co-bedroom-handover" },
+      /* ── Defects ──
+         Six snags in the same apartment type: a leaking joint, a cracked
+         tile, an uncovered junction box with bare conductors, damp with
+         efflorescence, bad plaster, a badly hung door.
+
+         ⚠️  THESE ARE DEFECTS IN THE WORK, NOT IN THE PHOTOGRAPH. Delphi does
+         not certify construction quality — it records what was captured, and a
+         person looking at the record raises the defect. They must never be
+         wired to the AI-screening state, which is about the image: a
+         reproduction attack, a face, personal data. A certificate showing bad
+         work is a perfectly valid certificate, and that is the point of
+         having one. */
+      { file: "co-defect-leak.png", name: "co-defect-leak" },
+      { file: "co-defect-tile.png", name: "co-defect-tile" },
+      { file: "co-defect-wiring.png", name: "co-defect-wiring" },
+      { file: "co-defect-damp.png", name: "co-defect-damp" },
+      { file: "co-defect-plaster.png", name: "co-defect-plaster" },
+      { file: "co-defect-door.png", name: "co-defect-door" },
 
       /* PLACEHOLDER, and named for the slot rather than the picture so that
          replacing it is a file drop and nothing else. Nick is supplying a

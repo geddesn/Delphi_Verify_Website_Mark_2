@@ -148,7 +148,11 @@ const DEFAULT_ANGLE = -0.62;
    below about 17rem the five columns of figures stop fitting and the table
    starts eliding its own numbers, and past 34rem the stage is too narrow to
    turn a tower round in. */
-const ASIDE_DEFAULT = 368;
+/* 26rem rather than 23. The panel now carries a grouped table with five
+   columns of figures and a group heading above each, and at 368px the longer
+   room-and-task labels were truncating on their first word. The stage loses
+   48px it was not using. */
+const ASIDE_DEFAULT = 416;
 const ASIDE_MIN = 272;
 const ASIDE_MAX = 544;
 

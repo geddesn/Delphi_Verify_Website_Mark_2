@@ -40,6 +40,7 @@ export async function loadRoutes(): Promise<Loaded[]> {
 
 /** Renders one route to static HTML. */
 export function render(url: string, loaded: Loaded[]): string {
+  const isPlatformApp = /^\/platform\/app(?:\/|$)/.test(url);
   return renderToString(
     <StrictMode>
       <CookieConsentProvider>
@@ -51,7 +52,7 @@ export function render(url: string, loaded: Loaded[]): string {
             >
               Skip to content
             </a>
-            <Header />
+            {!isPlatformApp && <Header />}
             <main id="main" tabIndex={-1} className="flex-1 outline-none">
               <Routes>
                 {loaded.map(({ path, Component }) => (
@@ -60,7 +61,7 @@ export function render(url: string, loaded: Loaded[]): string {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
-            <Footer />
+            {!isPlatformApp && <Footer />}
           </div>
         </StaticRouter>
       </CookieConsentProvider>

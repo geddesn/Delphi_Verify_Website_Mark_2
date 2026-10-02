@@ -35,13 +35,13 @@ export const ORG = {
      relationship that does not exist — and puts somebody else's brand inside
      a picture of our product. A surname does the same job: it reads as an
      agency, and it belongs to nobody. */
-  workspace: "Ellerby London",
+  workspace: "Demo Organisation",
   /* The information model, stated once and quietly: an organisation contains
      assets, assets carry jobs, jobs produce evidence records. Everything else
      on this screen is an instance of that sentence. */
   scope: "London Residential",
   scopeCounts: "24 active jobs · 318 assets · 1,842 evidence records",
-  user: { name: "Sarah Davies", initials: "SD" },
+  user: { name: "Sarah Davies", initials: "DO" },
 } as const;
 
 export const PAGE = {
@@ -55,7 +55,7 @@ export const PAGE = {
      photographer's task list on the first mobile rendering. This button is
      where that loop closes. */
   action: "Create job",
-  search: "Search jobs, assets, evidence or certificate IDs…",
+  search: "Search jobs, assets or certificate IDs…",
 } as const;
 
 /* Four counts, not four charts. `tone` decides the colour of the figure, and
@@ -131,7 +131,7 @@ export const JOBS: Job[] = [
        the one the asset history shows as open. Three renderings, one
        afternoon, no contradictions. */
     workflow: "Inventory schedule",
-    assignee: { name: "James Williams", role: "Photographer", initials: "JW" },
+    assignee: { name: "James Williams", role: "Electrician", initials: "JW" },
     status: "Capturing",
     due: "Today 15:00",
   },
@@ -145,7 +145,7 @@ export const JOBS: Job[] = [
   {
     asset: "9 Chester Terrace",
     workflow: "Handover",
-    assignee: { name: "Alex Reid", role: "Lettings", initials: "AR" },
+    assignee: { name: "Alex Reid", role: "Plumber", initials: "AR" },
     status: "Review",
     due: "Today",
     flagged: true,
@@ -160,7 +160,7 @@ export const JOBS: Job[] = [
   {
     asset: "27 Wilton Crescent",
     workflow: "Inspection",
-    assignee: { name: "Emma Cole", role: "Surveyor", initials: "EC" },
+    assignee: { name: "Emma Cole", role: "Carpenter", initials: "EC" },
     status: "Scheduled",
     due: "24 Aug",
   },

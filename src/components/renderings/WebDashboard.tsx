@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { Link } from "react-router-dom";
 import { brand } from "@/content/site";
 import { useDemoScroll } from "@/components/renderings/useDemoScroll";
 import {
@@ -50,8 +51,8 @@ import {
    the top of content/renderings.ts.
    ========================================================================= */
 
-export function WebDashboard() {
-  const scroller = useDemoScroll<HTMLDivElement>();
+export function WebDashboard({ autoScroll = true }: { autoScroll?: boolean }) {
+  const scroller = useDemoScroll<HTMLDivElement>(autoScroll);
 
   return (
     <div
@@ -67,7 +68,6 @@ export function WebDashboard() {
           <PageHead />
           <Stats />
           <AttentionStrip />
-          <ActiveWork />
           <div className="mt-7 grid grid-cols-[1.85fr_1fr] gap-6">
             <RecentEvidence />
             <Activity />
@@ -85,9 +85,13 @@ export function WebDashboard() {
    The nav names the architecture: work to do, the things it is done to, what
    it produced, and who does it. Organisation and Settings are pushed to the
    foot because they are not the job. */
-function Sidebar() {
-  const nav = ["Home", "Jobs", "Assets", "Evidence", "Team"];
-  const foot = ["Organisation", "Settings"];
+export function Sidebar({ active = "Home" }: { active?: string }) {
+  const nav = [
+    ["Home", "/platform/app"],
+    ["Jobs", "/platform/app/jobs"],
+    ["Assets", "/platform/app/assets"],
+    ["Team", "/platform/app/team"],
+  ];
   return (
     <div
       data-theme="dark"
@@ -108,42 +112,44 @@ function Sidebar() {
         }}
       />
       <nav className="flex flex-col gap-0.5">
-        {nav.map((item) => (
-          <span
+        {nav.map(([item, href]) => (
+          <Link
             key={item}
+            to={href}
+            aria-current={item === active ? "page" : undefined}
             className={cn(
-              "rounded-md px-3 py-2 text-[13px]",
-              item === "Home"
+              "rounded-md px-3 py-2 text-[13px] transition-colors hover:bg-surface-raised hover:text-ink",
+              item === active
                 ? "bg-surface-raised font-semibold text-ink"
                 : "text-ink-secondary",
             )}
           >
             {item}
-          </span>
+          </Link>
         ))}
       </nav>
       <div className="mt-auto flex flex-col gap-0.5 border-t border-line pt-4">
-        {foot.map((item) => (
-          <span key={item} className="rounded-md px-3 py-2 text-[13px] text-ink-secondary">
-            {item}
-          </span>
-        ))}
+        <span className="rounded-md px-3 py-2 text-[13px] text-ink-secondary">
+          {ORG.workspace}
+        </span>
+        <Link
+          to="/platform/app/settings"
+          aria-current={active === "Settings" ? "page" : undefined}
+          className={cn(
+            "rounded-md px-3 py-2 text-[13px] transition-colors hover:bg-surface-raised hover:text-ink",
+            active === "Settings" ? "bg-surface-raised font-semibold text-ink" : "text-ink-secondary",
+          )}
+        >
+          Settings
+        </Link>
       </div>
     </div>
   );
 }
 
-function TopBar() {
+export function TopBar() {
   return (
     <div className="flex h-14 shrink-0 items-center gap-6 border-b border-line bg-surface px-8">
-      {/* The workspace selector. One organisation today; the seam where
-          countries, offices and portfolios appear when there are any, and
-          which a single-person account never opens. */}
-      <span className="flex shrink-0 items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-[13px] font-semibold text-ink">
-        {ORG.workspace}
-        <Chevron />
-      </span>
-
       {/* Certificate IDs belong in the placeholder. Typing W1MQ-E4ML and
           landing on the record is what turns a pile of certificates into an
           evidence system, and the search field is the only place on the
@@ -222,25 +228,25 @@ function Stats() {
    start reading as though it were. */
 function AttentionStrip() {
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-lg border border-pending bg-pending-tint px-5 py-3">
+    <Link
+      to="/platform/app/jobs"
+      className="group mt-4 flex items-center gap-3 rounded-lg border border-pending bg-pending-tint px-5 py-3 transition-colors hover:bg-pending-tint/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
       <AlertIcon />
       <span className="text-[13px] font-semibold text-ink">{ATTENTION.headline}</span>
       <span className="text-[12px] text-ink-secondary">{ATTENTION.detail}</span>
       <span className="ml-auto flex items-center gap-1 text-[12px] font-semibold text-ink-accent">
-        {ATTENTION.action}
+        <span className="group-hover:underline">{ATTENTION.action}</span>
         <Arrow />
       </span>
-    </div>
+    </Link>
   );
 }
 
-function ActiveWork() {
+export function ActiveWork() {
   return (
     <div className="mt-7">
       <div className="flex items-center justify-between gap-6">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-          Active work
-        </h2>
         {/* Visible and collapsed: enough to say this scales past one office
             without spending the screen on proving it. */}
         <div className="flex items-center gap-2">
@@ -361,7 +367,7 @@ function RecentEvidence() {
   return (
     <div>
       <h2 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
-        Recent evidence
+        Recent certificates
       </h2>
       <div className="mt-3 grid grid-cols-3 gap-4">
         {RECENT.map((item) => (

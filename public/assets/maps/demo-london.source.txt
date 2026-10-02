@@ -1,0 +1,6 @@
+Static Google Maps snapshot of London, captured 2026-10-02.
+Reference: https://www.google.com/maps/@51.514,-0.15,13z
+Dimensions: 1232 x 844 pixels.
+Google logo and map data credits remain visible in the original capture.
+Served locally as a static background; no Google Maps requests at runtime.
+Asset markers are separate links overlaid by PlatformAppAssets.tsx.

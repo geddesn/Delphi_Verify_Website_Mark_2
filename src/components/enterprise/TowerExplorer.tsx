@@ -330,11 +330,11 @@ const ease = (n: number) =>
 
 /* ========================================================================= */
 
-export function TowerExplorer() {
+export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: { showHeader?: boolean; initialTower?: Tower }) {
   const t = useT();
   const { lang } = useLang();
 
-  const [towerKey, setTowerKey] = useState(TOWERS[1].key);
+  const [towerKey, setTowerKey] = useState(initialTower.key);
   const [angle, setAngle] = useState(DEFAULT_ANGLE);
   const [view, setView] = useState<"block" | "plan">("block");
   /* How far the view has flown from the block toward the plan. 0 is the
@@ -343,13 +343,13 @@ export function TowerExplorer() {
      differ for the 760ms in between. */
   const [morph, setMorph] = useState(0);
 
-  const tower = TOWERS.find((x) => x.key === towerKey) ?? TOWERS[1];
+  const tower = TOWERS.find((x) => x.key === towerKey) ?? initialTower;
   const units = UNITS[tower.key];
 
   /* Opens on the build front — the floor where something is actually
      happening, which is the floor a head of construction would have opened
      himself. */
-  const [floor, setFloor] = useState(Math.max(1, TOWERS[1].front.structure));
+  const [floor, setFloor] = useState(Math.max(1, initialTower.front.structure));
   const [position, setPosition] = useState<number | null>(null);
 
   /* ⚠️  THE CAMERA IS FRAMED ON THE TALLEST TOWER, NOT ON THIS ONE, and that
@@ -514,12 +514,14 @@ export function TowerExplorer() {
 
   return (
     <div className="flex h-full w-full flex-col bg-canvas">
-      <ExplorerHeader
-        tower={tower}
-        onTower={selectTower}
-        view={view}
-        onView={setView}
-      />
+      {showHeader && (
+        <ExplorerHeader
+          tower={tower}
+          onTower={selectTower}
+          view={view}
+          onView={setView}
+        />
+      )}
 
       <div className="flex min-h-0 flex-1">
         <div className="relative flex min-w-0 flex-1 items-center justify-center border-r border-line">

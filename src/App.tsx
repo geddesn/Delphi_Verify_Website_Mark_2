@@ -89,6 +89,8 @@ function PageFallback() {
 }
 
 export default function App() {
+  const { pathname } = useLocation();
+  const isPlatformApp = /^\/platform\/app(?:\/|$)/.test(pathname);
   /* Lazily loaded on the client for code splitting; the prerender step imports
      the same modules eagerly. One route table, two loading strategies. */
   const lazyRoutes = useMemo(
@@ -107,7 +109,7 @@ export default function App() {
 
       <RouteChangeHandler />
       <DocumentHead />
-      <Header />
+      {!isPlatformApp && <Header />}
 
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         <Suspense fallback={<PageFallback />}>
@@ -121,7 +123,7 @@ export default function App() {
         </Suspense>
       </main>
 
-      <Footer />
+      {!isPlatformApp && <Footer />}
     </div>
   );
 }

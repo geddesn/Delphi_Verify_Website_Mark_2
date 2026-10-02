@@ -56,12 +56,12 @@ function progress(t: number): number {
   return 1 - easeInOut(Math.min(1, (t - bottomEnd) / (1 - bottomEnd)));
 }
 
-export function useDemoScroll<T extends HTMLElement>() {
+export function useDemoScroll<T extends HTMLElement>(enabled = true) {
   const ref = useRef<T>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || !enabled) return;
 
     if (
       typeof matchMedia === "undefined" ||
@@ -129,7 +129,7 @@ export function useDemoScroll<T extends HTMLElement>() {
         el.removeEventListener(ev, surrender);
       }
     };
-  }, []);
+  }, [enabled]);
 
   return ref;
 }

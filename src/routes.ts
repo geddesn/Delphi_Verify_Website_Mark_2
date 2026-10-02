@@ -12,6 +12,7 @@
    ========================================================================= */
 
 import type { ComponentType } from "react";
+import { APP_ASSETS } from "@/content/app-assets";
 
 export type RouteDef = {
   path: string;
@@ -86,6 +87,51 @@ export const routes: RouteDef[] = [
     },
     indexable: false,
   },
+  {
+    path: "/platform/app",
+    load: () => import("@/pages/PlatformApp"),
+    seo: {
+      title: "Platform app rendering | Delphi Verify",
+      description: "Full-screen rendering of the Delphi Verify organisation dashboard.",
+    },
+    indexable: false,
+  },
+  {
+    path: "/platform/app/settings",
+    load: () => import("@/pages/PlatformAppSettings"),
+    seo: {
+      title: "Settings | Delphi Verify",
+      description: "Organisation and account settings for Delphi Verify.",
+    },
+    indexable: false,
+  },
+  {
+    path: "/platform/app/assets",
+    load: () => import("@/pages/PlatformAppAssets"),
+    seo: {
+      title: "Assets | Delphi Verify",
+      description: "Demo map of assets in the Delphi Verify organisation dashboard.",
+    },
+    indexable: false,
+  },
+  ...APP_ASSETS.map((asset) => ({
+    path: `/platform/app/assets/${asset.id}`,
+    load: () => import("@/pages/PlatformAppAssets"),
+    seo: {
+      title: `${asset.name} | Delphi Verify`,
+      description: "Asset detail in the Delphi Verify organisation dashboard.",
+    },
+    indexable: false as const,
+  })),
+  ...(["jobs", "team"] as const).map((section) => ({
+    path: `/platform/app/${section}`,
+    load: () => import("@/pages/PlatformAppSection"),
+    seo: {
+      title: `${section[0].toUpperCase()}${section.slice(1)} | Delphi Verify`,
+      description: `${section[0].toUpperCase()}${section.slice(1)} in the Delphi Verify organisation dashboard.`,
+    },
+    indexable: false as const,
+  })),
   {
     /* Enterprise-scale renderings for a large residential developer: one
        504-apartment development navigated as a tower, a floor and an

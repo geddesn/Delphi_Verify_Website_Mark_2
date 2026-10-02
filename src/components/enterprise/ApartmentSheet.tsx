@@ -38,9 +38,13 @@ import { useT, type Bi } from "@/content/enterprise/lang";
    ones have anything to show on hover, and the rest say so.
    ========================================================================= */
 
-/* The hover preview, in metres of the plan it is drawn on. Sized to sit inside
+/* ⚠️  EVERYTHING HERE IS IN METRES, AND THE PLAN DRAWS AT ROUGHLY 70 PIXELS
+   TO THE METRE. A radius that looks modest in source is not: r=0.23 rendered
+   as a 32px dot on a 58 m² flat. Measure in pixels, not in the numbers.
+
+   The hover preview, in metres of the plan it is drawn on. Sized to sit inside
    a room without burying the markers either side of it. */
-const PREVIEW = { w: 4.6, h: 3.1 };
+const PREVIEW = { w: 3.6, h: 2.5 };
 
 export function ApartmentPane({
   unit,
@@ -145,11 +149,11 @@ type Area = { key: string; name: Bi; x: number; z: number; w: number; d: number 
  *  bounded by the room's own width, so the kitchen's four and the balcony's two
  *  both sit comfortably. */
 function markerPositions(area: Area, n: number) {
-  const gap = Math.min(0.95, (area.w - 0.6) / Math.max(1, n));
+  const gap = Math.min(0.5, (area.w - 0.4) / Math.max(1, n));
   const startX = area.x + area.w / 2 - ((n - 1) * gap) / 2;
   return Array.from({ length: n }, (_, i) => ({
     x: startX + i * gap,
-    y: area.z + area.d / 2 + 0.5,
+    y: area.z + area.d / 2 + 0.3,
   }));
 }
 
@@ -225,10 +229,10 @@ function PlanBoard({
             />
             <text
               x={area.x + area.w / 2}
-              y={area.z + area.d / 2 - 0.3}
+              y={area.z + area.d / 2 - 0.25}
               textAnchor="middle"
               className="font-mono"
-              fontSize={0.4}
+              fontSize={0.2}
               fill="var(--ink-secondary)"
             >
               {t(area.name)}
@@ -303,14 +307,14 @@ function Marker({
     >
       {/* A disc under the dot, so a marker still reads against whatever the
           room is filled with. */}
-      <circle cx={at.x} cy={at.y} r={on ? 0.42 : 0.3} fill="var(--surface)" />
+      <circle cx={at.x} cy={at.y} r={on ? 0.19 : 0.14} fill="var(--surface)" />
       <circle
         cx={at.x}
         cy={at.y}
-        r={on ? 0.34 : 0.23}
+        r={on ? 0.15 : 0.1}
         fill={MARKER[cell.status]}
         stroke="var(--surface)"
-        strokeWidth={0.06}
+        strokeWidth={0.04}
       />
       {/* ⚠️  A CAPTURED MARKER IS RINGED, not merely a different colour.
           Colour alone puts the whole distinction on hue, which is precisely
@@ -319,10 +323,10 @@ function Marker({
         <circle
           cx={at.x}
           cy={at.y}
-          r={0.45}
+          r={0.2}
           fill="none"
           stroke={MARKER[cell.status]}
-          strokeWidth={0.07}
+          strokeWidth={0.04}
         />
       )}
       <title>
@@ -380,7 +384,7 @@ function Preview({
           x={x + 0.1}
           y={y + 0.1}
           width={PREVIEW.w - 0.2}
-          height={PREVIEW.h - 0.75}
+          height={PREVIEW.h - 0.55}
           preserveAspectRatio="xMidYMid slice"
         />
       ) : (
@@ -389,7 +393,7 @@ function Preview({
           y={y + (PREVIEW.h - 0.5) / 2}
           textAnchor="middle"
           className="font-mono"
-          fontSize={0.34}
+          fontSize={0.18}
           fill="var(--ink-muted)"
         >
           {t({ en: "Not captured yet", es: "Aún sin capturar" })}
@@ -397,9 +401,9 @@ function Preview({
       )}
       <text
         x={x + 0.18}
-        y={y + PREVIEW.h - 0.22}
+        y={y + PREVIEW.h - 0.18}
         className="font-mono"
-        fontSize={0.3}
+        fontSize={0.17}
         fill="var(--ink)"
       >
         {t(cell.requirement.what)}

@@ -602,7 +602,7 @@ function Lightbox({
                   es: "Marcado para corrección por el equipo de obra.",
                 })
               : t({
-                  en: "Flagged for closer inspection by the site team.",
+                  en: "Flagged for inspection by the site team.",
                   es: "Marcado para inspección por el equipo de obra.",
                 })}
           </p>

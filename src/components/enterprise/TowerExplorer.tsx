@@ -444,7 +444,7 @@ const PHASE_LABEL: Record<UnitPhase, Bi> = {
   pending: { en: "Not started", es: "Sin iniciar" },
   active: { en: "In progress", es: "En ejecución" },
   complete: { en: "Completed", es: "Terminado" },
-  warning: { en: "Needs closer inspection", es: "Requiere inspección" },
+  warning: { en: "Needs inspection", es: "Requiere inspección" },
   problem: { en: "Needs rework", es: "Requiere corrección" },
 };
 

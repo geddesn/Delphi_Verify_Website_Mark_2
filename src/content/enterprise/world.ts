@@ -1368,7 +1368,7 @@ export function unitFocusState(
 /* ── Defects ─────────────────────────────────────────────────────────────── */
 
 /* ⚠️  A DEFECT IS IN THE WORK, NOT IN THE PHOTOGRAPH, and the two states that
-   use these images say so. "Needs closer inspection" and "needs rework" are
+   use these images say so. "Needs inspection" and "needs rework" are
    judgements a person makes looking at a record; Delphi does not certify
    construction quality and never claims the work is good or bad.
 

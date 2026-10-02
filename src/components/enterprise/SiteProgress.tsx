@@ -3,9 +3,11 @@ import {
   CAPTURE_ROOMS,
   TRADE,
   apartmentsStarted,
+  crewById,
   siteProgress,
   stageByKey,
   type ProgressRow,
+  type CaptureFocus,
   type Tower,
   type Trade,
 } from "@/content/enterprise/world";
@@ -72,7 +74,7 @@ type Sort = Column["key"] | "room";
 
    The rows themselves never change — only how they are stacked and what the
    subtotal line sums. */
-type Grouping = "room" | "trade";
+type Grouping = "room" | "trade" | "person";
 
 /** What to call a row in the Task view.
  *
@@ -108,40 +110,72 @@ function sectionsFor(
 ): Section[] {
   const out = new Map<string, Section>();
 
-  for (const row of rows) {
-    /* Keyed by stage AND trade in the task view, so rough-in's two trades stay
-       the two separate jobs they are rather than collapsing into one. */
-    const key =
-      grouping === "room" ? row.room : `${row.stage}:${row.trade}`;
-    const label =
-      grouping === "room"
-        ? roomName(row.room)
-        : taskLabel(row.stage, row.trade);
+  const blank = () => ({
+    pending: 0,
+    active: 0,
+    warning: 0,
+    problem: 0,
+    complete: 0,
+    total: 0,
+  });
 
-    let section = out.get(key);
+  for (const row of rows) {
+    /* The group, and the dimension the member rows are collapsed onto. The
+       tally is keyed by room, task AND person, so each grouping sums over the
+       two it is not using — which is why the three views always agree. */
+    const groupKey =
+      grouping === "room"
+        ? row.room
+        : grouping === "trade"
+          ? `${row.stage}:${row.trade}`
+          : row.capturer;
+
+    const memberKey =
+      grouping === "person"
+        ? `${row.stage}:${row.trade}`
+        : grouping === "room"
+          ? `${row.stage}:${row.trade}`
+          : row.room;
+
+    let section = out.get(groupKey);
     if (!section) {
       section = {
-        key,
-        label,
+        key: groupKey,
+        label:
+          grouping === "room"
+            ? roomName(row.room)
+            : grouping === "trade"
+              ? taskLabel(row.stage, row.trade)
+              : personName(row.capturer),
         rows: [],
-        totals: {
-          pending: 0,
-          active: 0,
-          warning: 0,
-          problem: 0,
-          complete: 0,
-          total: 0,
-        },
+        totals: blank(),
       };
-      out.set(key, section);
+      out.set(groupKey, section);
     }
 
-    section.rows.push(row);
+    let member = section.rows.find((m) => memberKeyOf(m, grouping) === memberKey);
+    if (!member) {
+      member = { ...row, ...blank() };
+      section.rows.push(member);
+    }
+    for (const c of COLUMNS) member[c.key] += row[c.key];
+    member.total += row.total;
+
     for (const c of COLUMNS) section.totals[c.key] += row[c.key];
     section.totals.total += row.total;
   }
 
   return [...out.values()];
+}
+
+/** Which dimension a member row stands for, under a given grouping. */
+function memberKeyOf(row: ProgressRow, grouping: Grouping) {
+  return grouping === "trade" ? row.room : `${row.stage}:${row.trade}`;
+}
+
+function personName(id: string): Bi {
+  const person = crewById.get(id);
+  return person ? { en: person.name, es: person.name } : { en: id, es: id };
 }
 
 export function SiteProgress({ className }: { className?: string }) {
@@ -204,7 +238,8 @@ export function SiteProgress({ className }: { className?: string }) {
             {(
               [
                 ["room", { en: "Room", es: "Ambiente" }],
-                ["trade", { en: "Task", es: "Oficio" }],
+                ["trade", { en: "Task", es: "Tarea" }],
+                ["person", { en: "Person", es: "Persona" }],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -232,8 +267,10 @@ export function SiteProgress({ className }: { className?: string }) {
             <tr className="border-b border-line">
               <Th onClick={() => setSort("room")} active={sort === "room"} align="left">
                 {grouping === "room"
-                  ? t({ en: "Room · trade", es: "Ambiente · oficio" })
-                  : t({ en: "Task · room", es: "Oficio · ambiente" })}
+                  ? t({ en: "Room · task", es: "Ambiente · tarea" })
+                  : grouping === "trade"
+                    ? t({ en: "Task · room", es: "Tarea · ambiente" })
+                    : t({ en: "Person · task", es: "Persona · tarea" })}
               </Th>
               <Th align="left">{t({ en: "Stage", es: "Etapa" })}</Th>
               {COLUMNS.map((c) => (
@@ -396,8 +433,15 @@ function Cell({
 export function TowerProgress({
   tower,
   floor,
+  focus,
+  onFocus,
 }: {
   tower: Tower;
+  /** What the drawings are currently focused on, and how to change it. A row
+   *  is a control, not a readout — clicking one asks the tower a narrower
+   *  question. */
+  focus: CaptureFocus | null;
+  onFocus: (f: CaptureFocus | null) => void;
   /** The storey selected in the rail, or null for the whole tower. The table
    *  is a summary of what is selected — selecting a floor narrows it rather
    *  than opening something else. */
@@ -427,7 +471,26 @@ export function TowerProgress({
   );
 
   const memberLabel = (row: ProgressRow) =>
-    grouping === "room" ? taskLabel(row.stage, row.trade) : roomName(row.room);
+    grouping === "trade" ? roomName(row.room) : taskLabel(row.stage, row.trade);
+
+  /* A click toggles: picking the row already selected clears it, so there is
+     always a way back to the whole picture without hunting for one. */
+  const pick = (next: CaptureFocus) => {
+    const same =
+      focus &&
+      focus.room === next.room &&
+      focus.stage === next.stage &&
+      focus.trade === next.trade &&
+      focus.capturer === next.capturer;
+    onFocus(same ? null : next);
+  };
+
+  const isOn = (f: CaptureFocus) =>
+    !!focus &&
+    focus.room === f.room &&
+    focus.stage === f.stage &&
+    focus.trade === f.trade &&
+    focus.capturer === f.capturer;
 
   if (started === 0) {
     return (
@@ -464,8 +527,9 @@ export function TowerProgress({
       <div className="flex rounded-sm border border-line">
         {(
           [
-            ["room", { en: "By room", es: "Por ambiente" }],
-            ["trade", { en: "By task", es: "Por tarea" }],
+            ["room", { en: "Room", es: "Ambiente" }],
+            ["trade", { en: "Task", es: "Tarea" }],
+            ["person", { en: "Person", es: "Persona" }],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -492,7 +556,9 @@ export function TowerProgress({
               <th className="pb-1 text-left font-mono text-mono-sm uppercase text-ink-muted">
                 {grouping === "room"
                   ? t({ en: "Room", es: "Ambiente" })
-                  : t({ en: "Task", es: "Tarea" })}
+                  : grouping === "trade"
+                    ? t({ en: "Task", es: "Tarea" })
+                    : t({ en: "Person", es: "Persona" })}
               </th>
               {COLUMNS.map((c) => (
                 <th
@@ -510,7 +576,13 @@ export function TowerProgress({
 
           {sections.map((section) => (
             <tbody key={section.key}>
-              <tr className="border-t border-line-strong">
+              <tr
+                className={cn(
+                  "cursor-pointer border-t border-line-strong",
+                  isOn(sectionFocus(section, grouping)) && "bg-accent-subtle",
+                )}
+                onClick={() => pick(sectionFocus(section, grouping))}
+              >
                 <td className="py-1 pr-2 text-body-sm font-semibold text-ink">
                   <span className="block truncate">{t(section.label)}</span>
                 </td>
@@ -525,7 +597,14 @@ export function TowerProgress({
               </tr>
 
               {section.rows.map((row) => (
-                <tr key={`${row.room}-${row.trade}`}>
+                <tr
+                  key={`${row.room}-${row.trade}`}
+                  className={cn(
+                    "cursor-pointer",
+                    isOn(rowFocus(row, grouping)) && "bg-accent-subtle",
+                  )}
+                  onClick={() => pick(rowFocus(row, grouping))}
+                >
                   <td className="py-0.5 pl-2 pr-2 text-body-sm text-ink-secondary">
                     <span className="block truncate">{t(memberLabel(row))}</span>
                   </td>
@@ -545,6 +624,29 @@ export function TowerProgress({
       </div>
     </div>
   );
+}
+
+/** What a group header selects: its own dimension, the other left open. */
+function sectionFocus(section: Section, grouping: Grouping): CaptureFocus {
+  const first = section.rows[0];
+  if (grouping === "room")
+    return { room: first.room, stage: null, trade: null, capturer: null };
+  if (grouping === "trade")
+    return { room: null, stage: first.stage, trade: first.trade, capturer: null };
+  return { room: null, stage: null, trade: null, capturer: section.key };
+}
+
+/** What a member row selects: the exact cell of the checklist. */
+function rowFocus(row: ProgressRow, grouping: Grouping): CaptureFocus {
+  /* Under "by person" a member row is that person's work on one task, so the
+     capturer has to travel with it — otherwise clicking Mario's rough-in
+     selects everybody's rough-in. */
+  return {
+    room: grouping === "trade" ? row.room : null,
+    stage: grouping === "trade" ? null : row.stage,
+    trade: grouping === "trade" ? null : row.trade,
+    capturer: grouping === "person" ? row.capturer : null,
+  };
 }
 
 /** One number in the compact panel. Zeros recede so the handful that need

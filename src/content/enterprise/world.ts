@@ -812,6 +812,20 @@ export const CREW: Capturer[] = [
     trade: "own",
     org: { en: "Constructora Aldamar", es: "Constructora Aldamar" },
   },
+  {
+    /* ⚠️  A SECOND RESIDENTE, because one was not credible. Handover is the
+       largest block of captures in the development — every room of every
+       apartment, 1,792 of them — and with a single person on the trade the
+       "by person" view put all of them against one name. Nobody hands over 504
+       apartments alone, and a figure a viewer does not believe is worse than
+       no figure. Two splits it the way the two plumbers and two electricians
+       already split theirs. */
+    id: "andres",
+    name: "Andrés Villegas",
+    initials: "AV",
+    trade: "own",
+    org: { en: "Constructora Aldamar", es: "Constructora Aldamar" },
+  },
 ];
 
 export const crewById = new Map(CREW.map((c) => [c.id, c]));
@@ -949,6 +963,8 @@ export type PublishedSession = {
 export type RequiredCapture = {
   requirement: Requirement;
   status: UnitPhase;
+  /** Whose work it is — who made the capture, or who it is waiting on. */
+  by: Capturer;
   /** Only once it exists. */
   time: string | null;
 };
@@ -995,6 +1011,30 @@ function sessionDate(
   return d.toISOString().slice(0, 10);
 }
 
+/** Who captures one job on one apartment.
+ *
+ *  ⚠️  IT DOES NOT WAIT FOR PUBLICATION. sessionFor() returns null until a
+ *  stage is sealed, which is right for a certificate — there is no certificate
+ *  until there is one. But the work is already somebody's: the plumber due on
+ *  floor 14 is as real as the one who finished floor 9, and a backlog you
+ *  cannot put a name to is not a backlog anybody can chase. So the crew member
+ *  is derived from the same seed whether or not the session has published, and
+ *  sessionFor() reads this rather than rolling its own.
+ *
+ *  ⚠️  THE PRODUCT CANNOT DO THIS YET. Photographer assignment is not
+ *  implemented — a session's photographer is whoever is holding the phone. The
+ *  gap analysis should carry it. */
+export function capturerFor(
+  unit: UnitState,
+  tower: Tower,
+  stage: string,
+  trade: Trade,
+): Capturer {
+  const seed = `${tower.key}-${unit.code}-${stage}-${trade}`;
+  const crew = CREW.filter((c) => c.trade === trade);
+  return crew[Math.floor(hash01(`${seed}:who`) * crew.length)];
+}
+
 /** The certificate for one job on one apartment, or null if that job has not
  *  been published yet. */
 export function sessionFor(
@@ -1010,12 +1050,11 @@ export function sessionFor(
   if (unit.sealed <= stageIndex) return null;
 
   const seed = `${tower.key}-${unit.code}-${job.stage}-${job.trade}`;
-  const crew = CREW.filter((c) => c.trade === job.trade);
 
   return {
     stage: job.stage,
     trade: job.trade,
-    by: crew[Math.floor(hash01(`${seed}:who`) * crew.length)],
+    by: capturerFor(unit, tower, job.stage, job.trade),
     code: codeFor(seed),
     date: sessionDate(
       tower,
@@ -1042,10 +1081,13 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
 
     /* The stage is sealed, so every cell in it is captured — a certificate
        cannot publish with a rejected or missing capture in it. */
+    const by = capturerFor(unit, tower, requirement.stage, requirement.trade);
+
     if (unit.sealed > stageIndex) {
       return {
         requirement,
         status: "complete" as const,
+        by,
         time: timeFrom(seed),
       };
     }
@@ -1066,11 +1108,12 @@ export function capturesFor(unit: UnitState, tower: Tower): RequiredCapture[] {
       return {
         requirement,
         status,
+        by,
         time: status === "complete" || status === "problem" ? timeFrom(seed) : null,
       };
     }
 
-    return { requirement, status: "pending" as const, time: null };
+    return { requirement, status: "pending" as const, by, time: null };
   });
 }
 
@@ -1121,6 +1164,10 @@ export type ProgressRow = {
   room: string;
   trade: Trade;
   stage: string;
+  /** Whose cell this is. The tally is keyed by room, task AND person, so the
+     three groupings are three collapses of one set of numbers rather than
+     three tallies that could disagree. */
+  capturer: string;
   pending: number;
   active: number;
   warning: number;
@@ -1151,19 +1198,8 @@ export function siteProgress(
   /* Keyed by room and trade together, because that pair IS the unit of work —
      a bathroom needs plumbing and a living room does not. See REQUIREMENTS. */
   const rows = new Map<string, ProgressRow>();
-  for (const r of REQUIREMENTS) {
-    rows.set(`${r.room}:${r.trade}`, {
-      room: r.room,
-      trade: r.trade,
-      stage: r.stage,
-      pending: 0,
-      active: 0,
-      warning: 0,
-      problem: 0,
-      complete: 0,
-      total: 0,
-    });
-  }
+  const keyOf = (room: string, trade: Trade, capturer: string) =>
+    `${room}:${trade}:${capturer}`;
 
   for (const tower of towers) {
     for (const unit of UNITS[tower.key]) {
@@ -1175,10 +1211,24 @@ export function siteProgress(
       if (floor !== undefined && unit.floor !== floor) continue;
 
       for (const cell of capturesFor(unit, tower)) {
-        const row = rows.get(
-          `${cell.requirement.room}:${cell.requirement.trade}`,
-        );
-        if (!row) continue;
+        const { room, trade, stage } = cell.requirement;
+        const key = keyOf(room, trade, cell.by.id);
+        let row = rows.get(key);
+        if (!row) {
+          row = {
+            room,
+            trade,
+            stage,
+            capturer: cell.by.id,
+            pending: 0,
+            active: 0,
+            warning: 0,
+            problem: 0,
+            complete: 0,
+            total: 0,
+          };
+          rows.set(key, row);
+        }
         row[cell.status] += 1;
         row.total += 1;
       }
@@ -1203,4 +1253,80 @@ export function apartmentsStarted(
     ).length;
   }
   return n;
+}
+
+/* ── What the views are focused on ───────────────────────────────────────── */
+
+/** A selection made in the progress table, narrowing what the drawings show.
+ *
+ *  ⚠️  IT IS A FILTER OVER REQUIREMENTS, NOT OVER APARTMENTS. Picking
+ *  "Rough-in · plumbing" does not hide apartments; it changes what each
+ *  apartment is being asked about, so the tower stops showing overall progress
+ *  and starts showing who still owes a plumbing capture. An apartment with no
+ *  work of that kind — a living room has no plumbing — is not "not started",
+ *  it is not in the question, and the drawings have to say those differently.
+ *
+ *  Either field may be null: a group header selects one dimension and leaves
+ *  the other open. */
+export type CaptureFocus = {
+  room: string | null;
+  stage: string | null;
+  trade: Trade | null;
+  /** A crew member's id. The three groupings are three ways of asking the same
+   *  question — which room, which task, whose work — and any of them can be
+   *  the thing selected. */
+  capturer: string | null;
+};
+
+/** Does this requirement fall inside the focus? A null focus matches
+ *  everything, which is what "nothing selected" means. */
+export function inFocus(
+  cell: RequiredCapture,
+  focus: CaptureFocus | null,
+): boolean {
+  if (!focus) return true;
+  if (focus.room && cell.requirement.room !== focus.room) return false;
+  if (focus.stage && cell.requirement.stage !== focus.stage) return false;
+  if (focus.trade && cell.requirement.trade !== focus.trade) return false;
+  /* The capturer is a property of the CELL, not of the requirement — the same
+     bathroom plumbing is Mario's on one floor and Luigi's on another, which is
+     exactly why "by person" is worth having. */
+  if (focus.capturer && cell.by.id !== focus.capturer) return false;
+  return true;
+}
+
+/** The state of one room under the current focus, or null when that room has
+ *  no work of the kind being asked about.
+ *
+ *  Worst-first: a rejected capture outranks an overdue one, which outranks
+ *  work in progress. The room has to show the thing somebody must act on, not
+ *  the cheeriest thing true about it. */
+export function roomFocusState(
+  cells: RequiredCapture[],
+  room: string,
+  focus: CaptureFocus | null,
+): UnitPhase | null {
+  const mine = cells.filter(
+    (c) => c.requirement.room === room && inFocus(c, focus),
+  );
+  if (mine.length === 0) return null;
+  if (mine.some((c) => c.status === "problem")) return "problem";
+  if (mine.some((c) => c.status === "warning")) return "warning";
+  if (mine.some((c) => c.status === "active")) return "active";
+  if (mine.every((c) => c.status === "complete")) return "complete";
+  return "pending";
+}
+
+/** The same for a whole apartment, which is what an elevation panel draws. */
+export function unitFocusState(
+  cells: RequiredCapture[],
+  focus: CaptureFocus | null,
+): UnitPhase | null {
+  const mine = cells.filter((c) => inFocus(c, focus));
+  if (mine.length === 0) return null;
+  if (mine.some((c) => c.status === "problem")) return "problem";
+  if (mine.some((c) => c.status === "warning")) return "warning";
+  if (mine.some((c) => c.status === "active")) return "active";
+  if (mine.every((c) => c.status === "complete")) return "complete";
+  return "pending";
 }

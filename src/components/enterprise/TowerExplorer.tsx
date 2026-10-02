@@ -4,18 +4,18 @@ import {
   BUILDING_DEPTH,
   BUILDING_WIDTH,
   GEOMETRY,
-  JOBS,
   ROOMS,
   STAGES,
   MAX_FLOORS,
   TOWERS,
-  TRADE,
   UNITS,
   capturesFor,
+  unitFocusState,
+  roomFocusState,
   unitsIn,
   type UnitPhase,
+  type CaptureFocus,
   type Tower,
-  type Trade,
   type UnitState,
 } from "@/content/enterprise/world";
 import { useLang, useT, type Bi } from "@/content/enterprise/lang";
@@ -313,6 +313,46 @@ function faces(e: Elevation, angle: number) {
   return e.normal.x * s + e.normal.z * c < 0;
 }
 
+/** How an apartment is drawn while the table has narrowed the question.
+ *
+ *  ⚠️  "NOT ASKED" IS NOT "NOT STARTED". Focus "Rough-in · plumbing" and most
+ *  apartments still have a bathroom and a kitchen to plumb — but focus it on
+ *  something a dwelling has none of and the honest answer is that the question
+ *  does not apply, which must not look like an outstanding capture. Those
+ *  panels go to a faint outline rather than to the pending fill.
+ *
+ *  Note the shading is NOT the apartment's overall progress any more. That is
+ *  the point of focusing: the tower stops showing how far along it is and
+ *  starts showing who owes this particular capture. */
+function focusStyle(
+  unit: UnitState,
+  tower: Tower,
+  focus: CaptureFocus,
+): PhaseStyle {
+  if (unit.sealed === 0) return PHASE.pending;
+  const state = unitFocusState(capturesFor(unit, tower), focus);
+  if (state === null) {
+    /* ⚠️  DIFFERENT FROM PENDING, deliberately: the sunken tone reads as inert
+       against pending's white. They were separated by stroke width alone at
+       first, which at this scale is no separation at all.
+
+       It is RARE AT THIS LEVEL and common one level down. Every apartment has
+       a kitchen and a bathroom, so focusing a trade almost never leaves a
+       whole flat outside the question — measured: a plumbing focus on Torre 2
+       returns 37 complete, 2 at risk and 45 pending across 84 panels, and no
+       unasked ones at all. It is the floor PLAN where this earns its keep: a
+       living room has no plumbing, and "nobody owes anything here" must not be
+       drawn as an outstanding capture. */
+    return {
+      fill: "var(--surface-sunken)",
+      fillOpacity: 1,
+      stroke: "var(--line)",
+      strokeWidth: 0.3,
+    };
+  }
+  return PHASE[state];
+}
+
 /* ── The five states ───────────────────────────────────────────────────────
    One table, read by the elevation, the floor plan and the floor rail, so the
    three views cannot disagree about what a colour means.
@@ -475,6 +515,10 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
   const [floor, setFloor] = useState<number | null>(null);
   const [position, setPosition] = useState<number | null>(null);
   const [asideWidth, setAsideWidth] = useState(ASIDE_DEFAULT);
+  /* What the progress table has narrowed the drawings to, or null for
+     everything. Lifted here because both the elevation and the plan read it
+     and the table that sets it is a third component again. */
+  const [focus, setFocus] = useState<CaptureFocus | null>(null);
 
   /* ⚠️  THE CAMERA IS FRAMED ON THE TALLEST TOWER, NOT ON THIS ONE, and that
      is the whole reason the three heights are visible.
@@ -795,6 +839,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                   elevation={e}
                   tower={tower}
                   units={units}
+                  focus={focus}
                   floor={shownFloor}
                   to={to}
                   path={path}
@@ -875,6 +920,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
                 units={plate}
                 tower={tower}
                 floor={planFloor}
+                focus={focus}
                 selected={position}
                 onSelect={setPosition}
               />
@@ -985,7 +1031,12 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
           {shownFloor !== null && shownFloor > tower.front.structure ? (
             <NotBuiltYet tower={tower} floor={shownFloor} />
           ) : (
-            <TowerProgress tower={tower} floor={shownFloor} />
+            <TowerProgress
+              tower={tower}
+              floor={shownFloor}
+              focus={focus}
+              onFocus={setFocus}
+            />
           )}
 
         </aside>
@@ -1075,6 +1126,7 @@ function Elevation({
   elevation: e,
   tower,
   units,
+  focus,
   floor,
   fade,
   shade,
@@ -1084,6 +1136,9 @@ function Elevation({
   elevation: Elevation;
   tower: Tower;
   units: UnitState[];
+  /** What the table has narrowed the question to, or null for overall
+   *  progress. */
+  focus: CaptureFocus | null;
   /** The selected storey, or null while the whole tower is selected. */
   floor: number | null;
   /** Opacity for every storey except the selected one, 1 at rest and 0 by the
@@ -1119,7 +1174,11 @@ function Elevation({
 
       /* A bay with no apartment behind it is the gable wall at either end of
          the plate. Drawn, never styled as though it held evidence. */
-      const style: PhaseStyle = unit ? styleFor(unit) : PHASE.pending;
+      const style: PhaseStyle = unit
+        ? focus
+          ? focusStyle(unit, tower, focus)
+          : styleFor(unit)
+        : PHASE.pending;
 
       /* The selected storey is outlined in ink over whatever the apartment's
          own state is, so picking a floor never hides a blocked apartment on
@@ -1563,22 +1622,16 @@ function FloorPlate({
   floor,
   selected,
   onSelect,
+  focus,
 }: {
   units: UnitState[];
   tower: Tower;
   floor: number;
+  focus: CaptureFocus | null;
   selected: number | null;
   onSelect: (p: number | null) => void;
 }) {
   const t = useT();
-  /* ⚠️  THE FILTER IS WHY THE PLAN DRAWS ROOMS AT ALL. Without it the rooms
-     are decoration — eight identical little layouts. Pick a trade and the
-     plate answers the question a site actually asks: who still owes me a
-     bathroom plumbing capture on this floor, and in which flats. Rooms that
-     trade has no work in recede, which is as much of the answer as the rooms
-     that light up. */
-  const [job, setJob] = useState<string | null>(null);
-  const chosen = JOBS.find((j) => `${j.stage}:${j.trade}` === job) ?? null;
   const front = units
     .filter((u) => u.position <= 4)
     .sort((a, b) => a.position - b.position);
@@ -1592,29 +1645,10 @@ function FloorPlate({
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-6">
-      <div className="flex w-full max-w-3xl items-center gap-2">
-        <p className="font-mono text-mono-sm uppercase text-ink-muted">
-          {t({ en: "Floor", es: "Piso" })} {floor} ·{" "}
-          {t({ en: "plate", es: "planta" })}
-        </p>
-        <div className="ml-auto flex gap-1">
-          <FilterChip on={job === null} onClick={() => setJob(null)}>
-            {t({ en: "All trades", es: "Todos" })}
-          </FilterChip>
-          {JOBS.map((j) => {
-            const key = `${j.stage}:${j.trade}`;
-            return (
-              <FilterChip
-                key={key}
-                on={job === key}
-                onClick={() => setJob(job === key ? null : key)}
-              >
-                {t(TRADE[j.trade])}
-              </FilterChip>
-            );
-          })}
-        </div>
-      </div>
+      <p className="font-mono text-mono-sm uppercase text-ink-muted">
+        {t({ en: "Floor", es: "Piso" })} {floor} ·{" "}
+        {t({ en: "plate", es: "planta" })}
+      </p>
 
       <svg
         viewBox={`0 0 ${planW} ${planD}`}
@@ -1630,7 +1664,7 @@ function FloorPlate({
             key={u.code}
             unit={u}
             tower={tower}
-            job={chosen}
+            focus={focus}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth}
             selected={selected === u.position}
@@ -1664,7 +1698,7 @@ function FloorPlate({
             key={u.code}
             unit={u}
             tower={tower}
-            job={chosen}
+            focus={focus}
             x={i * APARTMENT.width}
             y={GEOMETRY.balconyDepth + APARTMENT.depth + GEOMETRY.corridorDepth}
             flip
@@ -1692,7 +1726,7 @@ function FloorPlate({
 function ApartmentPlan({
   unit,
   tower,
-  job,
+  focus,
   x,
   y,
   flip = false,
@@ -1701,8 +1735,8 @@ function ApartmentPlan({
 }: {
   unit: UnitState;
   tower: Tower;
-  /** The trade being looked at, or null for all of them. */
-  job: { stage: string; trade: Trade } | null;
+  /** What the table has narrowed the question to, or null for all of it. */
+  focus: CaptureFocus | null;
   x: number;
   y: number;
   flip?: boolean;
@@ -1714,25 +1748,10 @@ function ApartmentPlan({
   const { width, depth, balcony } = APARTMENT;
   const cells = capturesFor(unit, tower);
 
-  /* A room's state under the current filter. Worst-first: a rejected capture
-     outranks an overdue one, which outranks work in progress — the room needs
-     to show the thing somebody has to act on, not the cheeriest thing true
-     about it. */
-  const roomStatus = (room: string): UnitPhase | "none" => {
-    const mine = cells.filter(
-      (c) =>
-        c.requirement.room === room &&
-        (!job ||
-          (c.requirement.stage === job.stage &&
-            c.requirement.trade === job.trade)),
-    );
-    if (mine.length === 0) return "none";
-    if (mine.some((c) => c.status === "problem")) return "problem";
-    if (mine.some((c) => c.status === "warning")) return "warning";
-    if (mine.some((c) => c.status === "active")) return "active";
-    if (mine.every((c) => c.status === "complete")) return "complete";
-    return "pending";
-  };
+  /* Shared with the elevation, so the two views cannot disagree about what a
+     room is doing under the same focus. */
+  const roomStatus = (room: string): UnitPhase | "none" =>
+    roomFocusState(cells, room, focus) ?? "none";
 
   /* z runs away from the facade. Flipped, the facade is at the bottom of the
      apartment's box instead of the top. */
@@ -1943,29 +1962,3 @@ function Legend() {
   );
 }
 
-/** A filter chip on the floor plate. */
-function FilterChip({
-  on,
-  onClick,
-  children,
-}: {
-  on: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      className={cn(
-        "cursor-pointer rounded-sm border px-2 py-0.5 text-body-sm transition-colors",
-        on
-          ? "border-accent text-ink"
-          : "border-line text-ink-muted hover:text-ink-secondary",
-      )}
-    >
-      {children}
-    </button>
-  );
-}

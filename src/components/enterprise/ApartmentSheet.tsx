@@ -8,6 +8,8 @@ import {
   sessionFor,
   shotSrc,
   stageByKey,
+  inFocus,
+  type CaptureFocus,
   type RequiredCapture,
   type Tower,
   type UnitPhase,
@@ -40,18 +42,23 @@ import { fmtDate, useLang, useT, type Bi } from "@/content/enterprise/lang";
    empty code.
    ========================================================================= */
 
-export function ApartmentSheet({
+export function ApartmentPane({
   unit,
   tower,
   onBack,
+  focus,
 }: {
   unit: UnitState;
   tower: Tower;
   onBack: () => void;
+  /** The table's current selection — a room, a task, or a person. */
+  focus: CaptureFocus | null;
 }) {
   const t = useT();
-  const { lang } = useLang();
   const [open, setOpen] = useState<RequiredCapture | null>(null);
+  /* Which room the plan has been clicked on. Null means the whole apartment,
+     which is how it opens. */
+  const [room, setRoom] = useState<string | null>(null);
 
   const cells = useMemo(() => capturesFor(unit, tower), [unit, tower]);
 
@@ -60,6 +67,18 @@ export function ApartmentSheet({
     [unit, tower],
   );
 
+  /* Photographs per room, for the plan above the grid. Only captures that
+     exist are counted — a room with four requirements and none met should not
+     advertise a four. */
+  const perRoom = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const c of cells) {
+      if (c.status !== "complete" && c.status !== "problem") continue;
+      counts.set(c.requirement.room, (counts.get(c.requirement.room) ?? 0) + 1);
+    }
+    return counts;
+  }, [cells]);
+
   const at = (room: string, stage: string, trade: string) =>
     cells.find(
       (c) =>
@@ -67,6 +86,28 @@ export function ApartmentSheet({
         c.requirement.stage === stage &&
         c.requirement.trade === trade,
     ) ?? null;
+
+  /* ⚠️  WHAT IS SHOWN IS WHAT IS SELECTED, from either direction: the room
+     clicked on the plan and the row clicked in the progress table, together.
+     Pick Mario and you see Mario's captures; pick the kitchen and you see the
+     kitchen's; pick both and you see his work in that room.
+
+     They FILTER rather than dim. Dimming was the first attempt and it keeps
+     the shape of the whole checklist on screen, which is honest but useless at
+     this size — twenty-two cells at thirty percent opacity around the four you
+     asked for. The header keeps counting the whole apartment, so the total
+     never silently shrinks with the view. */
+  const shown = cells.filter(
+    (c) => inFocus(c, focus) && (!room || c.requirement.room === room),
+  );
+  const shownRooms = CAPTURE_ROOMS.filter((r) =>
+    shown.some((c) => c.requirement.room === r.key),
+  );
+  const shownJobs = JOBS.filter((j) =>
+    shown.some(
+      (c) => c.requirement.stage === j.stage && c.requirement.trade === j.trade,
+    ),
+  );
 
   const done = cells.filter((c) => c.status === "complete").length;
   const blocked = cells.filter((c) => c.status === "problem").length;
@@ -89,7 +130,7 @@ export function ApartmentSheet({
           {APARTMENT.area.toFixed(0)} m²
         </span>
 
-        <div className="ml-auto flex items-baseline gap-5">
+        <div className="ml-auto flex items-baseline gap-4">
           <Figure
             value={`${done}/${cells.length}`}
             label={t({ en: "Captures", es: "Capturas" })}
@@ -111,33 +152,67 @@ export function ApartmentSheet({
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-auto p-5">
+      {/* ⚠️  THE PLAN TAKES A FIXED SLICE AND THE CAPTURES TAKE THE REST. This
+          pane is far narrower than the full-screen sheet it replaced — the
+          progress panel keeps its place on the right — so both halves cannot
+          be given room to breathe. The plan is the one that gives way: it is
+          an index, and you only have to recognise a room in it. */}
+      {/* ⚠️  THE PLAN IS THE CONTROL, not an illustration. It was a 132px
+          thumbnail under the header and the grid below it showed all 22 cells
+          at once — which is the whole checklist whether or not you care about
+          the kitchen. Clicking a room now narrows what is shown, so the plan
+          earns the room it takes. */}
+      <div className="shrink-0 border-b border-line px-4 py-3">
+        <RoomPlan
+          counts={perRoom}
+          selected={room}
+          onSelect={(key) => setRoom(key === room ? null : key)}
+        />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-auto p-4">
+        {/* ⚠️  AN EMPTY RESULT HAS TO SAY SO. A person focus can legitimately
+            match nothing in one apartment — Mario plumbed the kitchen on this
+            floor and Luigi did the one next door — and a blank pane reads as
+            a bug rather than as an answer. */}
+        {shown.length === 0 && (
+          <p className="text-body-sm text-ink-secondary">
+            {t({
+              en: "Nothing in this apartment matches the current selection.",
+              es: "Nada en este apartamento coincide con la selección actual.",
+            })}
+          </p>
+        )}
+
         <table className="w-full border-separate border-spacing-0">
           <thead>
             <tr>
-              <th className="sticky left-0 z-10 w-36 bg-canvas pb-2 pr-3 text-left align-bottom">
+              <th className="sticky left-0 z-10 w-28 bg-canvas pb-2 pr-3 text-left align-bottom">
                 <span className="font-mono text-mono-sm uppercase text-ink-muted">
                   {t({ en: "Room", es: "Ambiente" })}
                 </span>
               </th>
-              {JOBS.map((job, i) => (
+              {shownJobs.map((job) => (
                 <th key={`${job.stage}-${job.trade}`} className="pb-2 pl-3 text-left align-bottom">
-                  <JobHeader job={job} session={sessions[i]} lang={lang} />
+                  <JobHeader
+                    job={job}
+                    session={sessions[JOBS.indexOf(job)]}
+                  />
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {CAPTURE_ROOMS.map((room) => (
-              <tr key={room.key}>
+            {shownRooms.map((row) => (
+              <tr key={row.key}>
                 <th
                   scope="row"
                   className="sticky left-0 z-10 border-t border-line bg-canvas py-2 pr-3 text-left align-middle"
                 >
-                  <span className="text-body-sm text-ink">{t(room.name)}</span>
+                  <span className="text-body-sm text-ink">{t(row.name)}</span>
                 </th>
-                {JOBS.map((job) => {
-                  const cell = at(room.key, job.stage, job.trade);
+                {shownJobs.map((job) => {
+                  const cell = at(row.key, job.stage, job.trade);
                   return (
                     <td
                       key={`${job.stage}-${job.trade}`}
@@ -199,16 +274,111 @@ function Figure({
 
 /* ── A column: one job, one certificate ──────────────────────────────────── */
 
+/** The apartment in plan, as an index to the grid below it. Small on purpose:
+ *  the grid is the content and this is the key to it. */
+function RoomPlan({
+  counts,
+  selected,
+  onSelect,
+}: {
+  counts: Map<string, number>;
+  selected: string | null;
+  onSelect: (key: string) => void;
+}) {
+  const t = useT();
+  const { width, depth, balcony } = APARTMENT;
+
+  return (
+    <svg
+      viewBox={`-0.3 ${-balcony.depth - 0.3} ${width + 0.6} ${depth + balcony.depth + 0.6}`}
+      className="h-[232px] w-full"
+      role="img"
+      aria-label={t({ en: "Apartment plan", es: "Planta del apartamento" })}
+    >
+      <g className="cursor-pointer" onClick={() => onSelect("balcon")}>
+        <rect
+          x={balcony.x}
+          y={-balcony.depth}
+          width={balcony.width}
+          height={balcony.depth}
+          fill={selected === "balcon" ? "var(--accent-subtle)" : "var(--surface-sunken)"}
+          stroke={selected === "balcon" ? "var(--accent)" : "var(--line-strong)"}
+          strokeWidth={selected === "balcon" ? 0.14 : 0.06}
+        />
+        <text
+          x={balcony.x + balcony.width / 2}
+          y={-balcony.depth / 2 + 0.14}
+          textAnchor="middle"
+          className="font-mono"
+          fontSize={0.34}
+          fill="var(--ink-muted)"
+        >
+          {t({ en: "Balcony", es: "Balcón" })}
+        </text>
+      </g>
+      {APARTMENT.rooms.map((r) => (
+        <g
+          key={r.key}
+          className="cursor-pointer"
+          onClick={() => onSelect(r.key)}
+        >
+          <rect
+            x={r.x}
+            y={r.z}
+            width={r.w}
+            height={r.d}
+            fill={selected === r.key ? "var(--accent-subtle)" : "var(--surface)"}
+            stroke={selected === r.key ? "var(--accent)" : "var(--line-strong)"}
+            strokeWidth={selected === r.key ? 0.14 : 0.06}
+          />
+          <text
+            x={r.x + r.w / 2}
+            y={r.z + r.d / 2 + 0.1}
+            textAnchor="middle"
+            className="font-mono"
+            fontSize={0.36}
+            fill="var(--ink-secondary)"
+          >
+            {t(r.name)}
+          </text>
+          {(counts.get(r.key) ?? 0) > 0 && (
+            <text
+              x={r.x + r.w / 2}
+              y={r.z + r.d / 2 + 0.72}
+              textAnchor="middle"
+              className="font-mono"
+              fontSize={0.32}
+              fill="var(--ink-muted)"
+            >
+              {counts.get(r.key)}
+            </text>
+          )}
+        </g>
+      ))}
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={depth}
+        fill="none"
+        stroke="var(--ink-muted)"
+        strokeWidth={0.09}
+      />
+    </svg>
+  );
+}
+
+/* ── A column: one job, one certificate ──────────────────────────────────── */
+
 function JobHeader({
   job,
   session,
-  lang,
 }: {
   job: { stage: string; trade: string };
   session: ReturnType<typeof sessionFor>;
-  lang: "en" | "es";
 }) {
   const t = useT();
+  const { lang } = useLang();
   const stage = stageByKey.get(job.stage);
 
   return (

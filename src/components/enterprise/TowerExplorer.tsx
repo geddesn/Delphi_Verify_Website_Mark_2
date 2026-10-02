@@ -19,7 +19,7 @@ import {
   type UnitState,
 } from "@/content/enterprise/world";
 import { useLang, useT, type Bi } from "@/content/enterprise/lang";
-import { ApartmentSheet } from "@/components/enterprise/ApartmentSheet";
+import { ApartmentPane } from "@/components/enterprise/ApartmentSheet";
 import { TowerProgress } from "@/components/enterprise/SiteProgress";
 import { cn } from "@/lib/cn";
 
@@ -494,7 +494,7 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
   const [towerKey, setTowerKey] = useState(initialTower.key);
   const [angle, setAngle] = useState(DEFAULT_ANGLE);
-  const [view, setView] = useState<"block" | "plan">("block");
+  const [view, setView] = useState<"block" | "plan" | "unit">("block");
   /* How far the view has flown from the block toward the plan. 0 is the
      three-quarter block, 1 is straight down with the room plan showing.
      `view` is the INTENTION and this is where the picture actually is — they
@@ -711,7 +711,9 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      animations fighting over one value. This reads the current intention every
      frame and turns round wherever it is, so a double-click just reverses. */
   useEffect(() => {
-    const want = view === "plan" ? 1 : 0;
+    /* The unit view is reached from the plan and sits over it, so the camera
+       stays where the plan left it rather than flying home and back. */
+    const want = view === "block" ? 0 : 1;
 
     /* A viewer who has asked for less motion gets the destination, not the
        journey. The two views are both complete pictures; only the flight
@@ -751,8 +753,8 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
      still read "All floors" and the panel still summarised the whole tower —
      three parts of the screen describing different scopes at once. Entering
      the plan now commits to the storey it is about to draw. */
-  const show = (next: "block" | "plan") => {
-    if (next === "plan" && floor === null) setFloor(planFloor);
+  const show = (next: "block" | "plan" | "unit") => {
+    if (next !== "block" && floor === null) setFloor(planFloor);
     setView(next);
   };
 
@@ -764,21 +766,6 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
        tower it may not be a storey that exists. */
     setFloor(null);
   };
-
-  /* ⚠️  THE SHEET REPLACES THE EXPLORER RATHER THAN SHARING IT. An
-     apartment's captures are a dozen photographs grouped into certificates,
-     and squeezing them into the 23rem aside made thumbnails too small to be
-     evidence of anything. Tower → floor → apartment is a drill-down, and the
-     last step gets the whole frame like the two before it. */
-  if (selected) {
-    return (
-      <ApartmentSheet
-        unit={selected}
-        tower={tower}
-        onBack={() => setPosition(null)}
-      />
-    );
-  }
 
   return (
     <div className="flex h-full w-full flex-col bg-canvas">
@@ -793,6 +780,19 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
 
       <div className="flex min-h-0 flex-1">
         <div className="relative flex min-w-0 flex-1 items-center justify-center">
+          {/* The apartment, over the plan it was chosen from. The panel on the
+              right is untouched: drilling in narrows the drawing, not the
+              instruments beside it. */}
+          {view === "unit" && selected && (
+            <div className="absolute inset-0 z-20">
+              <ApartmentPane
+                unit={selected}
+                tower={tower}
+                focus={focus}
+                onBack={() => show("plan")}
+              />
+            </div>
+          )}
           {/* Both layers are mounted through the flight and crossfade; only
               once the move has finished is the far one taken out of the tree.
               Unmounting either mid-flight is what produces the empty frame
@@ -1022,18 +1022,54 @@ export function TowerExplorer({ showHeader = true, initialTower = TOWERS[1] }: {
             onFloor={setFloor}
           />
 
-          <button
-            type="button"
-            onClick={() => show(view === "plan" ? "block" : "plan")}
-            className="cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
-          >
-            {view === "plan"
-              ? t({ en: "← Back to the tower", es: "← Volver a la torre" })
-              : t({
-                  en: `Floor ${planFloor} details →`,
-                  es: `Detalles del piso ${planFloor} →`,
+          {/* ⚠️  SELECTING IS NOT OPENING. Clicking an apartment on the plan
+              used to drop you straight into its sheet, which is a view change
+              nobody asked for — you were picking a flat, not leaving the
+              floor. The click selects; these buttons are how you move, and
+              each names where it goes.
+
+              Both are present in the plan: going in and going back out are
+              different journeys, and offering only the one you have not taken
+              strands whoever wanted the other. */}
+          <div className="flex flex-col gap-2">
+            {view === "plan" && selected && (
+              <button
+                type="button"
+                onClick={() => show("unit")}
+                className="cursor-pointer rounded-sm border border-accent px-3 py-1.5 text-body-sm text-ink transition-colors hover:bg-surface-sunken"
+              >
+                {t({
+                  en: `Apartment ${selected.code} details →`,
+                  es: `Detalles del apartamento ${selected.code} →`,
                 })}
-          </button>
+              </button>
+            )}
+
+            <button
+              type="button"
+              /* One step back, not two: from an apartment you came from its
+                 floor, and skipping the floor on the way out loses the place
+                 you were working in. */
+              onClick={() =>
+                show(
+                  view === "block" ? "plan" : view === "unit" ? "plan" : "block",
+                )
+              }
+              className="cursor-pointer rounded-sm border border-line px-3 py-1.5 text-body-sm text-ink-secondary transition-colors hover:border-line-strong hover:text-ink"
+            >
+              {view === "block"
+                ? t({
+                    en: `Floor ${planFloor} details →`,
+                    es: `Detalles del piso ${planFloor} →`,
+                  })
+                : view === "unit"
+                  ? t({
+                      en: `← Back to floor ${planFloor}`,
+                      es: `← Volver al piso ${planFloor}`,
+                    })
+                  : t({ en: "← Back to the tower", es: "← Volver a la torre" })}
+            </button>
+          </div>
 
           {/* The selector stays reachable whatever is selected, so a storey
               above the build front narrows only the panel below it rather than
@@ -1065,7 +1101,7 @@ function ExplorerHeader({
 }: {
   tower: Tower;
   onTower: (key: string) => void;
-  view: "block" | "plan";
+  view: "block" | "plan" | "unit";
   onView: (v: "block" | "plan") => void;
 }) {
   const t = useT();

@@ -1431,3 +1431,219 @@ export function imageFor(cell: RequiredCapture): string {
     ? defectImage(cell.requirement)
     : cell.requirement.image;
 }
+
+/* ── Figures for the analysis page ───────────────────────────────────────── */
+
+/** How far each stage has climbed in each tower.
+ *
+ *  The chart a head of construction actually draws on a whiteboard: six stages
+ *  against the height of the block, and the GAP between two lines is the thing
+ *  being read. Structure at 14 and rough-in at 9 means five floors of shell
+ *  standing empty — capacity the trades have not caught up with. */
+export type FrontRow = { stage: string; reached: number; of: number };
+
+export function buildFront(tower: Tower): FrontRow[] {
+  return STAGES.map((stage) => {
+    const reached =
+      stage.level === "tower"
+        ? tower.siteworks[stage.key as "plot" | "foundations"]
+          ? tower.floors
+          : 0
+        : stage.key === "structure"
+          ? tower.front.structure
+          : (tower.front[stage.key as keyof Tower["front"]] ?? 0);
+    return { stage: stage.key, reached, of: tower.floors };
+  });
+}
+
+/** Certificates published per calendar month across the development.
+ *
+ *  ⚠️  COUNTED FROM THE SESSIONS THEMSELVES, not estimated from progress. Every
+ *  apartment is asked for every job and the ones that have published are
+ *  tallied by month, so the series is the same data the apartment sheets show.
+ *  It is cached because it walks 516 apartments four times. */
+export type MonthCount = { month: string; count: number };
+
+let monthsCache: MonthCount[] | null = null;
+
+export function certificatesByMonth(): MonthCount[] {
+  if (monthsCache) return monthsCache;
+
+  const counts = new Map<string, number>();
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      if (unit.sealed === 0) continue;
+      for (const job of JOBS) {
+        const session = sessionFor(unit, tower, job);
+        if (!session) continue;
+        const month = session.date.slice(0, 7);
+        counts.set(month, (counts.get(month) ?? 0) + 1);
+      }
+    }
+  }
+
+  monthsCache = [...counts.entries()]
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+  return monthsCache;
+}
+
+/** Outstanding work by subcontractor, which is the level accountability runs
+ *  at — a firm is who you ring, an individual is who answers. */
+export type FirmRow = {
+  firm: string;
+  trade: Trade;
+  people: number;
+  pending: number;
+  active: number;
+  warning: number;
+  problem: number;
+  complete: number;
+  total: number;
+};
+
+export function backlogByFirm(): FirmRow[] {
+  const rows = new Map<string, FirmRow>();
+
+  for (const row of siteProgress()) {
+    const person = crewById.get(row.capturer);
+    if (!person) continue;
+    const firm = person.org.en;
+
+    let entry = rows.get(firm);
+    if (!entry) {
+      entry = {
+        firm,
+        trade: person.trade,
+        people: 0,
+        pending: 0,
+        active: 0,
+        warning: 0,
+        problem: 0,
+        complete: 0,
+        total: 0,
+      };
+      rows.set(firm, entry);
+    }
+    for (const k of ["pending", "active", "warning", "problem", "complete"] as const) {
+      entry[k] += row[k];
+    }
+    entry.total += row.total;
+  }
+
+  for (const entry of rows.values()) {
+    entry.people = CREW.filter((c) => c.org.en === entry.firm).length;
+  }
+
+  /* Most outstanding first: the point of the chart is who to ring. */
+  return [...rows.values()].sort(
+    (a, b) => b.problem + b.warning - (a.problem + a.warning) || b.pending - a.pending,
+  );
+}
+
+/* ── The review queue ────────────────────────────────────────────────────── */
+
+/** The latest day anything was captured — the demo's present.
+ *
+ *  Derived from the sessions rather than typed, so it cannot fall behind the
+ *  data the way a hard-coded "today" does. */
+export const TODAY: string = (() => {
+  let latest: string = DEVELOPMENT.started;
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      if (unit.sealed === 0) continue;
+      for (const job of JOBS) {
+        const s = sessionFor(unit, tower, job);
+        if (s && s.date > latest) latest = s.date;
+      }
+    }
+  }
+  return latest;
+})();
+
+const DAY = 86_400_000;
+
+/** How many days before TODAY a certificate was published. */
+function ageInDays(date: string) {
+  return Math.round(
+    (Date.parse(`${TODAY}T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`)) / DAY,
+  );
+}
+
+/** Has somebody looked at this certificate yet?
+ *
+ *  ⚠️  REVIEW IS A HUMAN ACT, AND THE PRODUCT DOES NOT DO IT. There is no
+ *  approval or sign-off workflow — a recipient opens a public certificate and
+ *  forms a view. This models the thing a developer actually wants and does not
+ *  have, which is why it belongs in the gap analysis rather than being quietly
+ *  presented as shipped.
+ *
+ *  Recent work is unreviewed because nobody has got to it; a few older ones
+ *  are unreviewed because they were missed, which is the backlog worth
+ *  surfacing. */
+export function isReviewed(
+  unit: UnitState,
+  tower: Tower,
+  job: { stage: string; trade: Trade },
+  date: string,
+): boolean {
+  const age = ageInDays(date);
+  if (age <= 21) return false;
+  /* About one older certificate in twelve was never looked at. */
+  return hash01(`${tower.key}-${unit.code}-${job.stage}-${job.trade}:review`) > 0.08;
+}
+
+export type ReviewItem = {
+  tower: Tower;
+  unit: UnitState;
+  job: { stage: string; trade: Trade };
+  session: PublishedSession;
+  shots: RequiredCapture[];
+  ageDays: number;
+};
+
+let queueCache: ReviewItem[] | null = null;
+
+/** Certificates nobody has looked at, newest first.
+ *
+ *  Newest first rather than oldest: a review queue sorted by age puts the
+ *  stragglers at the top every morning and buries the work that just came in,
+ *  which is the work somebody is waiting on. The age column is there for the
+ *  stragglers. */
+export function reviewQueue(): ReviewItem[] {
+  if (queueCache) return queueCache;
+
+  const out: ReviewItem[] = [];
+  for (const tower of TOWERS) {
+    for (const unit of UNITS[tower.key]) {
+      if (unit.sealed === 0) continue;
+      const cells = capturesFor(unit, tower);
+      for (const job of JOBS) {
+        const session = sessionFor(unit, tower, job);
+        if (!session) continue;
+        if (isReviewed(unit, tower, job, session.date)) continue;
+
+        const shots = cells.filter(
+          (c) =>
+            c.published &&
+            c.requirement.stage === job.stage &&
+            c.requirement.trade === job.trade &&
+            (c.status === "complete" || c.status === "problem"),
+        );
+        if (shots.length === 0) continue;
+
+        out.push({
+          tower,
+          unit,
+          job,
+          session,
+          shots,
+          ageDays: ageInDays(session.date),
+        });
+      }
+    }
+  }
+
+  queueCache = out.sort((a, b) => b.session.date.localeCompare(a.session.date));
+  return queueCache;
+}

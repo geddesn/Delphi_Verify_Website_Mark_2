@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import { ActiveWork, Sidebar, TopBar } from "@/components/renderings/WebDashboard";
 import { ORG } from "@/content/dashboard";
 import { SiteProgress } from "@/components/enterprise/SiteProgress";
+import { AnalysisCharts } from "@/components/enterprise/AnalysisCharts";
+import { ReviewQueue } from "@/components/enterprise/ReviewQueue";
 import { CREW, TRADE } from "@/content/enterprise/world";
 import { useT } from "@/content/enterprise/lang";
 import { cn } from "@/lib/cn";
@@ -20,8 +22,14 @@ import { cn } from "@/lib/cn";
    the second, under one heading.
    ========================================================================= */
 
+/* ⚠️  OVERVIEW FIRST, THEN THE DETAIL, THEN THE QUEUE, THEN THE PEOPLE. The
+   order is the order somebody opens them: how is it going, where exactly, what
+   needs me today, who do I ring. Team is last because it answers the question
+   the other three raise, not one anybody arrives with. */
 const TABS = [
+  { key: "overview", label: "Overview" },
   { key: "progress", label: "Capture progress" },
+  { key: "review", label: "Review" },
   { key: "team", label: "Team" },
 ] as const;
 
@@ -37,7 +45,7 @@ export default function PlatformAppSection() {
 /* ── Analysis ────────────────────────────────────────────────────────────── */
 
 function Analysis() {
-  const [tab, setTab] = useState<TabKey>("progress");
+  const [tab, setTab] = useState<TabKey>("overview");
 
   return (
     <Shell active="Analysis" title="Analysis" eyebrow={ORG.workspace}>
@@ -66,7 +74,15 @@ function Analysis() {
       </div>
 
       <div className="mt-6">
-        {tab === "progress" ? <SiteProgress /> : <Crew />}
+        {tab === "overview" ? (
+          <AnalysisCharts />
+        ) : tab === "progress" ? (
+          <SiteProgress />
+        ) : tab === "review" ? (
+          <ReviewQueue />
+        ) : (
+          <Crew />
+        )}
       </div>
     </Shell>
   );

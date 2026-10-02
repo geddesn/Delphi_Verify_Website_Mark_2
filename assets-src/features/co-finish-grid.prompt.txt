@@ -1,0 +1,82 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  010a1a3c-e822-48a4-9967-a4dfe237b685
+
+Photorealistic interior photography presented as a 3x2 GRID OF SIX SEPARATE
+PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell
+to all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE APARTMENT
+A newly completed, modest apartment in a Colombian mid-rise tower, inland
+tropical city, handed over empty and unfurnished. About 58 square metres.
+Smooth white painted walls, plain pale ceramic floor tiles, white skirting,
+simple white doors with plain lever handles, aluminium sliding windows.
+Economical and well made, NOT luxury: no marble, no stone, no timber
+panelling, no designer fittings, no styling, no furniture, no plants, no rugs.
+Bright flat tropical daylight through the windows.
+
+THE SIX
+
+1 TOP-LEFT. LIVING AND DINING. The main room, empty, with a large aluminium
+sliding door in the far wall opening onto a balcony with a plain metal
+handrail, daylight coming through it. Pale tiled floor, white walls, a single
+ceiling light fitting. Square-on from the opposite corner, both side walls and
+the floor visible.
+
+2 TOP-CENTRE. KITCHEN. A small fitted kitchen along one wall: plain white or
+light grey flat-fronted cabinets, a simple light worktop, stainless sink,
+white tiled splashback, gas hob point, extractor. No appliances beyond the
+hob, no food, no utensils. Square-on to the run of units.
+
+3 TOP-RIGHT. BATHROOM. A small bathroom finished in plain large-format pale
+ceramic wall and floor tiles, white WC, white basin on a simple vanity, glass
+shower screen, chrome fittings, a plain mirror. Empty, nothing on any surface.
+Square-on from the doorway.
+
+4 BOTTOM-LEFT. MAIN BEDROOM. An empty bedroom, white walls, pale tiled floor,
+a built-in white wardrobe with plain sliding doors along one wall, an aluminium
+window. Square-on, the wardrobe and the window both in frame.
+
+5 BOTTOM-CENTRE. BALCONY. The balcony itself, seen from inside standing at the
+sliding door: a small tiled balcony with a plain metal handrail and a view out
+over other residential towers and green hills under a bright hazy sky. The
+handrail and the balcony floor clearly visible.
+
+6 BOTTOM-RIGHT. ENTRANCE HALL. The small entrance hall just inside the front
+door: a plain white apartment door with a simple lock, a closed white electrical
+consumer unit on the wall beside it, tiled floor, white walls. Square-on to the
+door.
+
+HOW THEY ARE PHOTOGRAPHED
+As handover record photographs, not as an estate agent's brochure. Square-on,
+verticals true, even light, everything legible including the corners and the
+floor. Taken on a phone by someone documenting the condition of an empty flat.
+No shafts of sun, no vignette, no shallow depth of field, no artful crops, no
+staging.
+
+STRICTLY NOT
+No people anywhere, including reflections. No furniture, no decoration, no
+plants, no towels, no artwork. No labels, captions, arrows, numbering or
+watermarks. No text of any kind.
+
+CRITICAL - SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, labels, callouts, annotations, user interface, diagrams, dots, markers,
+arrows or lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level. Verticals true, no converging
+distortion, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Bright flat neutral daylight in every frame, consistent across all six. Clean
+white and pale grey palette. Neutral filmic grade, no saturation push, no HDR,
+no golden hour, no warm styling.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Any visible seam,
+frame or gap between cells. Anything that looks expensive or styled.

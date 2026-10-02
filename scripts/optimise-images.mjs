@@ -161,6 +161,35 @@ const GROUPS = [
       { file: "conceal-structural.png", name: "conceal-structural" },
       { file: "conceal-waterproofing-covered.png", name: "conceal-waterproofing-covered" },
       { file: "conceal-wall-covered.png", name: "conceal-wall-covered" },
+      /* ── Colombian apartment, rough-in and handover ──
+         Twelve cells from two 3x2 renders, for /platform/enterprise.
+
+         They exist because that page was borrowing: ONE conceal-electrical
+         photograph stood in for six different rooms' electrical captures, and
+         the finished rooms were the prime-London cadogan-* set standing in for
+         a mass-market apartment in Jamundi. Both read as stock on second
+         glance, on a page whose subject is evidence being what it says it is.
+
+         The two grids are one apartment before and after the walls close, so
+         the rough-in and finished shots of a room are of the same room. Keep
+         them that way: reshoot one grid and the other no longer matches.
+
+         ⚠️  THE CADOGAN SET ONLY EXISTS AT 240 AND 878. That is why these are
+         here in `features` rather than being added to `captures` — the
+         enterprise sheet asks for 480 and 960, and against the capture set
+         those were silent 404s in the browser. */
+      { file: "co-kitchen-plumbing.png", name: "co-kitchen-plumbing" },
+      { file: "co-bath-plumbing.png", name: "co-bath-plumbing" },
+      { file: "co-sala-electrical.png", name: "co-sala-electrical" },
+      { file: "co-bedroom-electrical.png", name: "co-bedroom-electrical" },
+      { file: "co-kitchen-electrical.png", name: "co-kitchen-electrical" },
+      { file: "co-hall-board.png", name: "co-hall-board" },
+      { file: "co-sala-finished.png", name: "co-sala-finished" },
+      { file: "co-kitchen-finished.png", name: "co-kitchen-finished" },
+      { file: "co-bath-finished.png", name: "co-bath-finished" },
+      { file: "co-bedroom-finished.png", name: "co-bedroom-finished" },
+      { file: "co-balcony-finished.png", name: "co-balcony-finished" },
+      { file: "co-hall-finished.png", name: "co-hall-finished" },
 
       /* PLACEHOLDER, and named for the slot rather than the picture so that
          replacing it is a file drop and nothing else. Nick is supplying a

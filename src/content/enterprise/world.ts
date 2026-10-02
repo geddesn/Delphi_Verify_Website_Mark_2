@@ -805,8 +805,8 @@ export const crewById = new Map(CREW.map((c) => [c.id, c]));
 /* The photographs are REAL FILES from the site's own library, reused because
    this is a rendering rather than a photograph of shipped software and
    commissioning a shoot of a Colombian apartment at rough-in would not make
-   it more honest. They are chosen to match the subject: conceal-pipework and
-   conceal-waterproofing genuinely are water and waste before the walls close.
+   it more honest. They were generated for this page: two 3x2 grids of one
+   Colombian apartment, before and after the walls close.
 
    ⚠️  THE IMAGE IS CHOSEN BY ROOM AND STAGE, NOT AT RANDOM. A viewer who sees
    a bathroom photograph filed against the kitchen learns that none of it is
@@ -839,39 +839,45 @@ export type Requirement = {
 
 /* ⚠️  THE IMAGE IS CHOSEN BY ROOM AND TRADE, NOT AT RANDOM. A viewer who sees
    a bathroom photograph filed against the kitchen learns that none of it is
-   real, which is the one thing this page cannot afford. The photographs are
-   the site's own library, reused because this is a rendering rather than a
-   photograph of shipped software — but conceal-pipework and conceal-electrical
-   genuinely are water and conduit before the walls close. */
+   real, which is the one thing this page cannot afford.
+
+   These twelve were generated for this page rather than borrowed: the sheet
+   previously used ONE conceal-electrical photograph for all six rooms'
+   electrical captures, and prime-London interiors for the finished rooms of a
+   mass-market apartment in Jamundi. Both read as stock on a second look.
+
+   The two grids are the same apartment before and after the walls close, so a
+   room's rough-in and finished shots are of the same room. See
+   assets-src/features/co-roughin-grid.prompt.txt. */
 export const REQUIREMENTS: Requirement[] = [
   /* Plumbing goes only where there is water. Two rooms out of seven, which is
      the whole reason this is a grid rather than a list. */
-  { room: "cocina", trade: "plumbing", stage: "rough-in", image: "conceal-pipework", what: { en: "Water, waste and gas points", es: "Puntos de agua, desagüe y gas" } },
-  { room: "bano", trade: "plumbing", stage: "rough-in", image: "conceal-waterproofing", what: { en: "Sanitary points and waterproofing", es: "Puntos sanitarios e impermeabilización" } },
+  { room: "cocina", trade: "plumbing", stage: "rough-in", image: "co-kitchen-plumbing", what: { en: "Water, waste and gas points", es: "Puntos de agua, desagüe y gas" } },
+  { room: "bano", trade: "plumbing", stage: "rough-in", image: "co-bath-plumbing", what: { en: "Sanitary points and waterproofing", es: "Puntos sanitarios e impermeabilización" } },
 
   /* Electrical goes everywhere, including the hall. */
-  { room: "sala", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Conduit and outlet boxes", es: "Ductería y cajas de salida" } },
-  { room: "principal", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
-  { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
-  { room: "cocina", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" } },
-  { room: "bano", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
-  { room: "hall", trade: "electrical", stage: "rough-in", image: "conceal-electrical", what: { en: "Board and feed", es: "Tablero y acometida" } },
+  { room: "sala", trade: "electrical", stage: "rough-in", image: "co-sala-electrical", what: { en: "Conduit and outlet boxes", es: "Ductería y cajas de salida" } },
+  { room: "principal", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
+  { room: "alcoba2", trade: "electrical", stage: "rough-in", image: "co-bedroom-electrical", what: { en: "Bedroom circuits", es: "Circuitos de alcoba" } },
+  { room: "cocina", trade: "electrical", stage: "rough-in", image: "co-kitchen-electrical", what: { en: "Appliance circuits", es: "Circuitos de electrodomésticos" } },
+  { room: "bano", trade: "electrical", stage: "rough-in", image: "co-bath-plumbing", what: { en: "Lighting and extractor", es: "Iluminación y extractor" } },
+  { room: "hall", trade: "electrical", stage: "rough-in", image: "co-hall-board", what: { en: "Board and feed", es: "Tablero y acometida" } },
 
-  { room: "sala", trade: "finishes", stage: "finishes", image: "rental-reception-checkin", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" } },
-  { room: "principal", trade: "finishes", stage: "finishes", image: "rental-bedroom", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
-  { room: "alcoba2", trade: "finishes", stage: "finishes", image: "cadogan-principal-bedroom", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
-  { room: "cocina", trade: "finishes", stage: "finishes", image: "rental-kitchen", what: { en: "Cabinetry and worktop", es: "Mobiliario y mesón" } },
-  { room: "bano", trade: "finishes", stage: "finishes", image: "rental-bathroom", what: { en: "Tiling and fittings", es: "Enchape y aparatos" } },
-  { room: "hall", trade: "finishes", stage: "finishes", image: "rental-entrance-hall", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" } },
-  { room: "balcon", trade: "finishes", stage: "finishes", image: "rental-garden", what: { en: "Floor and handrail", es: "Piso y pasamanos" } },
+  { room: "sala", trade: "finishes", stage: "finishes", image: "co-sala-finished", what: { en: "Floor, paint and skirting", es: "Piso, pintura y guardaescoba" } },
+  { room: "principal", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
+  { room: "alcoba2", trade: "finishes", stage: "finishes", image: "co-bedroom-finished", what: { en: "Finishes and wardrobe", es: "Acabados y closet" } },
+  { room: "cocina", trade: "finishes", stage: "finishes", image: "co-kitchen-finished", what: { en: "Cabinetry and worktop", es: "Mobiliario y mesón" } },
+  { room: "bano", trade: "finishes", stage: "finishes", image: "co-bath-finished", what: { en: "Tiling and fittings", es: "Enchape y aparatos" } },
+  { room: "hall", trade: "finishes", stage: "finishes", image: "co-hall-finished", what: { en: "Door, frame and lock", es: "Puerta, marco y cerradura" } },
+  { room: "balcon", trade: "finishes", stage: "finishes", image: "co-balcony-finished", what: { en: "Floor and handrail", es: "Piso y pasamanos" } },
 
-  { room: "sala", trade: "own", stage: "handover", image: "cadogan-reception-room", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "principal", trade: "own", stage: "handover", image: "cadogan-principal-bedroom", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "alcoba2", trade: "own", stage: "handover", image: "cadogan-study", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "cocina", trade: "own", stage: "handover", image: "cadogan-kitchen", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" } },
-  { room: "bano", trade: "own", stage: "handover", image: "cadogan-bathroom", what: { en: "Condition at handover", es: "Estado de entrega" } },
-  { room: "hall", trade: "own", stage: "handover", image: "cadogan-entrance-hall", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" } },
-  { room: "balcon", trade: "own", stage: "handover", image: "rental-garden", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "sala", trade: "own", stage: "handover", image: "co-sala-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "principal", trade: "own", stage: "handover", image: "co-bedroom-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "alcoba2", trade: "own", stage: "handover", image: "co-bedroom-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "cocina", trade: "own", stage: "handover", image: "co-kitchen-finished", what: { en: "Appliances and meters", es: "Electrodomésticos y medidores" } },
+  { room: "bano", trade: "own", stage: "handover", image: "co-bath-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
+  { room: "hall", trade: "own", stage: "handover", image: "co-hall-finished", what: { en: "Keys and snag list", es: "Llaves y lista de pendientes" } },
+  { room: "balcon", trade: "own", stage: "handover", image: "co-balcony-finished", what: { en: "Condition at handover", es: "Estado de entrega" } },
 ];
 
 /** The columns of the grid: one per (stage, trade), in build order. Each is
@@ -905,8 +911,13 @@ export const CAPTURE_ROOMS: { key: string; name: Bi }[] = [
  *  Cadogan capture set and the concealed-work shots from the feature set; both
  *  are on disk at 240, 480, 960 and 1920. */
 export function shotSrc(image: string, width: 240 | 480 | 960) {
-  const dir = image.startsWith("cadogan-") ? "captures" : "features";
-  return `/assets/${dir}/${image}-${width}.webp`;
+  /* ⚠️  EVERY CAPTURE IMAGE LIVES IN `features`, and must. The cadogan-*
+     capture set is built at 240 and 878 only — it exists to be thumbnails on
+     the evidence record — so asking it for 480 or 960 returned 404s that
+     showed as empty frames with no console error. The apartment sheet asks
+     for both. Anything added here has to be registered in the `features`
+     group of scripts/optimise-images.mjs, which builds 240/480/960/1920. */
+  return `/assets/features/${image}-${width}.webp`;
 }
 
 /** One certificate: one job, one photographer, the captures it holds. */

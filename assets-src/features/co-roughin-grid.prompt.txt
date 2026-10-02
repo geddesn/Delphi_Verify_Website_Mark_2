@@ -1,0 +1,78 @@
+model: seedream5_pro
+ratio: 2720:1530
+task:  2b0b98d0-2111-4c4e-b012-c709050cd064
+
+Photorealistic construction record photography presented as a 3x2 GRID OF SIX
+SEPARATE PHOTOGRAPHS in one image, nobody present in any frame.
+
+THE GRID
+Three columns, two rows. Each cell is a complete photograph filling its cell
+to all four edges. Cells butt edge to edge. No border, gutter, white strip,
+dividing line, frame, rounded corners, drop shadow or numbering.
+
+ONE BUILDING
+A modest, ordinary new-build apartment in Colombia, inland tropical city, mid
+rise residential tower. Grey concrete block walls, poured concrete slab floors
+and soffits, rough plaster patches, steel window openings with no glass yet.
+Plain and economical, NOT a luxury villa: no stone, no marble, no timber
+panelling, no architectural flourish. Working daylight through unglazed
+openings. Dust, offcuts and chalk marks as a real site has them.
+
+THE SIX
+
+1 TOP-LEFT. KITCHEN PLUMBING. A kitchen wall in bare blockwork with white PVC
+waste pipes and white water supply points chased in and clipped, capped off,
+plus a yellow gas line, before any render. Square-on to the wall, the floor and
+both corners visible.
+
+2 TOP-CENTRE. BATHROOM PLUMBING. A small bathroom in bare block with sanitary
+points roughed in - waste stub for the pan, supply points for basin and shower
+- and a dark grey waterproofing membrane applied across the floor and turned
+up the walls. Square-on from the doorway.
+
+3 TOP-RIGHT. LIVING ROOM ELECTRICAL. A living room wall and ceiling soffit with
+orange corrugated electrical conduit routed and clipped across the concrete,
+octagonal outlet boxes set at skirting and switch height, wires pulled through
+and coiled. Square-on.
+
+4 BOTTOM-LEFT. BEDROOM ELECTRICAL. A bedroom corner with conduit runs dropping
+down the block wall to two outlet boxes, and a ceiling rose box in the soffit.
+Clearly a smaller, plainer room than cell 3. Square-on.
+
+5 BOTTOM-CENTRE. KITCHEN ELECTRICAL. The kitchen again from a different wall:
+heavier appliance circuits in conduit, three outlet boxes in a row at worktop
+height, a thicker feed running up to the ceiling. Square-on.
+
+6 BOTTOM-RIGHT. DISTRIBUTION BOARD. A small entrance hall with a plastic
+consumer unit open on the wall, breakers visible in a neat row, conduit
+entering from above, the cover hanging or set aside. Square-on, close enough to
+read the board as a board.
+
+HOW THEY ARE PHOTOGRAPHED
+As site record photographs, not as architecture. Square-on, verticals true,
+even light, everything legible including the corners and the floor. Taken on a
+phone by a contractor documenting their own work. No shafts of sun, no
+vignette, no shallow depth of field, no artful crops.
+
+STRICTLY NOT
+No people anywhere, including reflections. No labels, captions, arrows,
+numbering or watermarks. No text of any kind. No finished surfaces: nothing in
+this grid is painted, tiled or trimmed - every frame is before the walls close.
+
+CRITICAL - SIX PLAIN PHOTOGRAPHS
+All six are straight photographs. Nothing superimposed: no panels, cards,
+boxes, labels, callouts, annotations, user interface, diagrams, dots, markers,
+arrows or lines over any picture.
+
+COMPOSITION
+Each cell is 16:9 landscape. Eye level. Verticals true, no converging
+distortion, no fisheye, no wide-angle stretch at the edges.
+
+LIGHT AND COLOUR
+Flat neutral daylight in every frame, consistent across all six. Grey, dusty,
+unglamorous palette. Neutral filmic grade, no saturation push, no HDR, no
+golden hour.
+
+AVOID
+Lettering, numbers or logos of any kind. Distorted geometry. Any visible seam,
+frame or gap between cells. Anything that looks expensive.
